@@ -1,10 +1,9 @@
-package main
+package cmds
 
 import (
 	"net/url"
 	"path/filepath"
 	"strings"
-	"unicode"
 )
 
 func uriToPath(uri string) string {
@@ -19,18 +18,5 @@ func uriToPath(uri string) string {
 		uri = path
 	}
 
-	if isWindowsDriveURIPath(uri) {
-		uri = strings.ToUpper(string(uri[1])) + uri[2:]
-	}
-
 	return filepath.FromSlash(uri)
-}
-
-func isWindowsDriveURIPath(uri string) bool {
-	//nolint:gomnd
-	if len(uri) < 4 {
-		return false
-	}
-
-	return uri[0] == '/' && unicode.IsLetter(rune(uri[1])) && uri[2] == ':'
 }

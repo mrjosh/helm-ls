@@ -3,8 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 
+	"github.com/mrjosh/helm-lint-ls/cmds"
 	"github.com/spf13/cobra"
+)
+
+var (
+	BranchName string
+	Version    string
+	CompiledBy string
+	BuildTime  string
 )
 
 func main() {
@@ -22,9 +31,16 @@ func main() {
 	}
 
 	rootCmd.SetArgs(os.Args[1:])
-	rootCmd.AddCommand(newServeCmd(os.Stdout))
 
-	if err := rootCmd.Execute(); err != nil {
+	vi := &cmds.VersionInfo{
+		Version:    Version,
+		BranchName: BranchName,
+		CompiledBy: CompiledBy,
+		GoVersion:  runtime.Version(),
+		BuildTime:  BuildTime,
+	}
+
+	if err := cmds.RegisterAndRun(vi, rootCmd); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

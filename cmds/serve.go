@@ -1,8 +1,7 @@
-package main
+package cmds
 
 import (
 	"context"
-	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -10,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newServeCmd(out io.Writer) *cobra.Command {
+func newServeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Start helm lint language server",

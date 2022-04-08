@@ -1,0 +1,143 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for release'
+        required: false
+        default: master
+  push:
+    branches:
+      - master
+    tags:
+      - v*
+
+jobs:
+
+  goartifacts:
+    name: artifacts
+    strategy:
+      matrix:
+        go-version: [1.17.1]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    outputs:
+      version: ${{ steps.build.outputs.version }}
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install go dependencies
+      run: go mod tidy
+
+    - name: Build artifacts
+      id: build
+      run: |
+        make build-artifacts
+        printf '::set-output name=version::%s\n' "$(./dist/helm_lint_ls_linux_amd64 version | head -n 4)"
+
+    - name: 'Upload macOS artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: helm_lint_ls_darwin_amd64
+        path: ./dist/helm_lint_ls_darwin_amd64
+        retention-days: 1
+
+    - name: 'Upload linux/amd64 artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: helm_lint_ls_linux_amd64
+        path: ./dist/helm_lint_ls_linux_amd64
+        retention-days: 1
+
+    - name: 'Upload linux/arm artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: helm_lint_ls_linux_arm
+        path: ./dist/helm_lint_ls_linux_arm
+        retention-days: 1
+
+  publish:
+    needs: [goartifacts]
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+    steps:
+
+      - uses: actions/download-artifact@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: github.event_name == 'workflow_dispatch'
+        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+
+      - if: github.event_name == 'schedule'
+        run: echo 'TAG_NAME=master' >> $GITHUB_ENV
+
+      - if: github.event_name == 'push'
+        run: |
+          TAG_NAME=${{ github.ref }}
+          echo "TAG_NAME=${TAG_NAME#refs/*/}" >> $GITHUB_ENV
+
+      - name: Generate Linux-64 SHA256 checksums
+        run: |
+          sha256sum helm_lint_ls_linux_amd64/helm_lint_ls_linux_amd64 > helm_lint_ls_linux_amd64.sha256sum
+          echo "SHA_LINUX_64=$(cat helm_lint_ls_linux_amd64.sha256sum)" >> $GITHUB_ENV
+
+      - name: Generate macOS SHA256 checksums
+        run: |
+          sha256sum helm_lint_ls_darwin_amd64/helm_lint_ls_darwin_amd64 > helm_lint_ls_darwin_amd64.sha256sum
+          echo "SHA_MACOS=$(cat helm_lint_ls_darwin_amd64.sha256sum)" >> $GITHUB_ENV
+
+      - name: Generate Linux-ARM SHA256 checksums
+        run: |
+          sha256sum helm_lint_ls_linux_arm/helm_lint_ls_linux_arm > helm_lint_ls_linux_arm.sha256sum
+          echo "SHA_LINUX_ARM=$(cat helm_lint_ls_linux_arm.sha256sum)" >> $GITHUB_ENV
+
+      - if: env.TAG_NAME == 'master'
+        run: echo 'SUBJECT=HelmLintLs development (prerelease) build' >> $GITHUB_ENV
+
+      - if: env.TAG_NAME != 'master'
+        run: echo 'SUBJECT=HelmLintLs release build' >> $GITHUB_ENV
+
+      - uses: meeDamian/github-release@2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.TAG_NAME }}
+          name: ${{ env.SUBJECT }}
+          prerelease: ${{ env.TAG_NAME == 'master' }}
+          commitish: ${{ github.sha }}
+          gzip: false
+          allow_override: true
+          files: |
+            helm_lint_ls_darwin_amd64:./helm_lint_ls_darwin_amd64/helm_lint_ls_darwin_amd64
+            helm_lint_ls_darwin_amd64.sha256sum:./helm_lint_ls_darwin_amd64.sha256sum
+            helm_lint_ls_linux_amd64:./helm_lint_ls_linux_amd64/helm_lint_ls_linux_amd64
+            helm_lint_ls_linux_amd64.sha256sum:./helm_lint_ls_linux_amd64.sha256sum
+            helm_lint_ls_linux_arm:./helm_lint_ls_linux_arm/helm_lint_ls_linux_arm
+            helm_lint_ls_linux_arm.sha256sum:./helm_lint_ls_linux_arm.sha256sum
+          body: |
+            ```
+            ${{ needs.goartifacts.outputs.version }}
+            ```
+            ### macOS (x64)
+            1. Download **helm_lint_ls_darwin_amd64**
+            2. Run `./helm_lint_ls_darwin_amd64`
+            ### Linux (x64)
+            1. Download **helm_lint_ls_linux_amd64**
+            2. Run `./helm_lint_ls_linux_amd64`
+            ### Linux (ARM)
+            1. Download **helm_lint_ls_linux_arm**
+            2. Run `./helm_lint_ls_linux_arm`
+            ## SHA256 Checksums
+            
+            ```
+            ${{ env.SHA_LINUX_64 }}
+            ${{ env.SHA_MACOS }}
+            ${{ env.SHA_LINUX_ARM }}
+            ```
