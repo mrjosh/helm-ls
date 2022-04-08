@@ -1,6 +1,6 @@
 export ROOT=$(realpath $(dir $(firstword $(MAKEFILE_LIST))))
-export GOBIN?=$(BIN)
 export BIN=$(ROOT)/bin
+export GOBIN?=$(BIN)
 export GO=$(shell which go)
 export CGO_ENABLED=1
 export GOX=$(BIN)/gox
@@ -49,11 +49,11 @@ lint:
 
 .PHONY: gox
 gox:
-	@gox -output="dist/homepi_{{.OS}}_{{.Arch}}"
+	@gox -output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
 
 # for ci jobs, runs lint against the changed packages in the commit
 ci-lint:
-	@$(shell which golangci-lint) $(LINTERCMD) --deadline 10m ./...
+	@$(LINTER) $(LINTERCMD) --deadline 10m ./...
 
 # Check if golangci-lint not exists, then install it
 install-metalinter:
@@ -68,12 +68,12 @@ install-gox:
 
 .PHONY: build-linux
 build-linux: install-gox
-	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=linux --output="dist/homepi_{{.OS}}_{{.Arch}}"
-	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=arm --os=linux --output="dist/homepi_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=linux --output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=arm --os=linux --output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
 
 .PHONY: build-macOS
 build-macOS: install-gox
-	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=darwin --output="dist/homepi_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=darwin --output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
 
 .PHONY: build-artifacts
 build-artifacts:
