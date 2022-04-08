@@ -7,7 +7,7 @@
 ### This project is under construction.
 
 ## About HelmLintLs
-helm lint language server (LSP) is helm lint language server.
+helm-lint-ls is [helm](https://github.com/helm/helm) lint language server protocol [LSP](https://microsoft.github.io/language-server-protocol/).
 
 ## Contributing
 Thank you for considering contributing to HelmLintLs project!

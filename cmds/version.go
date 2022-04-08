@@ -9,7 +9,7 @@ import (
 func newVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
-		Short: "Print current version of homepi",
+		Short: "Print current version of helm_lint_ls",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Fprintf(
 				cmd.OutOrStdout(),

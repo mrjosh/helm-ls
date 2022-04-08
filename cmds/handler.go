@@ -54,7 +54,7 @@ func (h *langHandler) lint(uri DocumentURI) ([]Diagnostic, error) {
 		}
 	}
 
-	vals := make(map[string]interface{}, 0)
+	vals := make(map[string]interface{})
 	result := h.client.Run([]string{dir}, vals)
 
 	h.logger.Println("golangci-lint-langserver: result:", result)
