@@ -1,6 +1,6 @@
 module github.com/mrjosh/helm-lint-ls
 
-go 1.18
+go 1.17
 
 require (
 	github.com/sirupsen/logrus v1.8.1
