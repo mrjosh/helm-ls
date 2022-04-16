@@ -23,5 +23,7 @@ func RegisterAndRun(vi *VersionInfo, rootCmd *cobra.Command) error {
 	versionInfo = vi
 	rootCmd.AddCommand(newVersionCmd())
 	rootCmd.AddCommand(newServeCmd())
+	rootCmd.AddCommand(newLintCmd())
+	rootCmd.AddCommand(newTestCmd())
 	return rootCmd.Execute()
 }

@@ -1,12 +1,14 @@
 package cmds
 
 import (
+	"fmt"
 	"net/url"
 	"path/filepath"
 	"strings"
 )
 
 func uriToPath(uri string) string {
+	uri = fmt.Sprintf("%s/", uri)
 	switch {
 	case strings.HasPrefix(uri, "file:///"):
 		uri = uri[len("file://"):]

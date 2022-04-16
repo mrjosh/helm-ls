@@ -4,13 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sourcegraph/jsonrpc2"
 	"helm.sh/helm/v3/pkg/action"
+	"helm.sh/helm/v3/pkg/lint/support"
 )
 
 func NewHandler(logger *logrus.Logger) jsonrpc2.Handler {
@@ -51,6 +54,7 @@ func (h *langHandler) lint(uri DocumentURI) ([]Diagnostic, error) {
 		if p == "templates" {
 			dir = strings.Join(paths[0:i], "/")
 			pathfile = strings.Join(paths[i:], "/")
+			pathfile = pathfile[0 : len(pathfile)-1]
 		}
 	}
 
@@ -59,48 +63,83 @@ func (h *langHandler) lint(uri DocumentURI) ([]Diagnostic, error) {
 
 	h.logger.Println("golangci-lint-langserver: result:", result)
 
-	for _, err := range result.Errors {
-		d, filename, err := getDiagnosticFromLinterErr(err)
-		if err != nil {
-			continue
+	for _, d := range result.Messages {
+
+		if d.Path != "" {
+
+			if strings.Contains(d.Error(), "parse error at") {
+
+				d, filename, err := h.getDiagnosticFromLinterMessageWithoutLineNum(&d)
+				if err != nil {
+					continue
+				}
+
+				log.Println(fmt.Sprintf("[%s,%s]", filename, pathfile))
+
+				if filename != pathfile {
+					continue
+				}
+
+				diagnostics = append(diagnostics, *d)
+				continue
+			}
+
+			// find lint error that has line number in them
+			if strings.Contains(d.Error(), "line") {
+
+				d, filename, err := h.getDiagnosticFromLinterMessage(&d)
+				if err != nil {
+					continue
+				}
+
+				log.Println(fmt.Sprintf("[%s,%s]", filename, pathfile))
+
+				if filename != pathfile {
+					continue
+				}
+
+				diagnostics = append(diagnostics, *d)
+				continue
+			}
+
 		}
-		if filename != pathfile {
-			continue
-		}
-		diagnostics = append(diagnostics, *d)
+
 	}
 
 	return diagnostics, nil
 }
 
-func between(value string, a string, b string) string {
-	// Get substring between two strings.
-	posFirst := strings.Index(value, a)
-	if posFirst == -1 {
-		return ""
+func getFilePathFromLinterMessage(msg *support.Message) string {
+	filename := ""
+	paths := strings.Split(msg.Path, "/")
+	for i, p := range paths {
+		if p == "templates" {
+			filename = strings.Join(paths[i:], "/")
+		}
 	}
-	posLast := strings.Index(value, b)
-	if posLast == -1 {
-		return ""
-	}
-	posFirstAdjusted := posFirst + len(a)
-	if posFirstAdjusted >= posLast {
-		return ""
-	}
-	return value[posFirstAdjusted:posLast]
+	return filename
 }
 
-func after(value string, a string) string {
-	// Get substring after a string.
-	pos := strings.LastIndex(value, a)
-	if pos == -1 {
-		return ""
+func (h *langHandler) getDiagnosticFromLinterMessageWithoutLineNum(lintMsg *support.Message) (*Diagnostic, string, error) {
+
+	fileLine := between(lintMsg.Error(), "(", ")")
+	fileLineArr := strings.Split(fileLine, ":")
+	filename := getFilePathFromLinterErr(lintMsg.Err)
+	lineStr := fileLineArr[1]
+
+	line, err := strconv.Atoi(lineStr)
+	if err != nil {
+		return nil, filename, err
 	}
-	adjustedPos := pos + len(a)
-	if adjustedPos >= len(value) {
-		return ""
-	}
-	return value[adjustedPos:]
+
+	return &Diagnostic{
+		Range: Range{
+			Start: Position{Line: line - 1},
+			End:   Position{Line: line - 1},
+		},
+		Severity: DSError,
+		Message:  lintMsg.Error(),
+	}, filename, nil
 }
 
 func getFilePathFromLinterErr(err error) string {
@@ -117,28 +156,23 @@ func getFilePathFromLinterErr(err error) string {
 	return filename
 }
 
-func getDiagnosticFromLinterErr(err error) (*Diagnostic, string, error) {
+func (h *langHandler) getDiagnosticFromLinterMessage(lintMsg *support.Message) (*Diagnostic, string, error) {
 
-	msgStr := after(err.Error(), "):")
-	msg := strings.TrimSpace(msgStr)
-
-	fileLine := between(err.Error(), "(", ")")
-	fileLineArr := strings.Split(fileLine, ":")
-	filename := getFilePathFromLinterErr(err)
-	lineStr := fileLineArr[1]
-
-	line, err := strconv.Atoi(lineStr)
+	lineNumber, err := h.findLineNumber(lintMsg.Error())
 	if err != nil {
-		return nil, filename, err
+		h.logger.Printf("%s", err)
+		return nil, "", err
 	}
+
+	filename := getFilePathFromLinterMessage(lintMsg)
 
 	return &Diagnostic{
 		Range: Range{
-			Start: Position{Line: line - 1},
-			End:   Position{Line: line - 1},
+			Start: Position{Line: lineNumber - 1},
+			End:   Position{Line: lineNumber - 1},
 		},
 		Severity: DSError,
-		Message:  msg,
+		Message:  lintMsg.Error(),
 	}, filename, nil
 }
 
@@ -155,7 +189,6 @@ func (h *langHandler) linter() {
 		diagnostics, err := h.lint(uri)
 		if err != nil {
 			h.logger.Printf("%s", err)
-
 			continue
 		}
 
@@ -171,6 +204,18 @@ func (h *langHandler) linter() {
 	}
 }
 
+func (h *langHandler) findLineNumber(str string) (int, error) {
+
+	re := regexp.MustCompile(`(?s)line \d+`)
+	if len(re.FindStringIndex(str)) > 0 {
+		match := re.FindString(str)
+		lineNumber := strings.ReplaceAll(match, "line", "")
+		return strconv.Atoi(strings.TrimSpace(lineNumber))
+	}
+
+	return 0, fmt.Errorf("could not find line number from this err: %v", str)
+}
+
 func (h *langHandler) handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (result interface{}, err error) {
 	h.logger.Debug("golangci-lint-langserver: request:", req)
 
@@ -178,6 +223,8 @@ func (h *langHandler) handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 	case "initialize":
 		return h.handleInitialize(ctx, conn, req)
 	case "initialized":
+		return
+	case "$/cancelRequest":
 		return
 	case "shutdown":
 		return h.handleShutdown(ctx, conn, req)
@@ -255,4 +302,34 @@ func (h *langHandler) handleTextDocumentDidSave(_ context.Context, _ *jsonrpc2.C
 	h.request <- params.TextDocument.URI
 
 	return nil, nil
+}
+
+func between(value string, a string, b string) string {
+	// Get substring between two strings.
+	posFirst := strings.Index(value, a)
+	if posFirst == -1 {
+		return ""
+	}
+	posLast := strings.Index(value, b)
+	if posLast == -1 {
+		return ""
+	}
+	posFirstAdjusted := posFirst + len(a)
+	if posFirstAdjusted >= posLast {
+		return ""
+	}
+	return value[posFirstAdjusted:posLast]
+}
+
+func after(value string, a string) string {
+	// Get substring after a string.
+	pos := strings.LastIndex(value, a)
+	if pos == -1 {
+		return ""
+	}
+	adjustedPos := pos + len(a)
+	if adjustedPos >= len(value) {
+		return ""
+	}
+	return value[adjustedPos:]
 }
