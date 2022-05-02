@@ -55,6 +55,13 @@ jobs:
         path: ./dist/helm_lint_ls_linux_amd64
         retention-days: 1
 
+    - name: 'Upload windows/amd64 artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: helm_lint_ls_windows_amd64
+        path: ./dist/helm_lint_ls_windows_amd64.exe
+        retention-days: 1
+
     - name: 'Upload linux/arm artifact'
       uses: actions/upload-artifact@v2
       with:
@@ -89,6 +96,11 @@ jobs:
           sha256sum helm_lint_ls_linux_amd64/helm_lint_ls_linux_amd64 > helm_lint_ls_linux_amd64.sha256sum
           echo "SHA_LINUX_64=$(cat helm_lint_ls_linux_amd64.sha256sum)" >> $GITHUB_ENV
 
+      - name: Generate Windows-64 SHA256 checksums
+        run: |
+          sha256sum helm_lint_ls_windows_amd64/helm_lint_ls_windows_amd64.exe > helm_lint_ls_windows_amd64.sha256sum
+          echo "SHA_LINUX_64=$(cat helm_lint_ls_windows_amd64.sha256sum)" >> $GITHUB_ENV
+
       - name: Generate macOS SHA256 checksums
         run: |
           sha256sum helm_lint_ls_darwin_amd64/helm_lint_ls_darwin_amd64 > helm_lint_ls_darwin_amd64.sha256sum
@@ -117,6 +129,8 @@ jobs:
           files: |
             helm_lint_ls_darwin_amd64:./helm_lint_ls_darwin_amd64/helm_lint_ls_darwin_amd64
             helm_lint_ls_darwin_amd64.sha256sum:./helm_lint_ls_darwin_amd64.sha256sum
+            helm_lint_ls_windows_amd64:./helm_lint_ls_windows_amd64/helm_lint_ls_windows_amd64.exe
+            helm_lint_ls_windows_amd64.sha256sum:./helm_lint_ls_windows_amd64.sha256sum
             helm_lint_ls_linux_amd64:./helm_lint_ls_linux_amd64/helm_lint_ls_linux_amd64
             helm_lint_ls_linux_amd64.sha256sum:./helm_lint_ls_linux_amd64.sha256sum
             helm_lint_ls_linux_arm:./helm_lint_ls_linux_arm/helm_lint_ls_linux_arm
@@ -128,6 +142,9 @@ jobs:
             ### macOS (x64)
             1. Download **helm_lint_ls_darwin_amd64**
             2. Run `./helm_lint_ls_darwin_amd64`
+            ### windows (x64)
+            1. Download **helm_lint_ls_windows_amd64.exe**
+            2. Run `./helm_lint_ls_windows_amd64.exe`
             ### Linux (x64)
             1. Download **helm_lint_ls_linux_amd64**
             2. Run `./helm_lint_ls_linux_amd64`

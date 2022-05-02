@@ -75,6 +75,12 @@ build-linux: install-gox
 build-macOS: install-gox
 	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=darwin --output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
 
+.PHONY: build-windows
+build-windows: install-gox
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=windows --output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
+
 .PHONY: build-artifacts
 build-artifacts:
-	@$(MAKE) build-linux && $(MAKE) build-macOS
+	@$(MAKE) build-linux && \
+		$(MAKE) build-macOS && \
+		$(MAKE) build-windows
