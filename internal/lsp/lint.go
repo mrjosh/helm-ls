@@ -10,25 +10,29 @@ import (
 	"helm.sh/helm/v3/pkg/action"
 
 	"go.lsp.dev/jsonrpc2"
-	"go.lsp.dev/protocol"
+	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
 
-func notifcationFromLint(ctx context.Context, uri uri.URI) (*jsonrpc2.Notification, error) {
+func notifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, uri uri.URI) (*jsonrpc2.Notification, error) {
 	diagnostics, err := getDiagnostics(uri)
 	if err != nil {
 		return nil, err
 	}
-	publishDiagnosticsParams := &protocol.PublishDiagnosticsParams{
+	publishDiagnosticsParams := &lsp.PublishDiagnosticsParams{
 		URI:         uri,
 		Diagnostics: diagnostics,
 	}
 
-	return jsonrpc2.NewNotification(protocol.MethodTextDocumentPublishDiagnostics, publishDiagnosticsParams)
+	return nil, conn.Notify(
+		ctx,
+		lsp.MethodTextDocumentPublishDiagnostics,
+		publishDiagnosticsParams,
+	)
 }
 
-func getDiagnostics(uri uri.URI) ([]protocol.Diagnostic, error) {
-	diagnostics := make([]protocol.Diagnostic, 0)
+func getDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
+	diagnostics := make([]lsp.Diagnostic, 0)
 
 	path := util.URIToPath(string(uri))
 	dir, _ := filepath.Split(path)
@@ -63,7 +67,7 @@ func getDiagnostics(uri uri.URI) ([]protocol.Diagnostic, error) {
 	return diagnostics, nil
 }
 
-func getDiagnosticFromLinterErr(err error) (*protocol.Diagnostic, string, error) {
+func getDiagnosticFromLinterErr(err error) (*lsp.Diagnostic, string, error) {
 
 	msgStr := util.AfterStrings(err.Error(), "):")
 	msg := strings.TrimSpace(msgStr)
@@ -78,12 +82,12 @@ func getDiagnosticFromLinterErr(err error) (*protocol.Diagnostic, string, error)
 		return nil, filename, err
 	}
 
-	return &protocol.Diagnostic{
-		Range: protocol.Range{
-			Start: protocol.Position{Line: uint32(line - 1)},
-			End:   protocol.Position{Line: uint32(line - 1)},
+	return &lsp.Diagnostic{
+		Range: lsp.Range{
+			Start: lsp.Position{Line: uint32(line - 1)},
+			End:   lsp.Position{Line: uint32(line - 1)},
 		},
-		Severity: protocol.DiagnosticSeverityError,
+		Severity: lsp.DiagnosticSeverityError,
 		Message:  msg,
 	}, filename, nil
 }
