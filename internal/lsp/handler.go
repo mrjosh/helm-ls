@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"go.lsp.dev/jsonrpc2"
-	"go.lsp.dev/protocol"
+	lsp "go.lsp.dev/protocol"
 
 	"github.com/mrjosh/helm-lint-ls/internal/log"
 )
@@ -30,21 +30,21 @@ func (h *langHandler) handle(ctx context.Context, reply jsonrpc2.Replier, req js
 	logger.Debug("helm-lint-langserver: request:", req)
 
 	switch req.Method() {
-	case protocol.MethodInitialize:
+	case lsp.MethodInitialize:
 		return h.handleInitialize(ctx, reply, req)
-	case protocol.MethodInitialized:
-		return
-	case protocol.MethodShutdown:
+	case lsp.MethodInitialized:
+		return reply(ctx, nil, nil)
+	case lsp.MethodShutdown:
 		return h.handleShutdown(ctx, reply, req)
-	case protocol.MethodTextDocumentDidOpen:
+	case lsp.MethodTextDocumentDidOpen:
 		return h.handleTextDocumentDidOpen(ctx, reply, req)
-	case protocol.MethodTextDocumentDidClose:
+	case lsp.MethodTextDocumentDidClose:
 		return h.handleTextDocumentDidClose(ctx, reply, req)
-	case protocol.MethodTextDocumentDidChange:
+	case lsp.MethodTextDocumentDidChange:
 		return h.handleTextDocumentDidChange(ctx, reply, req)
-	case protocol.MethodTextDocumentDidSave:
+	case lsp.MethodTextDocumentDidSave:
 		return h.handleTextDocumentDidSave(ctx, reply, req)
-	case protocol.MethodTextDocumentCompletion:
+	case lsp.MethodTextDocumentCompletion:
 		return h.handleTextDocumentCompletion(ctx, reply, req)
 	}
 
@@ -56,17 +56,17 @@ func (h *langHandler) handleTextDocumentCompletion(_ context.Context, reply json
 }
 
 func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-	var params protocol.InitializeParams
+	var params lsp.InitializeParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		return err
 	}
 
-	return reply(ctx, protocol.InitializeResult{
-		Capabilities: protocol.ServerCapabilities{
-			TextDocumentSync: protocol.TextDocumentSyncOptions{
-				Change:    protocol.TextDocumentSyncKindNone,
+	return reply(ctx, lsp.InitializeResult{
+		Capabilities: lsp.ServerCapabilities{
+			TextDocumentSync: lsp.TextDocumentSyncOptions{
+				Change:    lsp.TextDocumentSyncKindNone,
 				OpenClose: true,
-				Save: &protocol.SaveOptions{
+				Save: &lsp.SaveOptions{
 					IncludeText: true,
 				},
 			},
@@ -79,12 +79,13 @@ func (h *langHandler) handleShutdown(_ context.Context, reply jsonrpc2.Replier, 
 }
 
 func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-	var params protocol.DidOpenTextDocumentParams
+
+	var params lsp.DidOpenTextDocumentParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		return err
 	}
 
-	notification, err := notifcationFromLint(ctx, params.TextDocument.URI)
+	notification, err := notifcationFromLint(ctx, h.connPool, params.TextDocument.URI)
 	return reply(ctx, notification, err)
 }
 
@@ -97,11 +98,11 @@ func (h *langHandler) handleTextDocumentDidChange(_ context.Context, _ jsonrpc2.
 }
 
 func (h *langHandler) handleTextDocumentDidSave(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-	var params protocol.DidSaveTextDocumentParams
+	var params lsp.DidSaveTextDocumentParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		return err
 	}
 
-	notification, err := notifcationFromLint(ctx, params.TextDocument.URI)
+	notification, err := notifcationFromLint(ctx, h.connPool, params.TextDocument.URI)
 	return reply(ctx, notification, err)
 }
