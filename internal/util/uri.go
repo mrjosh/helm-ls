@@ -1,4 +1,4 @@
-package cmds
+package util
 
 import (
 	"net/url"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func uriToPath(uri string) string {
+func URIToPath(uri string) string {
 	switch {
 	case strings.HasPrefix(uri, "file:///"):
 		uri = uri[len("file://"):]
