@@ -4,9 +4,10 @@ import (
 	"context"
 	"os"
 
-	"github.com/sirupsen/logrus"
-	"github.com/sourcegraph/jsonrpc2"
+	"github.com/mrjosh/helm-lint-ls/internal/log"
+	"github.com/mrjosh/helm-lint-ls/internal/lsp"
 	"github.com/spf13/cobra"
+	"go.lsp.dev/jsonrpc2"
 )
 
 func newServeCmd() *cobra.Command {
@@ -14,23 +15,13 @@ func newServeCmd() *cobra.Command {
 		Use:   "serve",
 		Short: "Start helm lint language server",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			conn := jsonrpc2.NewConn(jsonrpc2.NewStream(stdrwc{}))
+			handler := lsp.NewHandler(conn)
+			handlerSrv := jsonrpc2.HandlerServer(handler)
 
-			logger := logrus.New()
-			logger.SetFormatter(&logrus.JSONFormatter{})
-
-			handler := NewHandler(logger)
-
-			var connOpt []jsonrpc2.ConnOpt
-			logger.Printf("helm-lint-langserver: connections opened")
-
-			<-jsonrpc2.NewConn(
-				context.Background(),
-				jsonrpc2.NewBufferedStream(stdrwc{}, jsonrpc2.VSCodeObjectCodec{}),
-				handler,
-				connOpt...,
-			).DisconnectNotify()
-
-			return nil
+			logger := log.GetLogger()
+			logger.Printf("serving...")
+			return handlerSrv.ServeStream(context.Background(), conn)
 		},
 	}
 
