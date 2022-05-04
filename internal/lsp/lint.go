@@ -34,7 +34,7 @@ func notifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, uri uri.URI) (
 func getDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
 	diagnostics := make([]lsp.Diagnostic, 0)
 
-	path := util.URIToPath(string(uri))
+	path := uri.Filename()
 	dir, _ := filepath.Split(path)
 
 	pathfile := ""
