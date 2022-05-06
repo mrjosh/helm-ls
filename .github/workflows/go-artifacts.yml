@@ -99,7 +99,7 @@ jobs:
       - name: Generate Windows-64 SHA256 checksums
         run: |
           sha256sum helm_lint_ls_windows_amd64/helm_lint_ls_windows_amd64.exe > helm_lint_ls_windows_amd64.sha256sum
-          echo "SHA_LINUX_64=$(cat helm_lint_ls_windows_amd64.sha256sum)" >> $GITHUB_ENV
+          echo "SHA_WINDOWS_64=$(cat helm_lint_ls_windows_amd64.sha256sum)" >> $GITHUB_ENV
 
       - name: Generate macOS SHA256 checksums
         run: |
@@ -156,5 +156,6 @@ jobs:
             ```
             ${{ env.SHA_LINUX_64 }}
             ${{ env.SHA_MACOS }}
+            ${{ env.SHA_WINDOWS_64 }}
             ${{ env.SHA_LINUX_ARM }}
             ```
