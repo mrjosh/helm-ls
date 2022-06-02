@@ -35,7 +35,7 @@ if not configs.helm_lint_ls then
       cmd = { "helm_lint_ls", "serve" },
       filetypes = { 'helm' },
       root_dir = function(fname)
-        return util.root_pattern('Chart.yaml', 'values.yaml')(fname)
+        return util.root_pattern('Chart.yaml')(fname)
       end,
     },
   }
