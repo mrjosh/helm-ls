@@ -24,7 +24,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 
-	"github.com/Masterminds/semver/v3"
+	semver "github.com/Masterminds/semver/v3"
 	helmversion "github.com/mrjosh/helm-lint-ls/internal/version"
 )
 
