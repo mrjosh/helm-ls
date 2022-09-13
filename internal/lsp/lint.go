@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"github.com/mrjosh/helm-lint-ls/internal/util"
-	"helm.sh/helm/v3/pkg/action"
+	"github.com/mrjosh/helm-lint-ls/pkg/action"
+	"github.com/mrjosh/helm-lint-ls/pkg/lint/support"
 
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
@@ -15,7 +16,7 @@ import (
 )
 
 func notifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, uri uri.URI) (*jsonrpc2.Notification, error) {
-	diagnostics, err := getDiagnostics(uri)
+	diagnostics, err := GetDiagnostics(uri)
 	if err != nil {
 		return nil, err
 	}
@@ -31,16 +32,36 @@ func notifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, uri uri.URI) (
 	)
 }
 
-func getDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
+func GetDiagnosticsErrors(uri uri.URI) []support.Message {
+
+	filename := uri.Filename()
+	dir, _ := filepath.Split(filename)
+
+	paths := strings.Split(filename, "/")
+
+	for i, p := range paths {
+		if p == "templates" {
+			dir = strings.Join(paths[0:i], "/")
+		}
+	}
+
+	logger.Println(dir)
+
+	client := action.NewLint()
+	vals := make(map[string]interface{})
+
+	return client.Run([]string{dir}, vals).Messages
+}
+
+func GetDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
 	diagnostics := make([]lsp.Diagnostic, 0)
 
-	path := uri.Filename()
-	dir, _ := filepath.Split(path)
+	filename := uri.Filename()
+	dir, _ := filepath.Split(filename)
 
 	pathfile := ""
 
-	paths := strings.Split(path, "/")
-	logger.Println(paths)
+	paths := strings.Split(filename, "/")
 
 	for i, p := range paths {
 		if p == "templates" {
@@ -48,13 +69,18 @@ func getDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
 			pathfile = strings.Join(paths[i:], "/")
 		}
 	}
+
+	logger.Println(paths)
+
 	client := action.NewLint()
 	vals := make(map[string]interface{})
+
 	result := client.Run([]string{dir}, vals)
+
 	logger.Println("helm lint: result:", result)
 
-	for _, err := range result.Errors {
-		d, filename, err := getDiagnosticFromLinterErr(err)
+	for _, msg := range result.Messages {
+		d, filename, err := GetDiagnosticFromLinterErr(msg)
 		if err != nil {
 			continue
 		}
@@ -67,19 +93,37 @@ func getDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
 	return diagnostics, nil
 }
 
-func getDiagnosticFromLinterErr(err error) (*lsp.Diagnostic, string, error) {
+func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string, error) {
 
-	msgStr := util.AfterStrings(err.Error(), "):")
-	msg := strings.TrimSpace(msgStr)
+	var (
+		err      error
+		msg      string
+		line     int = 1
+		severity lsp.DiagnosticSeverity
+		filename = getFilePathFromLinterErr(supMsg)
+	)
 
-	fileLine := util.BetweenStrings(err.Error(), "(", ")")
-	fileLineArr := strings.Split(fileLine, ":")
-	filename := getFilePathFromLinterErr(err)
-	lineStr := fileLineArr[1]
+	switch supMsg.Severity {
+	case support.ErrorSev:
 
-	line, err := strconv.Atoi(lineStr)
-	if err != nil {
-		return nil, filename, err
+		severity = lsp.DiagnosticSeverityError
+
+		fileLine := util.BetweenStrings(supMsg.Error(), "(", ")")
+		fileLineArr := strings.Split(fileLine, ":")
+		lineStr := fileLineArr[1]
+		msgStr := util.AfterStrings(supMsg.Error(), "):")
+		msg = strings.TrimSpace(msgStr)
+
+		line, err = strconv.Atoi(lineStr)
+		if err != nil {
+			return nil, filename, err
+		}
+
+	case support.InfoSev:
+
+		severity = lsp.DiagnosticSeverityInformation
+		msg = supMsg.Err.Error()
+
 	}
 
 	return &lsp.Diagnostic{
@@ -87,23 +131,30 @@ func getDiagnosticFromLinterErr(err error) (*lsp.Diagnostic, string, error) {
 			Start: lsp.Position{Line: uint32(line - 1)},
 			End:   lsp.Position{Line: uint32(line - 1)},
 		},
-		Severity: lsp.DiagnosticSeverityError,
+		Severity: severity,
 		Message:  msg,
 	}, filename, nil
 }
 
-func getFilePathFromLinterErr(err error) string {
-	var filename string
-	fileLine := util.BetweenStrings(err.Error(), "(", ")")
-	file, _, found := strings.Cut(fileLine, ":")
+func getFilePathFromLinterErr(msg support.Message) string {
+
+	var (
+		filename       string
+		fileLine       = util.BetweenStrings(msg.Error(), "(", ")")
+		file, _, found = strings.Cut(fileLine, ":")
+	)
+
 	if !found {
-		return ""
+		return msg.Path
 	}
+
 	paths := strings.Split(file, "/")
+
 	for i, p := range paths {
 		if p == "templates" {
 			filename = strings.Join(paths[i:], "/")
 		}
 	}
+
 	return filename
 }

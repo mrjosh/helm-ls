@@ -7,8 +7,9 @@ export GOX=$(BIN)/gox
 
 $(eval GIT_COMMIT=$(shell git rev-parse --short HEAD))
 $(eval BRANCH_NAME=$(shell git rev-parse --abbrev-ref HEAD))
+$(eval COMPILED_BY=$(shell hostname))
 
-export GO_LDFLAGS="-X main.CompiledBy=runner@Mac-1640963667289.local -X main.Version=${GIT_COMMIT} -X main.BranchName=${BRANCH_NAME} -X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'`"
+export GO_LDFLAGS="-X main.CompiledBy=${COMPILED_BY} -X main.Version=${GIT_COMMIT} -X main.BranchName=${BRANCH_NAME} -X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'`"
 
 export LINTER=$(GOBIN)/golangci-lint
 export LINTERCMD=run --no-config -v \

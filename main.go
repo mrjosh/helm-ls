@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	"github.com/mrjosh/helm-lint-ls/cmds"
+	"github.com/mrjosh/helm-lint-ls/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -32,15 +33,15 @@ func main() {
 
 	rootCmd.SetArgs(os.Args[1:])
 
-	vi := &cmds.VersionInfo{
+	vi := &version.BuildInfo{
 		Version:    Version,
-		BranchName: BranchName,
+		Branch:     BranchName,
 		CompiledBy: CompiledBy,
 		GoVersion:  runtime.Version(),
 		BuildTime:  BuildTime,
 	}
 
-	if err := cmds.RegisterAndRun(vi, rootCmd); err != nil {
+	if err := cmds.Start(vi, rootCmd); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
