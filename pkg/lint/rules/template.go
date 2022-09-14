@@ -25,6 +25,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -208,8 +209,51 @@ func validateAllowedExtension(fileName string) error {
 	return errors.Errorf("file extension '%s' not valid. Valid extensions are .yaml, .yml, .tpl, or .txt", ext)
 }
 
+type YAMLToJSONParseError struct {
+	message string
+	Line    int
+}
+
+func (err *YAMLToJSONParseError) Error() string {
+	return err.message
+}
+
 func validateYamlContent(err error) error {
+	er, ok := err.(yaml.YAMLSyntaxError)
+	if ok {
+
+		erStr := strings.ReplaceAll(
+			er.Error(),
+			"error converting YAML to JSON: yaml:",
+			"",
+		)
+
+		cleanStr := strings.TrimSpace(erStr)
+
+		splittedErr := strings.Split(cleanStr, ":")
+		linenostr := strings.Split(splittedErr[0], " ")
+
+		lineno, _ := strconv.Atoi(linenostr[1])
+
+		return &YAMLToJSONParseError{
+			message: strings.TrimSpace(splittedErr[1]),
+			Line:    lineno,
+		}
+	}
 	return errors.Wrap(err, "unable to parse YAML")
+}
+
+type MetadataError struct {
+	message string
+	details error
+}
+
+func (err *MetadataError) Error() string {
+	return err.message
+}
+
+func (err *MetadataError) Details() error {
+	return err.details
 }
 
 // validateMetadataName uses the correct validation function for the object
@@ -222,7 +266,10 @@ func validateMetadataName(obj *K8sYamlStruct) error {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("metadata").Child("name"), obj.Metadata.Name, msg))
 	}
 	if len(allErrs) > 0 {
-		return errors.Wrapf(allErrs.ToAggregate(), "object name does not conform to Kubernetes naming requirements: %q", obj.Metadata.Name)
+		return &MetadataError{
+			message: "object name does not conform to Kubernetes naming requirements",
+			details: errors.Wrapf(allErrs.ToAggregate(), "object name does not conform to Kubernetes naming requirements: %q", obj.Metadata.Name),
+		}
 	}
 	return nil
 }

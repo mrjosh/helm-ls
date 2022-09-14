@@ -19,9 +19,13 @@ func newLintCmd() *cobra.Command {
 				args = append(args, os.Getenv("PWD"))
 			}
 
-			msgs := locallsp.GetDiagnosticsErrors(uri.New(args[0] + "/templates"))
+			msgs, err := locallsp.GetDiagnostics(uri.New(args[0]))
+			if err != nil {
+				return err
+			}
+
 			for _, msg := range msgs {
-				fmt.Println(msg.Err)
+				fmt.Println(msg)
 			}
 
 			return nil

@@ -2,13 +2,17 @@ package lsp
 
 import (
 	"context"
-	"path/filepath"
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/mrjosh/helm-lint-ls/internal/util"
 	"github.com/mrjosh/helm-lint-ls/pkg/action"
+	"github.com/mrjosh/helm-lint-ls/pkg/lint/rules"
 	"github.com/mrjosh/helm-lint-ls/pkg/lint/support"
+	"github.com/pkg/errors"
+	yaml "gopkg.in/yaml.v3"
 
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
@@ -20,48 +24,56 @@ func notifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, uri uri.URI) (
 	if err != nil {
 		return nil, err
 	}
-	publishDiagnosticsParams := &lsp.PublishDiagnosticsParams{
-		URI:         uri,
-		Diagnostics: diagnostics,
-	}
-
 	return nil, conn.Notify(
 		ctx,
 		lsp.MethodTextDocumentPublishDiagnostics,
-		publishDiagnosticsParams,
+		&lsp.PublishDiagnosticsParams{
+			URI:         uri,
+			Diagnostics: diagnostics,
+		},
 	)
 }
 
-func GetDiagnosticsErrors(uri uri.URI) []support.Message {
+// loadValues will load the values files into a map[string]interface{}
+// the filename arg default is values.yaml
+func loadValues(dir string, filename ...string) (map[string]interface{}, error) {
 
-	filename := uri.Filename()
-	dir, _ := filepath.Split(filename)
-
-	paths := strings.Split(filename, "/")
-
-	for i, p := range paths {
-		if p == "templates" {
-			dir = strings.Join(paths[0:i], "/")
-		}
+	vals := make(map[string]interface{})
+	if len(filename) == 0 {
+		filename = append(filename, "values.yaml")
 	}
 
-	logger.Println(dir)
+	if len(filename) > 1 {
+		return vals, errors.New("filename should be a single string")
+	}
 
-	client := action.NewLint()
-	vals := make(map[string]interface{})
+	file, err := os.Open(fmt.Sprintf("%s/%s", dir, filename[0]))
+	if err != nil {
+		return vals, err
+	}
 
-	return client.Run([]string{dir}, vals).Messages
+	if err := yaml.NewDecoder(file).Decode(&vals); err != nil {
+		return vals, err
+	}
+
+	logger.Println(fmt.Sprintf("%s file loaded successfully", file.Name()))
+	logger.Debug(vals)
+
+	return vals, nil
 }
 
+// GetDiagnostics will run helm linter agains the currect document URI
+// and converts the helm.support.Message to lsp.Diagnostics
 func GetDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
-	diagnostics := make([]lsp.Diagnostic, 0)
 
-	filename := uri.Filename()
-	dir, _ := filepath.Split(filename)
+	var (
+		filename    = uri.Filename()
+		paths       = strings.Split(filename, "/")
+		dir         = strings.Join(paths, "/")
+		diagnostics = make([]lsp.Diagnostic, 0)
+	)
 
 	pathfile := ""
-
-	paths := strings.Split(filename, "/")
 
 	for i, p := range paths {
 		if p == "templates" {
@@ -70,14 +82,23 @@ func GetDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
 		}
 	}
 
-	logger.Println(paths)
-
+	logger.Println(dir)
 	client := action.NewLint()
-	vals := make(map[string]interface{})
+
+	vals, err := loadValues(dir)
+	if err != nil {
+
+		logger.Println(errors.Wrap(err, "could not load values.yaml, trying to load values.yml instead"))
+
+		vals, err = loadValues(dir, "values.yml")
+		if err != nil {
+			logger.Println(errors.Wrap(err, "could not load values.yml, ignoring values"))
+		}
+
+	}
 
 	result := client.Run([]string{dir}, vals)
-
-	logger.Println("helm lint: result:", result)
+	logger.Println("helm lint: result:", result.Messages)
 
 	for _, msg := range result.Messages {
 		d, filename, err := GetDiagnosticFromLinterErr(msg)
@@ -108,15 +129,32 @@ func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string
 
 		severity = lsp.DiagnosticSeverityError
 
-		fileLine := util.BetweenStrings(supMsg.Error(), "(", ")")
-		fileLineArr := strings.Split(fileLine, ":")
-		lineStr := fileLineArr[1]
-		msgStr := util.AfterStrings(supMsg.Error(), "):")
-		msg = strings.TrimSpace(msgStr)
+		if superr, ok := supMsg.Err.(*rules.YAMLToJSONParseError); ok {
 
-		line, err = strconv.Atoi(lineStr)
-		if err != nil {
-			return nil, filename, err
+			line = superr.Line
+			msg = superr.Error()
+
+		} else {
+
+			fileLine := util.BetweenStrings(supMsg.Error(), "(", ")")
+			fileLineArr := strings.Split(fileLine, ":")
+			lineStr := fileLineArr[1]
+			msgStr := util.AfterStrings(supMsg.Error(), "):")
+			msg = strings.TrimSpace(msgStr)
+
+			line, err = strconv.Atoi(lineStr)
+			if err != nil {
+				return nil, filename, err
+			}
+
+		}
+
+	case support.WarningSev:
+
+		severity = lsp.DiagnosticSeverityWarning
+		if err, ok := supMsg.Err.(*rules.MetadataError); ok {
+			line = 1
+			msg = err.Details().Error()
 		}
 
 	case support.InfoSev:
