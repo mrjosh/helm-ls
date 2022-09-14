@@ -6,6 +6,13 @@ type LintError struct {
 	errors   []error
 }
 
+func NewLintError(msg string, errs ...error) *LintError {
+	return &LintError{
+		errors:  errs,
+		message: msg,
+	}
+}
+
 func (err *LintError) Errors() []error {
 	return err.errors
 }
