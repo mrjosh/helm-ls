@@ -11,8 +11,8 @@
 
 ## ⚠️ This project is still in early development. ⚠️
 
-## Helm Lint Language Server Protocol
-helm-ls is [helm](https://github.com/helm/helm) lint language server protocol [LSP](https://microsoft.github.io/language-server-protocol/).
+## Helm Language Server Protocol
+helm-ls is [helm](https://github.com/helm/helm) language server protocol [LSP](https://microsoft.github.io/language-server-protocol/).
 
 ## Getting Started
 ### Vim Helm Plugin
@@ -61,7 +61,7 @@ lspconfig.helm_ls.setup {
 [![asciicast](https://asciinema.org/a/485522.svg)](https://asciinema.org/a/485522)
 
 ## Contributing
-Thank you for considering contributing to HelmLintLs project!
+Thank you for considering contributing to HelmLs project!
 
 ## License
-The HelmLintLs is open-source software licensed under the MIT license.
+The HelmLs is open-source software licensed under the MIT license.
