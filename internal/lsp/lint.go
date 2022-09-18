@@ -7,14 +7,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mrjosh/helm-lint-ls/internal/util"
-	"github.com/mrjosh/helm-lint-ls/pkg/action"
-	"github.com/mrjosh/helm-lint-ls/pkg/lint/support"
+	"github.com/mrjosh/helm-ls/internal/util"
+	"github.com/mrjosh/helm-ls/pkg/action"
+	"github.com/mrjosh/helm-ls/pkg/lint/support"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v3"
 
 	// nolint
-	"github.com/mrjosh/helm-lint-ls/pkg/lint/rules"
+	"github.com/mrjosh/helm-ls/pkg/lint/rules"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"

@@ -28,7 +28,7 @@ import (
 	"k8s.io/helm/pkg/ignore"
 	"k8s.io/helm/pkg/sympath"
 
-	"github.com/mrjosh/helm-lint-ls/pkg/chart"
+	"github.com/mrjosh/helm-ls/pkg/chart"
 )
 
 var utf8bom = []byte{0xEF, 0xBB, 0xBF}

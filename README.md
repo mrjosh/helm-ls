@@ -1,6 +1,6 @@
-[![golangci-lint-status](https://github.com/mrjosh/helm-lint-ls/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/mrjosh/helm-lint-ls/actions/workflows/golangci-lint.yml)
-[![Release](https://github.com/mrjosh/helm-lint-ls/actions/workflows/go-artifacts.yml/badge.svg)](https://github.com/mrjosh/helm-lint-ls/releases/latest)
-![License](https://img.shields.io/github/license/mrjosh/helm-lint-ls)
+[![golangci-lint-status](https://github.com/mrjosh/helm-ls/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/mrjosh/helm-ls/actions/workflows/golangci-lint.yml)
+[![Release](https://github.com/mrjosh/helm-ls/actions/workflows/go-artifacts.yml/badge.svg)](https://github.com/mrjosh/helm-ls/releases/latest)
+![License](https://img.shields.io/github/license/mrjosh/helm-ls)
 
 <pre align="center">
       / / / /__  / /___ ___     / /   (_)___  / /_   / /   _____
@@ -12,26 +12,26 @@
 ## ⚠️ This project is still in early development. ⚠️
 
 ## Helm Lint Language Server Protocol
-helm-lint-ls is [helm](https://github.com/helm/helm) lint language server protocol [LSP](https://microsoft.github.io/language-server-protocol/).
+helm-ls is [helm](https://github.com/helm/helm) lint language server protocol [LSP](https://microsoft.github.io/language-server-protocol/).
 
 ## Getting Started
 ### Vim Helm Plugin
-You'll need [vim-helm](https://github.com/towolf/vim-helm) plugin installed before using helm_lint_ls, Try to install it vim:
+You'll need [vim-helm](https://github.com/towolf/vim-helm) plugin installed before using helm_ls, Try to install it vim:
 ```lua
 Plug 'towolf/vim-helm'
 ```
 
 ### Download
-* Download the latest helm_lint_ls executable file from [here](https://github.com/mrjosh/helm-lint-ls/releases/latest) and move it to your binaries directory 
+* Download the latest helm_ls executable file from [here](https://github.com/mrjosh/helm-ls/releases/latest) and move it to your binaries directory 
 
 * You can download it with curl, replace the {os} and {arch} variables
 ```bash
-curl -L https://github.com/mrjosh/helm-lint-ls/releases/download/master/helm_lint_ls_{os}_{arch} --output /usr/local/bin/helm_lint_ls
+curl -L https://github.com/mrjosh/helm-ls/releases/download/master/helm_ls_{os}_{arch} --output /usr/local/bin/helm_ls
 ```
 
 ### Make it executable
 ```bash
-chmod +x /usr/local/bin/helm_lint_ls
+chmod +x /usr/local/bin/helm_ls
 ```
 
 ## nvim-lspconfig setup
@@ -40,10 +40,10 @@ local configs = require('lspconfig.configs')
 local lspconfig = require('lspconfig')
 local util = require('lspconfig.util')
 
-if not configs.helm_lint_ls then
-  configs.helm_lint_ls = {
+if not configs.helm_ls then
+  configs.helm_ls = {
     default_config = {
-      cmd = {"helm_lint_ls", "serve"},
+      cmd = {"helm_ls", "serve"},
       filetypes = {'helm'},
       root_dir = function(fname)
         return util.root_pattern('Chart.yaml')(fname)
@@ -52,9 +52,9 @@ if not configs.helm_lint_ls then
   }
 end
 
-lspconfig.helm_lint_ls.setup {
+lspconfig.helm_ls.setup {
   filetypes = {"helm"},
-  cmd = {"helm_lint_ls", "serve"},
+  cmd = {"helm_ls", "serve"},
 }
 ```
 

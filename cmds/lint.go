@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	locallsp "github.com/mrjosh/helm-lint-ls/internal/lsp"
+	locallsp "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/spf13/cobra"
 	"go.lsp.dev/uri"
 )

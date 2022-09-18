@@ -25,7 +25,7 @@ import (
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 
 	semver "github.com/Masterminds/semver/v3"
-	helmversion "github.com/mrjosh/helm-lint-ls/internal/version"
+	helmversion "github.com/mrjosh/helm-ls/internal/version"
 )
 
 var (

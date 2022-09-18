@@ -36,7 +36,7 @@ export LINTERCMD=run --no-config -v \
 	--enable=gosimple
 
 all:
-	@$(GO) build -ldflags ${GO_LDFLAGS} -o bin/helm_lint_ls .
+	@$(GO) build -ldflags ${GO_LDFLAGS} -o bin/helm_ls .
 
 # lint runs vet plus a number of other checkers, it is more comprehensive, but louder
 lint:
@@ -50,7 +50,7 @@ lint:
 
 .PHONY: gox
 gox:
-	@gox -output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
+	@gox -output="dist/helm_ls_{{.OS}}_{{.Arch}}"
 
 # for ci jobs, runs lint against the changed packages in the commit
 ci-lint:
@@ -69,16 +69,16 @@ install-gox:
 
 .PHONY: build-linux
 build-linux: install-gox
-	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=linux --output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
-	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=arm --os=linux --output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=linux --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=arm --os=linux --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
 
 .PHONY: build-macOS
 build-macOS: install-gox
-	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=darwin --output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=darwin --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
 
 .PHONY: build-windows
 build-windows: install-gox
-	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=windows --output="dist/helm_lint_ls_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=windows --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
 
 .PHONY: build-artifacts
 build-artifacts:

@@ -34,10 +34,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/apimachinery/pkg/util/yaml"
 
-	"github.com/mrjosh/helm-lint-ls/pkg/chart/loader"
-	"github.com/mrjosh/helm-lint-ls/pkg/chartutil"
-	"github.com/mrjosh/helm-lint-ls/pkg/engine"
-	"github.com/mrjosh/helm-lint-ls/pkg/lint/support"
+	"github.com/mrjosh/helm-ls/pkg/chart/loader"
+	"github.com/mrjosh/helm-ls/pkg/chartutil"
+	"github.com/mrjosh/helm-ls/pkg/engine"
+	"github.com/mrjosh/helm-ls/pkg/lint/support"
 )
 
 var (

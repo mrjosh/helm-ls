@@ -19,7 +19,7 @@ package support
 import (
 	"fmt"
 
-	"github.com/mrjosh/helm-lint-ls/pkg/engine"
+	"github.com/mrjosh/helm-ls/pkg/engine"
 )
 
 // Severity indicates the severity of a Message.

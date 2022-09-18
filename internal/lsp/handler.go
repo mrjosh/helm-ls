@@ -7,7 +7,7 @@ import (
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 
-	"github.com/mrjosh/helm-lint-ls/internal/log"
+	"github.com/mrjosh/helm-ls/internal/log"
 )
 
 var logger = log.GetLogger()

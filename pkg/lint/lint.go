@@ -19,8 +19,8 @@ package lint
 import (
 	"path/filepath"
 
-	"github.com/mrjosh/helm-lint-ls/pkg/lint/rules"
-	"github.com/mrjosh/helm-lint-ls/pkg/lint/support"
+	"github.com/mrjosh/helm-ls/pkg/lint/rules"
+	"github.com/mrjosh/helm-ls/pkg/lint/support"
 )
 
 // All runs all of the available linters on the given base directory.

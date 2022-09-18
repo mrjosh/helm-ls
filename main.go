@@ -5,8 +5,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/mrjosh/helm-lint-ls/cmds"
-	"github.com/mrjosh/helm-lint-ls/internal/version"
+	"github.com/mrjosh/helm-ls/cmds"
+	"github.com/mrjosh/helm-ls/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +20,7 @@ var (
 func main() {
 
 	rootCmd := &cobra.Command{
-		Use: "helm_lint_ls",
+		Use: "helm_ls",
 		Long: `
    / / / /__  / /___ ___     / /   (_)___  / /_   / /   _____
   / /_/ / _ \/ / __  __ \   / /   / / __ \/ __/  / /   / ___/

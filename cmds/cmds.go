@@ -1,7 +1,7 @@
 package cmds
 
 import (
-	"github.com/mrjosh/helm-lint-ls/internal/version"
+	"github.com/mrjosh/helm-ls/internal/version"
 	"github.com/spf13/cobra"
 )
 
