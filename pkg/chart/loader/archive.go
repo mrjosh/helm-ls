@@ -30,7 +30,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mrjosh/helm-lint-ls/pkg/chart"
+	"github.com/mrjosh/helm-ls/pkg/chart"
 )
 
 var drivePathPattern = regexp.MustCompile(`^[a-zA-Z]:/`)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/mrjosh/helm-lint-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/spf13/cobra"
 	"go.lsp.dev/jsonrpc2"
 )

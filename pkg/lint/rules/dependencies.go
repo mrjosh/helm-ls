@@ -22,9 +22,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mrjosh/helm-lint-ls/pkg/chart"
-	"github.com/mrjosh/helm-lint-ls/pkg/chart/loader"
-	"github.com/mrjosh/helm-lint-ls/pkg/lint/support"
+	"github.com/mrjosh/helm-ls/pkg/chart"
+	"github.com/mrjosh/helm-ls/pkg/chart/loader"
+	"github.com/mrjosh/helm-ls/pkg/lint/support"
 )
 
 // Dependencies runs lints against a chart's dependencies

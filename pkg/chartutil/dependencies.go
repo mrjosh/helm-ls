@@ -19,7 +19,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/mrjosh/helm-lint-ls/pkg/chart"
+	"github.com/mrjosh/helm-ls/pkg/chart"
 )
 
 // ProcessDependencies checks through this chart's dependencies, processing accordingly.
