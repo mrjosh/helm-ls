@@ -1,6 +1,15 @@
 package util
 
-import "strings"
+import (
+	"net/url"
+	"regexp"
+	"runtime"
+	"strings"
+
+	"go.lsp.dev/uri"
+)
+
+var wordRegex = regexp.MustCompile(`[^ \t\n\f\r,;\[\]\"\']+`)
 
 // BetweenStrings gets the substring between two strings.
 func BetweenStrings(value string, a string, b string) string {
@@ -30,4 +39,38 @@ func AfterStrings(value string, a string) string {
 		return ""
 	}
 	return value[adjustedPos:]
+}
+
+func URIToPath(docuri uri.URI) (string, error) {
+	parsed, err := url.Parse(docuri.Filename())
+	if err != nil {
+		return "", err
+	}
+
+	if runtime.GOOS == "windows" {
+		// In Windows "file:///c:/tmp/foo.md" is parsed to "/c:/tmp/foo.md".
+		// Strip the first character to get a valid path.
+		if strings.Contains(parsed.Path[1:], ":") {
+			// url.Parse() behaves differently with "file:///c:/..." and "file://c:/..."
+			return parsed.Path[1:], nil
+		} else {
+			// if the windows drive is not included in Path it will be in Host
+			return parsed.Host + "/" + parsed.Path[1:], nil
+		}
+	}
+	return parsed.Path, nil
+}
+
+// WordAt returns the word found at the given character position.
+// Credit https://github.com/aca/neuron-language-server/blob/450a7cff71c14e291ee85ff8a0614fa9d4dd5145/utils.go#L13
+func WordAt(str string, index int) string {
+
+	wordIdxs := wordRegex.FindAllStringIndex(str, -1)
+	for _, wordIdx := range wordIdxs {
+		if wordIdx[0] <= index && index <= wordIdx[1] {
+			return str[wordIdx[0]:wordIdx[1]]
+		}
+	}
+
+	return ""
 }
