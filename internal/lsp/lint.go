@@ -7,8 +7,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/action"
+	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"github.com/mrjosh/helm-ls/pkg/lint/support"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v3"
@@ -20,7 +22,9 @@ import (
 	"go.lsp.dev/uri"
 )
 
-func notifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, uri uri.URI) (*jsonrpc2.Notification, error) {
+var logger = log.GetLogger()
+
+func NotifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, uri uri.URI) (*jsonrpc2.Notification, error) {
 	diagnostics, err := GetDiagnostics(uri)
 	if err != nil {
 		return nil, err
@@ -41,7 +45,7 @@ func loadValues(dir string, filename ...string) (map[string]interface{}, error) 
 
 	vals := make(map[string]interface{})
 	if len(filename) == 0 {
-		filename = append(filename, "values.yaml")
+		filename = append(filename, chartutil.ValuesfileName)
 	}
 
 	if len(filename) > 1 {

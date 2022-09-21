@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/handler"
 	"github.com/spf13/cobra"
 	"go.lsp.dev/jsonrpc2"
 )
@@ -16,7 +16,7 @@ func newServeCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			conn := jsonrpc2.NewConn(jsonrpc2.NewStream(stdrwc{}))
-			handler := lsp.NewHandler(conn)
+			handler := handler.NewHandler(conn)
 			handlerSrv := jsonrpc2.HandlerServer(handler)
 
 			return handlerSrv.ServeStream(context.Background(), conn)
