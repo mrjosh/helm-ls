@@ -9,7 +9,7 @@ var versionInfo *version.BuildInfo
 
 func Start(vi *version.BuildInfo, rootCmd *cobra.Command) error {
 	vi.BuildType = "Release"
-	if vi.Branch == "develop" {
+	if vi.Branch == "master" {
 		vi.BuildType = "Nightly"
 	}
 	versionInfo = vi

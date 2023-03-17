@@ -113,8 +113,16 @@ func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonr
 	return reply(ctx, notification, err)
 }
 
-func (h *langHandler) handleTextDocumentDidClose(_ context.Context, _ jsonrpc2.Replier, _ jsonrpc2.Request) (err error) {
-	return nil
+func (h *langHandler) handleTextDocumentDidClose(ctx context.Context, reply jsonrpc2.Replier, _ jsonrpc2.Request) (err error) {
+	return reply(
+		ctx,
+		h.connPool.Notify(
+			ctx,
+			lsp.MethodTextDocumentDidClose,
+			nil,
+		),
+		nil,
+	)
 }
 
 func (h *langHandler) handleTextDocumentDidSave(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {

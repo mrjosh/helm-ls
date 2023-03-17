@@ -14,7 +14,7 @@ func newVersionCmd() *cobra.Command {
 			fmt.Fprintf(
 				cmd.OutOrStdout(),
 				"%s\n%s\n%s\n%s\n%s\n",
-				fmt.Sprintf("HelmLintLs version: %s", versionInfo.Version),
+				fmt.Sprintf("HelmLs version: %s", versionInfo.Version),
 				fmt.Sprintf("Build type: %s", versionInfo.BuildType),
 				fmt.Sprintf("Build time: %s", versionInfo.BuildTime),
 				fmt.Sprintf("Golang: %s", versionInfo.GoVersion),

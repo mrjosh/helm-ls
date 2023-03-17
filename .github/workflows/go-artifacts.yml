@@ -5,7 +5,7 @@ on:
     inputs:
       tag_name:
         description: 'Tag name for release'
-        required: false
+        required: true
         default: master
   push:
     branches:
@@ -112,10 +112,10 @@ jobs:
           echo "SHA_LINUX_ARM=$(cat helm_ls_linux_arm.sha256sum)" >> $GITHUB_ENV
 
       - if: env.TAG_NAME == 'master'
-        run: echo 'SUBJECT=HelmLintLs development (prerelease) build' >> $GITHUB_ENV
+        run: echo 'SUBJECT=HelmLs development (prerelease) build' >> $GITHUB_ENV
 
       - if: env.TAG_NAME != 'master'
-        run: echo 'SUBJECT=HelmLintLs release build' >> $GITHUB_ENV
+        run: echo 'SUBJECT=${{ env.TAG_NAME }}' >> $GITHUB_ENV
 
       - uses: meeDamian/github-release@2.0
         with:
