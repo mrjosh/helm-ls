@@ -75,6 +75,7 @@ build-linux: install-gox
 .PHONY: build-macOS
 build-macOS: install-gox
 	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=darwin --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=arm64 --os=darwin --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
 
 .PHONY: build-windows
 build-windows: install-gox
