@@ -141,7 +141,7 @@ jobs:
           files: |
             helm_ls_darwin_amd64:./helm_ls_darwin_amd64/helm_ls_darwin_amd64
             helm_ls_darwin_amd64.sha256sum:./helm_ls_darwin_amd64.sha256sum
-            helm_ls_darwin_arm64:./helm_ls_darwin_amd64/helm_ls_darwin_arm64
+            helm_ls_darwin_arm64:./helm_ls_darwin_arm64/helm_ls_darwin_arm64
             helm_ls_darwin_arm64.sha256sum:./helm_ls_darwin_arm64.sha256sum
             helm_ls_windows_amd64:./helm_ls_windows_amd64/helm_ls_windows_amd64.exe
             helm_ls_windows_amd64.sha256sum:./helm_ls_windows_amd64.sha256sum
