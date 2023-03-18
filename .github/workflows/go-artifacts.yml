@@ -41,11 +41,18 @@ jobs:
         make build-artifacts
         printf '::set-output name=version::%s\n' "$(./dist/helm_ls_linux_amd64 version | head -n 4)"
 
-    - name: 'Upload macOS artifact'
+    - name: 'Upload macOS-amd64 artifact'
       uses: actions/upload-artifact@v2
       with:
         name: helm_ls_darwin_amd64
         path: ./dist/helm_ls_darwin_amd64
+        retention-days: 1
+
+    - name: 'Upload macOS-arm64 artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: helm_ls_darwin_arm64
+        path: ./dist/helm_ls_darwin_arm64
         retention-days: 1
 
     - name: 'Upload linux/amd64 artifact'
