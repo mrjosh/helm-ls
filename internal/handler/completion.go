@@ -236,6 +236,12 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 		return reply(ctx, basicItems, err)
 	}
 
+	// $ always points to the root context so we can safely remove it
+	// as long the LSP does not know about ranges
+	if variableSplitted[0] == "$" && len(variableSplitted) > 1 {
+		variableSplitted = variableSplitted[1:]
+	}
+
 	switch variableSplitted[0] {
 	case "Chart":
 		items = h.getChartVals()
