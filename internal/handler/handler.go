@@ -57,6 +57,8 @@ func (h *langHandler) handle(ctx context.Context, reply jsonrpc2.Replier, req js
 		return h.handleTextDocumentCompletion(ctx, reply, req)
 	case lsp.MethodTextDocumentDefinition:
 		return h.handleDefinition(ctx, reply, req)
+	case lsp.MethodTextDocumentHover:
+		return h.handleHover(ctx, reply, req)
 	}
 
 	return jsonrpc2.MethodNotFoundHandler(ctx, reply, req)
@@ -89,6 +91,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 				TriggerCharacters: []string{".", "$."},
 				ResolveProvider:   false,
 			},
+			HoverProvider: true,
 		},
 	}, nil)
 }
