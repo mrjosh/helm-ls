@@ -99,7 +99,6 @@ func (d *Document) WordAt(pos lsp.Position) string {
 }
 
 func (d *Document) ValueAt(pos lsp.Position) string {
-
   logger.Debug(pos)
 
 	line, ok := d.GetLine(int(pos.Line))

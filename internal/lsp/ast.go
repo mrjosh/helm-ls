@@ -44,6 +44,7 @@ func GetFieldIdentifierPath(node *sitter.Node, doc *Document) (path string) {
 }
 
 func buildFieldIdentifierPath(node *sitter.Node, doc *Document) string {
+
 	prepend := node.PrevNamedSibling()
 
 	currentPath := node.Content([]byte(doc.Content))

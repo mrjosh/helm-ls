@@ -45,6 +45,10 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 
+	// logger.Println(params.Position.Character)
+	// params.Position.Character = params.Position.Character - 1
+	// logger.Println(params.Position.Character)
+
 	var (
 		word             = completionAstParsing(doc, params.Position)
 		splitted         = strings.Split(word, ".")
@@ -93,7 +97,6 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 }
 
 func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string {
-
 	var (
 		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
 		pointToLoopUp = sitter.Point{
@@ -119,6 +122,30 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 	}
 
 	return word
+}
+
+func findRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
+	for i := 0; i < int(currentNode.ChildCount()); i++ {
+		child := currentNode.Child(i)
+		if isPointLargerOrEq(pointToLookUp, child.StartPoint()) && isPointLargerOrEq(child.EndPoint(), pointToLookUp) {
+			logger.Println("loop", child)
+			return findRelevantChildNode(child, pointToLookUp)
+		}
+	}
+	return currentNode
+}
+
+func isPointLarger(a sitter.Point, b sitter.Point) bool {
+	if a.Row == b.Row {
+		return a.Column > b.Column
+	}
+	return a.Row > b.Row
+}
+func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
+	if a.Row == b.Row {
+		return a.Column >= b.Column
+	}
+	return a.Row > b.Row
 }
 
 func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
