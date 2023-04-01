@@ -63,44 +63,42 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		case "Chart":
 			value, err = h.getChartMetadataHover(variableSplitted[1])
 		case "Release":
+			value, err = h.getBuiltInObjectsHover(releaseVals, variableSplitted[1])
 		case "Files":
-			value, err = h.getFilesHover(variableSplitted[1])
+			value, err = h.getBuiltInObjectsHover(filesVals, variableSplitted[1])
 		case "Capabilities":
-		default:
+			value, err = h.getBuiltInObjectsHover(capabilitiesVals, variableSplitted[1])
+		}
+		if err == nil {
+			content := lsp.MarkupContent{
+				Kind:  lsp.Markdown,
+				Value: value,
+			}
+			result := lsp.Hover{
+				Contents: content,
+				// TODO: could add a range
+			}
+
+			return reply(ctx, result, err)
 		}
 	}
 
-	if err == nil {
-		content := lsp.MarkupContent{
-			Kind:  lsp.Markdown,
-			Value: value,
-		}
-		result := lsp.Hover{
-			Contents: content,
-			// TODO: could add a range
-		}
-
-		return reply(ctx, result, err)
-	}
-	searchWord := splitted[len(splitted)-1]
-	completionItems := [][]lsp.CompletionItem{
+	searchWord := variableSplitted[0]
+	completionItems := [][]HelmDocumentation{
 		basicItems,
 		builtinFuncs,
 		sprigFuncs,
 		helmFuncs,
-		h.getReleaseVals(),
-		h.getCapabilitiesVals(),
-		h.getFilesVals(),
 	}
 	toSearch := util.ConcatMultipleSlices(completionItems)
 
 	logger.Println("Start search with word " + searchWord)
 	for _, completionItem := range toSearch {
-		if searchWord == completionItem.InsertText {
+		if searchWord == completionItem.Name {
 
 			content := lsp.MarkupContent{
 				Kind:  lsp.Markdown,
-				Value: fmt.Sprint(completionItem.Documentation),
+				Value: fmt.Sprint(completionItem.Doc),
 			}
 			result := lsp.Hover{
 				Contents: content,
@@ -114,12 +112,11 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 }
 
 func (h *langHandler) getChartMetadataHover(key string) (string, error) {
-	for _, completionItem := range h.getChartVals() {
-		if key == completionItem.InsertText {
+	for _, completionItem := range chartVals {
+		if key == completionItem.Name {
 			logger.Println("Getting metadatafield of " + key)
 
-			documentation := completionItem.Documentation
-
+			documentation := completionItem.Doc
 			value := h.getMetadataField(&h.chartMetadata, key)
 
 			return fmt.Sprintf("%s\n\n%s\n", documentation, value), nil
@@ -152,16 +149,16 @@ func (h *langHandler) getValueHover(splittedVar []string) (string, error) {
 
 }
 
-func (h *langHandler) getFilesHover(key string) (string, error) {
-	for _, completionItem := range h.getFilesVals() {
-		if key == completionItem.InsertText {
-			documentation := completionItem.Documentation
+func (h *langHandler) getBuiltInObjectsHover(items []HelmDocumentation, key string) (string, error) {
+	for _, completionItem := range items {
+		if key == completionItem.Name {
+			documentation := completionItem.Doc
 			return fmt.Sprintf("%s\n", documentation), nil
 		}
 	}
-	return "", fmt.Errorf("%s was no known Chart Metadata property", key)
-
+	return "", fmt.Errorf("%s was no known built-in object", key)
 }
+
 func (h *langHandler) getMetadataField(v *chart.Metadata, fieldName string) string {
 	r := reflect.ValueOf(v)
 	field := reflect.Indirect(r).FieldByName(fieldName)
