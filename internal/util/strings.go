@@ -81,7 +81,7 @@ func ValueAt(str string, index int) string {
 
 	wordIdxs := wordRegex.FindAllStringIndex(str, -1)
 	for _, wordIdx := range wordIdxs {
-		if wordIdx[0] <= index && index <= wordIdx[1] {
+		if wordIdx[0] <= index && index+1 <= wordIdx[1] {
 			leftOfWord := str[wordIdx[0] : index+1]
 			rightOfWord := str[index+1 : wordIdx[1]]
 			rightOfWordEnd := strings.Index(rightOfWord, ".")

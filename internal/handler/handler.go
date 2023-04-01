@@ -7,6 +7,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/fs"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
@@ -17,10 +18,11 @@ import (
 var logger = log.GetLogger()
 
 type langHandler struct {
-	connPool   jsonrpc2.Conn
-	linterName string
-	documents  *lsplocal.DocumentStore
-	values     chartutil.Values
+	connPool      jsonrpc2.Conn
+	linterName    string
+	documents     *lsplocal.DocumentStore
+	values        chartutil.Values
+	chartMetadata chart.Metadata
 }
 
 func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
@@ -77,6 +79,13 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 		return err
 	}
 	h.values = vals
+
+	chartFile := filepath.Join(params.RootURI.Filename(), "Chart.yaml")
+	chartMetadata, err := chartutil.LoadChartfile(chartFile)
+	if err != nil {
+		return err
+	}
+	h.chartMetadata = *chartMetadata
 
 	return reply(ctx, lsp.InitializeResult{
 		Capabilities: lsp.ServerCapabilities{

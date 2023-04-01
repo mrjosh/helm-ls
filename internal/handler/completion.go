@@ -375,10 +375,11 @@ func (h *langHandler) getBoolType(value interface{}) string {
 
 func variableCompletionItem(name, detail, doc string) lsp.CompletionItem {
 	return lsp.CompletionItem{
-		Label:      name,
-		InsertText: name,
-		Detail:     detail,
-		Kind:       lsp.CompletionItemKindVariable,
+		Label:         name,
+		InsertText:    name,
+		Detail:        detail,
+		Documentation: doc,
+		Kind:          lsp.CompletionItemKindVariable,
 	}
 }
 

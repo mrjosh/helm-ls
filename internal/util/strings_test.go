@@ -39,3 +39,24 @@ func TestValueAtWithMoreContext(t *testing.T) {
 		t.Errorf("Expected %s but got %s.", expected, result)
 	}
 }
+
+func TestValueAtEmptyString(t *testing.T) {
+
+	input := "test $.Values. ____--------"
+	expected := "$.Values."
+
+	result := ValueAt(input, 13)
+
+	if expected != result {
+		t.Errorf("Expected %s but got %s.", expected, result)
+	}
+
+	input = "          image: \"{{ $.Values.global }}:{{ .Values.image.pu  | default .Chart.Maintainers }}\""
+	expected = ""
+
+	result = ValueAt(input, 89)
+
+	if expected != result {
+		t.Errorf("Expected %s but got %s.", expected, result)
+	}
+}
