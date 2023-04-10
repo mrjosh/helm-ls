@@ -13,6 +13,8 @@ import (
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
+	yamlv3 "gopkg.in/yaml.v3"
 
 	"github.com/mrjosh/helm-ls/internal/log"
 )
@@ -25,6 +27,9 @@ type langHandler struct {
 	documents     *lsplocal.DocumentStore
 	values        chartutil.Values
 	chartMetadata chart.Metadata
+	valueNode     yamlv3.Node
+	chartNode     yamlv3.Node
+	rootURI       uri.URI
 }
 
 func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
@@ -34,6 +39,9 @@ func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
 		connPool:   connPool,
 		documents:  lsplocal.NewDocumentStore(fileStorage),
 		values:     make(map[string]interface{}),
+		valueNode:  yamlv3.Node{},
+		chartNode:  yamlv3.Node{},
+		rootURI:    "",
 	}
 	logger.Printf("helm-lint-langserver: connections opened")
 	return jsonrpc2.ReplyHandler(handler.handle)
@@ -85,6 +93,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	}
 
 	vf := filepath.Join(workspace_uri.Path, "values.yaml")
+
 	vals, err := chartutil.ReadValuesFile(vf)
 	if err != nil {
 		logger.Println("Error loading values.yaml file", err)
@@ -99,6 +108,17 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 		return err
 	}
 	h.chartMetadata = *chartMetadata
+	valueNodes, err := chartutil.ReadYamlFileToNodes(vf)
+	if err != nil {
+		return err
+	}
+	h.valueNode = valueNodes
+
+	chartNode, err := chartutil.ReadYamlFileToNodes(chartFile)
+	if err != nil {
+		return err
+	}
+	h.chartNode = chartNode
 
 	return reply(ctx, lsp.InitializeResult{
 		Capabilities: lsp.ServerCapabilities{
@@ -113,7 +133,8 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 				TriggerCharacters: []string{".", "$."},
 				ResolveProvider:   false,
 			},
-			HoverProvider: true,
+			HoverProvider:      true,
+			DefinitionProvider: true,
 		},
 	}, nil)
 }
