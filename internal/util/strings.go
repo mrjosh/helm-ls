@@ -74,3 +74,23 @@ func WordAt(str string, index int) string {
 
 	return ""
 }
+
+// ValueAt returns the value found at the given character position.
+// It removes all content of the word after a "." right of the position.
+func ValueAt(str string, index int) string {
+
+	wordIdxs := wordRegex.FindAllStringIndex(str, -1)
+	for _, wordIdx := range wordIdxs {
+		if wordIdx[0] <= index && index+1 <= wordIdx[1] {
+			leftOfWord := str[wordIdx[0] : index+1]
+			rightOfWord := str[index+1 : wordIdx[1]]
+			rightOfWordEnd := strings.Index(rightOfWord, ".")
+			if rightOfWordEnd == -1 {
+				rightOfWordEnd = len(rightOfWord) - 1
+			}
+			return leftOfWord + rightOfWord[0:rightOfWordEnd+1]
+		}
+	}
+
+	return ""
+}

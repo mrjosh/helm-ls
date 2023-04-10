@@ -95,6 +95,17 @@ func (d *document) WordAt(pos lsp.Position) string {
 	return util.WordAt(line, int(pos.Character))
 }
 
+func (d *document) ValueAt(pos lsp.Position) string {
+
+  logger.Debug(pos)
+
+	line, ok := d.GetLine(int(pos.Line))
+	if !ok {
+		return ""
+	}
+	return util.ValueAt(line, int(pos.Character))
+}
+
 // ContentAtRange returns the document text at given range.
 func (d *document) ContentAtRange(rng lsp.Range) string {
 	return d.Content[rng.Start.Character:rng.End.Character]
