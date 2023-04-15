@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 
+	lspinternal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
@@ -31,8 +32,49 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 
+	ast := lspinternal.ParseAst(doc)
+
+	child := lspinternal.NodeAtPosition(ast, params.Position)
+
+	logger.Println(child.Type())
+	logger.Println(child.Content([]byte(doc.Content)))
+
 	var (
-		word             = doc.ValueAt(params.Position)
+		word string
+	)
+
+	parent := child.Parent()
+
+	logger.Println("parent Type", parent.Type())
+	pt := parent.Type()
+	ct := child.Type()
+
+	if pt == "function_call" && ct == "identifier" {
+		word = child.Content([]byte(doc.Content))
+	}
+	if (pt == "selector_expression" || pt == "field") && (ct == "identifier" || ct == "field_identifier") {
+		word = lspinternal.GetFieldIdentifierPath(child, doc)
+	}
+	if ct == "dot" {
+		word = lspinternal.TraverseIdentifierPathUp(child, doc)
+	}
+
+	// switch (parent.Type() {
+	// case "function_call":
+	// 	word = child.Content([]byte(doc.Content))
+	// // case "identifier":
+	// // 	word = lspinternal.GetFieldIdentifierPath(child, doc)
+	// // case "field_identifier":
+	// // 	word = lspinternal.GetFieldIdentifierPath(child, doc)
+	// case "field":
+	// 	word = lspinternal.GetFieldIdentifierPath(child, doc)
+	// 	// case "selector_expression":
+	// 	// case "dot":
+	// 	// 	word = lspinternal.TraverseIdentifierPathUp(child, doc)
+	//
+	// }
+
+	var (
 		splitted         = strings.Split(word, ".")
 		variableSplitted = []string{}
 		value            string
@@ -69,6 +111,11 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		case "Capabilities":
 			value, err = h.getBuiltInObjectsHover(capabilitiesVals, variableSplitted[1])
 		}
+
+		if value == "" {
+			value = "\"\""
+		}
+
 		if err == nil {
 			content := lsp.MarkupContent{
 				Kind:  lsp.Markdown,
