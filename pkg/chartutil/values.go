@@ -51,6 +51,12 @@ func (v Values) YAML() (string, error) {
 // The above will be evaluated as "The table bar inside the table
 // foo".
 //
+// Also supports YAML arrays (only with index 0):
+// foo[0].bar
+//
+// The above will be evaluated as "The table bar as the first
+// element of the array foo".
+//
 // An ErrNoTable is returned if the table does not exist.
 func (v Values) Table(name string) (Values, error) {
 	table := v
@@ -85,6 +91,10 @@ func (v Values) Encode(w io.Writer) error {
 }
 
 func tableLookup(v Values, simple string) (Values, error) {
+	if strings.HasSuffix(simple, "[0]") {
+		return arryLookup(v, simple)
+	}
+
 	v2, ok := v[simple]
 	if !ok {
 		return v, ErrNoTable{simple}
@@ -98,6 +108,27 @@ func tableLookup(v Values, simple string) (Values, error) {
 	// wild, and might be a result of a nil map of type Values.
 	if vv, ok := v2.(Values); ok {
 		return vv, nil
+	}
+
+	return Values{}, ErrNoTable{simple}
+}
+
+func arryLookup(v Values, simple string) (Values, error) {
+	v2, ok := v[simple[:(len(simple)-3)]]
+	if !ok {
+		return v, ErrNoTable{fmt.Sprintf("Yaml key %s does not exist", simple)}
+	}
+	if v3, ok := v2.([]interface{}); ok {
+		if len(v3) == 0 {
+			return Values{}, ErrEmpytArray{simple}
+		}
+		if vv, ok := v3[0].(map[string]interface{}); ok {
+			return vv, nil
+		}
+		if vv, ok := v3[0].(Values); ok {
+			return vv, nil
+		}
+		return Values{}, ErrNoTable{simple}
 	}
 
 	return Values{}, ErrNoTable{simple}
