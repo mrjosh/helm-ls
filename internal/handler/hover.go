@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 
+	lspinternal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
@@ -32,7 +33,29 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	}
 
 	var (
-		word             = doc.ValueAt(params.Position)
+		currentNode = lspinternal.NodeAtPosition(doc.Ast, params.Position)
+		parent      = currentNode.Parent()
+		wordRange   = lspinternal.GetLspRangeForNode(currentNode)
+		word        string
+	)
+
+	if parent == nil {
+		return errors.New("Could not parse ast correctly.")
+	}
+
+	pt := parent.Type()
+	ct := currentNode.Type()
+	if pt == "function_call" && ct == "identifier" {
+		word = currentNode.Content([]byte(doc.Content))
+	}
+	if (pt == "selector_expression" || pt == "field") && (ct == "identifier" || ct == "field_identifier") {
+		word = lspinternal.GetFieldIdentifierPath(currentNode, doc)
+	}
+	if ct == "dot" {
+		word = lspinternal.TraverseIdentifierPathUp(currentNode, doc)
+	}
+
+	var (
 		splitted         = strings.Split(word, ".")
 		variableSplitted = []string{}
 		value            string
@@ -48,8 +71,7 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		}
 	}
 
-	// $ always points to the root context so we can safely remove it
-	// as long the LSP does not know about ranges
+	// // $ always points to the root context so we must remove it before looking up tables
 	if variableSplitted[0] == "$" && len(variableSplitted) > 1 {
 		variableSplitted = variableSplitted[1:]
 	}
@@ -69,18 +91,12 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		case "Capabilities":
 			value, err = h.getBuiltInObjectsHover(capabilitiesVals, variableSplitted[1])
 		}
-		if err == nil {
-			content := lsp.MarkupContent{
-				Kind:  lsp.Markdown,
-				Value: value,
-			}
-			result := lsp.Hover{
-				Contents: content,
-				// TODO: could add a range
-			}
 
+		if err == nil {
+			result := buildHoverResponse(value, wordRange)
 			return reply(ctx, result, err)
 		}
+		return reply(ctx, nil, err)
 	}
 
 	searchWord := variableSplitted[0]
@@ -95,20 +111,26 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	logger.Println("Start search with word " + searchWord)
 	for _, completionItem := range toSearch {
 		if searchWord == completionItem.Name {
-
-			content := lsp.MarkupContent{
-				Kind:  lsp.Markdown,
-				Value: fmt.Sprint(completionItem.Doc),
-			}
-			result := lsp.Hover{
-				Contents: content,
-				// TODO: could add a range
-			}
-
+			result := buildHoverResponse(fmt.Sprint(completionItem.Doc), wordRange)
 			return reply(ctx, result, err)
 		}
 	}
 	return reply(ctx, lsp.Hover{}, err)
+}
+
+func buildHoverResponse(value string, wordRange lsp.Range) lsp.Hover {
+	if value == "" {
+		value = "\"\""
+	}
+	content := lsp.MarkupContent{
+		Kind:  lsp.Markdown,
+		Value: value,
+	}
+	result := lsp.Hover{
+		Contents: content,
+		Range:    &wordRange,
+	}
+	return result
 }
 
 func (h *langHandler) getChartMetadataHover(key string) (string, error) {
@@ -126,11 +148,10 @@ func (h *langHandler) getChartMetadataHover(key string) (string, error) {
 }
 
 func (h *langHandler) getValueHover(splittedVar []string) (string, error) {
-
 	var (
 		values      = h.values
-		err         error
 		tableName   = strings.Join(splittedVar, ".")
+		err         error
 		localValues chartutil.Values
 		value       interface{}
 	)
@@ -138,15 +159,15 @@ func (h *langHandler) getValueHover(splittedVar []string) (string, error) {
 	if len(splittedVar) > 0 {
 		localValues, err = values.Table(tableName)
 		if err != nil {
-			value, err = values.PathValue(tableName)
 			logger.Println(err)
+			logger.Println("values.PathValue(tableName)")
+			value, err = values.PathValue(tableName)
 			return fmt.Sprint(value), err
 		}
 		return localValues.YAML()
 
 	}
 	return values.YAML()
-
 }
 
 func (h *langHandler) getBuiltInObjectsHover(items []HelmDocumentation, key string) (string, error) {
@@ -172,5 +193,4 @@ func (h *langHandler) getMetadataField(v *chart.Metadata, fieldName string) stri
 	default:
 		return "<Unknown>"
 	}
-
 }

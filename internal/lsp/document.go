@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
+	sitter "github.com/smacker/go-tree-sitter"
 )
 
 // documentStore holds opened documents.
@@ -38,6 +39,7 @@ func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams) (*document
 		URI:     uri,
 		Path:    path,
 		Content: params.TextDocument.Text,
+		Ast:  ParseAst(params.TextDocument.Text),
 	}
 	s.documents[path] = doc
 	return doc, nil
@@ -72,6 +74,7 @@ type document struct {
 	NeedsRefreshDiagnostics bool
 	Content                 string
 	lines                   []string
+	Ast                     *sitter.Tree
 }
 
 // ApplyChanges updates the content of the document from LSP textDocument/didChange events.
@@ -79,6 +82,7 @@ func (d *document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	for _, change := range changes {
     d.Content = d.Content[:change.Range.Start.Character] + change.Text + d.Content[change.Range.End.Character:]
 	}
+	d.ApplyChangesToAst(d.Content)
 
 	d.lines = nil
 }
