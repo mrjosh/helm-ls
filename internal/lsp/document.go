@@ -13,18 +13,18 @@ import (
 
 // documentStore holds opened documents.
 type DocumentStore struct {
-	documents map[string]*document
+	documents map[string]*Document
 	fs        FileStorage
 }
 
 func NewDocumentStore(fs FileStorage) *DocumentStore {
 	return &DocumentStore{
-		documents: map[string]*document{},
+		documents: map[string]*Document{},
 		fs:        fs,
 	}
 }
 
-func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams) (*document, error) {
+func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams) (*Document, error) {
 	//langID := params.TextDocument.LanguageID
 	//if langID != "markdown" && langID != "vimwiki" && langID != "pandoc" {
 		//return nil, nil
@@ -35,7 +35,7 @@ func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams) (*document
 	if err != nil {
 		return nil, err
 	}
-	doc := &document{
+	doc := &Document{
 		URI:     uri,
 		Path:    path,
 		Content: params.TextDocument.Text,
@@ -49,7 +49,7 @@ func (s *DocumentStore) Close(uri lsp.DocumentURI) {
 	delete(s.documents, uri.Filename())
 }
 
-func (s *DocumentStore) Get(docuri uri.URI) (*document, bool) {
+func (s *DocumentStore) Get(docuri uri.URI) (*Document, bool) {
 	path, err := s.normalizePath(docuri)
 	if err != nil {
 		logger.Debug(err)
@@ -67,8 +67,8 @@ func (s *DocumentStore) normalizePath(docuri uri.URI) (string, error) {
 	return s.fs.Canonical(path), nil
 }
 
-// document represents an opened file.
-type document struct {
+// Document represents an opened file.
+type Document struct {
 	URI                     lsp.DocumentURI
 	Path                    string
 	NeedsRefreshDiagnostics bool
@@ -78,7 +78,7 @@ type document struct {
 }
 
 // ApplyChanges updates the content of the document from LSP textDocument/didChange events.
-func (d *document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
+func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	for _, change := range changes {
     d.Content = d.Content[:change.Range.Start.Character] + change.Text + d.Content[change.Range.End.Character:]
 	}
@@ -88,7 +88,7 @@ func (d *document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 }
 
 // WordAt returns the word found at the given location.
-func (d *document) WordAt(pos lsp.Position) string {
+func (d *Document) WordAt(pos lsp.Position) string {
 
   logger.Debug(pos)
 
@@ -99,7 +99,7 @@ func (d *document) WordAt(pos lsp.Position) string {
 	return util.WordAt(line, int(pos.Character))
 }
 
-func (d *document) ValueAt(pos lsp.Position) string {
+func (d *Document) ValueAt(pos lsp.Position) string {
 
   logger.Debug(pos)
 
@@ -111,12 +111,12 @@ func (d *document) ValueAt(pos lsp.Position) string {
 }
 
 // ContentAtRange returns the document text at given range.
-func (d *document) ContentAtRange(rng lsp.Range) string {
+func (d *Document) ContentAtRange(rng lsp.Range) string {
 	return d.Content[rng.Start.Character:rng.End.Character]
 }
 
 // GetLine returns the line at the given index.
-func (d *document) GetLine(index int) (string, bool) {
+func (d *Document) GetLine(index int) (string, bool) {
 	lines := d.GetLines()
 	if index < 0 || index > len(lines) {
 		return "", false
@@ -125,7 +125,7 @@ func (d *document) GetLine(index int) (string, bool) {
 }
 
 // GetLines returns all the lines in the document.
-func (d *document) GetLines() []string {
+func (d *Document) GetLines() []string {
 	if d.lines == nil {
 		// We keep \r on purpose, to avoid messing up position conversions.
 		d.lines = strings.Split(d.Content, "\n")
@@ -134,7 +134,7 @@ func (d *document) GetLines() []string {
 }
 
 // LookBehind returns the n characters before the given position, on the same line.
-func (d *document) LookBehind(pos lsp.Position, length int) string {
+func (d *Document) LookBehind(pos lsp.Position, length int) string {
 	line, ok := d.GetLine(int(pos.Line))
 	if !ok {
 		return ""
@@ -148,7 +148,7 @@ func (d *document) LookBehind(pos lsp.Position, length int) string {
 }
 
 // LookForward returns the n characters after the given position, on the same line.
-func (d *document) LookForward(pos lsp.Position, length int) string {
+func (d *Document) LookForward(pos lsp.Position, length int) string {
 	line, ok := d.GetLine(int(pos.Line))
 	if !ok {
 		return ""
@@ -180,7 +180,7 @@ var markdownLinkRegex = regexp.MustCompile(`\[([^\]]+?[^\\])\]\((.+?[^\\])\)`)
 
 // DocumentLinkAt returns the internal or external link found in the document
 // at the given position.
-func (d *document) DocumentLinkAt(pos lsp.Position) (*documentLink, error) {
+func (d *Document) DocumentLinkAt(pos lsp.Position) (*documentLink, error) {
 	//links, err := d.DocumentLinks()
 	//if err != nil {
 		//return nil, err

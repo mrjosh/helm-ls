@@ -17,19 +17,23 @@ func NodeAtPosition(tree *sitter.Tree, position lsp.Position) *sitter.Node {
 	return tree.RootNode().NamedDescendantForPointRange(start, start)
 }
 
-func GetFieldIdentifierPath(node *sitter.Node, doc *document) (path string) {
+func GetFieldIdentifierPath(node *sitter.Node, doc *Document) (path string) {
 	path = buildFieldIdentifierPath(node, doc)
 	logger.Println("buildFieldIdentifierPath:", path)
 	return path
 }
 
-func buildFieldIdentifierPath(node *sitter.Node, doc *document) string {
+func buildFieldIdentifierPath(node *sitter.Node, doc *Document) string {
 
 	prepend := node.PrevNamedSibling()
 
 	currentPath := node.Content([]byte(doc.Content))
 	if prepend != nil {
-		currentPath = prepend.Content([]byte(doc.Content)) + "." + node.Content([]byte(doc.Content))
+		nodeContent := node.Content([]byte(doc.Content))
+		if nodeContent == "." {
+			nodeContent = ""
+		}
+		currentPath = prepend.Content([]byte(doc.Content)) + "." + nodeContent
 	}
 
 	if currentPath[0:1] == "$" {
@@ -43,7 +47,7 @@ func buildFieldIdentifierPath(node *sitter.Node, doc *document) string {
 	return TraverseIdentifierPathUp(node, doc) + currentPath
 }
 
-func TraverseIdentifierPathUp(node *sitter.Node, doc *document) string {
+func TraverseIdentifierPathUp(node *sitter.Node, doc *Document) string {
 	parent := node.Parent()
 
 	if parent == nil {
@@ -67,7 +71,7 @@ func TraverseIdentifierPathUp(node *sitter.Node, doc *document) string {
 	return TraverseIdentifierPathUp(parent, doc)
 }
 
-func (d *document) ApplyChangesToAst(newContent string) {
+func (d *Document) ApplyChangesToAst(newContent string) {
 	d.Ast = ParseAst(newContent)
 }
 
