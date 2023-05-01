@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/fs"
+	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
@@ -20,26 +21,29 @@ import (
 var logger = log.GetLogger()
 
 type langHandler struct {
-	connPool      jsonrpc2.Conn
-	linterName    string
-	documents     *lsplocal.DocumentStore
-	projectFiles  ProjectFiles
-	values        chartutil.Values
-	chartMetadata chart.Metadata
-	valueNode     yamlv3.Node
-	chartNode     yamlv3.Node
+	connPool        jsonrpc2.Conn
+	linterName      string
+	documents       *lsplocal.DocumentStore
+	projectFiles    ProjectFiles
+	values          chartutil.Values
+	chartMetadata   chart.Metadata
+	valueNode       yamlv3.Node
+	chartNode       yamlv3.Node
+	yamllsConnector *yamlls.YamllsConnector
 }
 
 func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
 	fileStorage, _ := fs.NewFileStorage("")
+	documents := lsplocal.NewDocumentStore(fileStorage)
 	handler := &langHandler{
-		linterName:   "helm-lint",
-		connPool:     connPool,
-		documents:    lsplocal.NewDocumentStore(fileStorage),
-		projectFiles: ProjectFiles{},
-		values:       make(map[string]interface{}),
-		valueNode:    yamlv3.Node{},
-		chartNode:    yamlv3.Node{},
+		linterName:      "helm-lint",
+		connPool:        connPool,
+		projectFiles:    ProjectFiles{},
+		values:          make(map[string]interface{}),
+		valueNode:       yamlv3.Node{},
+		chartNode:       yamlv3.Node{},
+		documents:       documents,
+		yamllsConnector: yamlls.NewYamllsConnector("", connPool, documents),
 	}
 	logger.Printf("helm-lint-langserver: connections opened")
 	return jsonrpc2.ReplyHandler(handler.handle)
@@ -86,9 +90,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	}
 
 	workspaceURI, err := uri.Parse(params.WorkspaceFolders[0].URI)
-	if err != nil {
-		return err
-	}
+	h.yamllsConnector.CallInitialize(params)
 
 	h.projectFiles = NewProjectFiles(workspaceURI, "")
 
@@ -145,6 +147,8 @@ func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonr
 		return reply(ctx, nil, err)
 	}
 
+	h.yamllsConnector.Conn.Notify(context.Background(), lsp.MethodTextDocumentDidOpen, params)
+
 	if _, err = h.documents.DidOpen(params); err != nil {
 		logger.Println(err)
 		return reply(ctx, nil, err)
@@ -172,6 +176,7 @@ func (h *langHandler) handleTextDocumentDidSave(ctx context.Context, reply jsonr
 		return err
 	}
 
+	h.yamllsConnector.Conn.Notify(context.Background(), lsp.MethodTextDocumentDidSave, params)
 	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, params.TextDocument.URI)
 	return reply(ctx, notification, err)
 }
