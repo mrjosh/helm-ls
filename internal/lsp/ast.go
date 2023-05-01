@@ -1,8 +1,8 @@
 package lsp
 
 import (
+	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	sitter "github.com/smacker/go-tree-sitter"
-	"github.com/smacker/go-tree-sitter/gotemplate"
 	lsp "go.lsp.dev/protocol"
 )
 
