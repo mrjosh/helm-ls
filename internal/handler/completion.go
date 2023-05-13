@@ -48,9 +48,22 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	// logger.Println(params.Position.Character)
 	// params.Position.Character = params.Position.Character - 1
 	// logger.Println(params.Position.Character)
+	word, err := completionAstParsing(doc, params.Position)
+
+	if err != nil {
+
+		logger.Println("Calling yamlls for completions")
+		var response = reflect.New(reflect.TypeOf(lsp.CompletionList{})).Interface()
+		_, err = h.yamllsConnector.Conn.Call(ctx, lsp.MethodTextDocumentCompletion, params, response)
+		if err != nil {
+			logger.Println("Error Calling yamlls for completions", err)
+		}
+
+		logger.Println("Got completions from yamlls", response)
+		return reply(ctx, response, err)
+	}
 
 	var (
-		word             = completionAstParsing(doc, params.Position)
 		splitted         = strings.Split(word, ".")
 		items            []lsp.CompletionItem
 		variableSplitted = []string{}
@@ -96,7 +109,7 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	return reply(ctx, items, err)
 }
 
-func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string {
+func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string, error) {
 	var (
 		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
 		pointToLoopUp = sitter.Point{
@@ -120,8 +133,7 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 		logger.Println("GetFieldIdentifierPath")
 		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
 	}
-
-	return word
+	return word, nil
 }
 
 func findRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {

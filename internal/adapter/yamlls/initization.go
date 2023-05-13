@@ -9,7 +9,7 @@ import (
 
 func (yamllsConnector YamllsConnector) CallInitialize(params lsp.InitializeParams) {
 	params.ProcessID = int32(os.Getpid())
-	params.ClientInfo.Name = "helm-ls"
+	params.ClientInfo.Name = "debug-lsp.sh"
 	// json, _ := json.Marshal(params)
 
 	logger.Println("Init ")
@@ -22,7 +22,7 @@ func (yamllsConnector YamllsConnector) CallInitialize(params lsp.InitializeParam
 	logger.Println("Init done ")
 
 	changeConfigurationParams := lsp.DidChangeConfigurationParams{
-		Settings: initializationOptions{Yaml: YamllsSettings{Schemas: map[string]string{"kubernetes": "**"}}}}
+		Settings: initializationOptions{Yaml: YamllsSettings{Schemas: map[string]string{"kubernetes": "**"}, Completion: true, Hover: true}}}
 
 	logger.Println("change config", changeConfigurationParams)
 	yamllsConnector.Conn.Notify(context.Background(), lsp.MethodWorkspaceDidChangeConfiguration, changeConfigurationParams)
@@ -36,5 +36,7 @@ type initializationOptions struct {
 }
 
 type YamllsSettings struct {
-	Schemas map[string]string `json:"schemas"`
+	Schemas    map[string]string `json:"schemas"`
+	Completion bool              `json:"completion"`
+	Hover      bool              `json:"hover"`
 }

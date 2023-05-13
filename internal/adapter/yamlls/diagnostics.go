@@ -14,7 +14,7 @@ func handleDiagnostics(req jsonrpc2.Request, conn jsonrpc2.Conn, documents *lspl
 
 	var params lsp.PublishDiagnosticsParams
 
-	logger.Println("handleDiagnostics")
+	// logger.Println("handleDiagnostics")
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		return err
 	}
@@ -41,8 +41,8 @@ func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree) (filtered
 
 		node := lsplocal.NodeAtPosition(ast, diagnostic.Range.Start)
 
-		logger.Println("node Type", node.Type())
-		logger.Println("diagnositc", diagnostic)
+		// logger.Println("node Type", node.Type())
+		// logger.Println("diagnositc", diagnostic)
 		if node.Type() == "text" {
 			filtered = append(filtered, diagnostic)
 		}

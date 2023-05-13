@@ -91,7 +91,7 @@ func testHandler(clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) js
 				return err
 			}
 
-			settings := [5]interface{}{YamllsSettings{Schemas: map[string]string{"kubernetes": "**"}}}
+			settings := [5]interface{}{YamllsSettings{Schemas: map[string]string{"kubernetes": "**"}, Completion: true, Hover: true}}
 
 			logger.Println("Handler called", params)
 			return reply(ctx, settings, nil)

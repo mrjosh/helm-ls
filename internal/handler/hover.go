@@ -47,6 +47,17 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 
 	pt := parent.Type()
 	ct := currentNode.Type()
+	if ct == "text" {
+		logger.Println("Calling yamlls for hover")
+		var response = reflect.New(reflect.TypeOf(lsp.Hover{})).Interface()
+		_, err = h.yamllsConnector.Conn.Call(ctx, lsp.MethodTextDocumentHover, params, response)
+		if err != nil {
+			logger.Println("Error Calling yamlls for hover", err)
+		}
+
+		logger.Println("Got hover from yamlls", response)
+		return reply(ctx, response, err)
+	}
 	if pt == "function_call" && ct == "identifier" {
 		word = currentNode.Content([]byte(doc.Content))
 	}
