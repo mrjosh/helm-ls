@@ -26,7 +26,8 @@ func handleDiagnostics(req jsonrpc2.Request, conn jsonrpc2.Conn, documents *lspl
 	}
 	filtered := filterDiagnostics(params.Diagnostics, ast)
 	logger.Println(filtered)
-	params.Diagnostics = filtered
+	doc.DiagnosticsCache.Yamldiagnostics = filtered
+	params.Diagnostics = doc.DiagnosticsCache.GetMergedDiagnostics()
 
 	// logger.Println("handleDiagnostics Notify", params)
 	return conn.Notify(context.Background(), lsp.MethodTextDocumentPublishDiagnostics, &params)

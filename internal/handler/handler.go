@@ -120,7 +120,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	return reply(ctx, lsp.InitializeResult{
 		Capabilities: lsp.ServerCapabilities{
 			TextDocumentSync: lsp.TextDocumentSyncOptions{
-				Change:    lsp.TextDocumentSyncKindFull,
+				Change:    lsp.TextDocumentSyncKindIncremental,
 				OpenClose: true,
 				Save: &lsp.SaveOptions{
 					IncludeText: true,
@@ -154,7 +154,11 @@ func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonr
 		return reply(ctx, nil, err)
 	}
 
-	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, params.TextDocument.URI)
+	doc, ok := h.documents.Get(params.TextDocument.URI)
+	if !ok {
+		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+	}
+	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, doc)
 	return reply(ctx, notification, err)
 }
 
@@ -176,7 +180,12 @@ func (h *langHandler) handleTextDocumentDidSave(ctx context.Context, reply jsonr
 		return err
 	}
 
+	doc, ok := h.documents.Get(params.TextDocument.URI)
+	if !ok {
+		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+	}
+
 	h.yamllsConnector.Conn.Notify(context.Background(), lsp.MethodTextDocumentDidSave, params)
-	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, params.TextDocument.URI)
+	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, doc)
 	return reply(ctx, notification, err)
 }

@@ -1,13 +1,14 @@
 package lsp
 
 import (
+	"bytes"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/pkg/errors"
+	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
-	sitter "github.com/smacker/go-tree-sitter"
 )
 
 // documentStore holds opened documents.
@@ -39,6 +40,7 @@ func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams) (*Document
 		Path:    path,
 		Content: params.TextDocument.Text,
 		Ast:  ParseAst(params.TextDocument.Text),
+		DiagnosticsCache: NewDiagnosticsCache(),
 	}
 	s.documents[path] = doc
 	return doc, nil
@@ -74,13 +76,23 @@ type Document struct {
 	Content                 string
 	lines                   []string
 	Ast                     *sitter.Tree
+	DiagnosticsCache        diagnosticsCache        
 }
 
 // ApplyChanges updates the content of the document from LSP textDocument/didChange events.
 func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
+	var content = []byte(d.Content)
 	for _, change := range changes {
-    d.Content = d.Content[:change.Range.Start.Character] + change.Text + d.Content[change.Range.End.Character:]
+		start, end := util.PositionToIndex(change.Range.Start, content), util.PositionToIndex(change.Range.End, content)
+
+		var buf bytes.Buffer
+		buf.Write(content[:start])
+		buf.Write([]byte(change.Text))
+		buf.Write(content[end:])
+		content = buf.Bytes()
 	}
+	d.Content = string(content)
+
 	d.ApplyChangesToAst(d.Content)
 
 	d.lines = nil
