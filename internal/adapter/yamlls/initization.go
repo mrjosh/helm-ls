@@ -8,31 +8,20 @@ import (
 )
 
 func (yamllsConnector YamllsConnector) CallInitialize(params lsp.InitializeParams) {
-	params.ProcessID = int32(os.Getpid())
-	params.ClientInfo.Name = "debug-lsp.sh"
-	// json, _ := json.Marshal(params)
+	if yamllsConnector.Conn == nil {
+		return
+	}
 
-	logger.Println("Init ")
-	// logger.Println("Init with", string(json))
-	// logger.Println("Init with", params.InitializationOptions)
+	params.ProcessID = int32(os.Getpid())
+	params.ClientInfo.Name = "helm-ls"
 
 	var response interface{}
 	yamllsConnector.Conn.Call(context.Background(), lsp.MethodInitialize, params, response)
 	yamllsConnector.Conn.Notify(context.Background(), lsp.MethodInitialized, params)
-	logger.Println("Init done ")
 
-	changeConfigurationParams := lsp.DidChangeConfigurationParams{
-		Settings: initializationOptions{Yaml: YamllsSettings{Schemas: map[string]string{"kubernetes": "**"}, Completion: true, Hover: true}}}
+	changeConfigurationParams := lsp.DidChangeConfigurationParams{}
 
-	logger.Println("change config", changeConfigurationParams)
 	yamllsConnector.Conn.Notify(context.Background(), lsp.MethodWorkspaceDidChangeConfiguration, changeConfigurationParams)
-
-	logger.Println("change config done")
-
-}
-
-type initializationOptions struct {
-	Yaml YamllsSettings `json:"yaml"`
 }
 
 type YamllsSettings struct {

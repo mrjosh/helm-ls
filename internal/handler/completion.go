@@ -45,9 +45,6 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 
-	// logger.Println(params.Position.Character)
-	// params.Position.Character = params.Position.Character - 1
-	// logger.Println(params.Position.Character)
 	word, err := completionAstParsing(doc, params.Position)
 
 	if err != nil {
@@ -61,6 +58,11 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 
 		logger.Println("Got completions from yamlls", response)
 		return reply(ctx, response, err)
+		// if err != nil { TODO: use this version
+		// 	response := *h.yamllsConnector.CallCompletion(params)
+		// 	logger.Println("Got completions from yamlls", response)
+		// 	return reply(ctx, response, err)
+		// }
 	}
 
 	var (

@@ -20,8 +20,6 @@ func (h *langHandler) handleTextDocumentDidChange(ctx context.Context, reply jso
 		return err
 	}
 
-	h.yamllsConnector.Conn.Notify(context.Background(), lsp.MethodTextDocumentDidChange, params)
-
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
@@ -30,5 +28,6 @@ func (h *langHandler) handleTextDocumentDidChange(ctx context.Context, reply jso
 	// Synchronise changes into the doc's ContentChanges
 	doc.ApplyChanges(params.ContentChanges)
 
+	h.yamllsConnector.DocumentDidChange(params)
 	return reply(ctx, nil, nil)
 }

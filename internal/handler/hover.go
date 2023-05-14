@@ -23,7 +23,7 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		return &jsonrpc2.Error{Code: jsonrpc2.InvalidParams}
 	}
 
-	var params lsp.DefinitionParams
+	var params lsp.HoverParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		return err
 	}
@@ -48,14 +48,11 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	pt := parent.Type()
 	ct := currentNode.Type()
 	if ct == "text" {
-		logger.Println("Calling yamlls for hover")
-		var response = reflect.New(reflect.TypeOf(lsp.Hover{})).Interface()
-		_, err = h.yamllsConnector.Conn.Call(ctx, lsp.MethodTextDocumentHover, params, response)
-		if err != nil {
-			logger.Println("Error Calling yamlls for hover", err)
+		var word = doc.WordAt(params.Position)
+		if len(word) > 2 && string(word[len(word)-1]) == ":" {
+			word = word[0 : len(word)-1]
 		}
-
-		logger.Println("Got hover from yamlls", response)
+		var response = h.yamllsConnector.CallHover(params, word)
 		return reply(ctx, response, err)
 	}
 	if pt == "function_call" && ct == "identifier" {
@@ -106,7 +103,7 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		}
 
 		if err == nil {
-			result := buildHoverResponse(value, wordRange)
+			result := util.BuildHoverResponse(value, wordRange)
 			return reply(ctx, result, err)
 		}
 		return reply(ctx, nil, err)
@@ -124,26 +121,11 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	logger.Println("Start search with word " + searchWord)
 	for _, completionItem := range toSearch {
 		if searchWord == completionItem.Name {
-			result := buildHoverResponse(fmt.Sprint(completionItem.Doc), wordRange)
+			result := util.BuildHoverResponse(fmt.Sprint(completionItem.Doc), wordRange)
 			return reply(ctx, result, err)
 		}
 	}
 	return reply(ctx, lsp.Hover{}, err)
-}
-
-func buildHoverResponse(value string, wordRange lsp.Range) lsp.Hover {
-	if value == "" {
-		value = "\"\""
-	}
-	content := lsp.MarkupContent{
-		Kind:  lsp.Markdown,
-		Value: value,
-	}
-	result := lsp.Hover{
-		Contents: content,
-		Range:    &wordRange,
-	}
-	return result
 }
 
 func (h *langHandler) getChartMetadataHover(key string) (string, error) {
