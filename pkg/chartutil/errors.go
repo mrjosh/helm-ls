@@ -27,6 +27,12 @@ type ErrNoTable struct {
 
 func (e ErrNoTable) Error() string { return fmt.Sprintf("%q is not a table", e.Key) }
 
+type ErrEmpytArray struct {
+	Key string
+}
+
+func (e ErrEmpytArray) Error() string { return fmt.Sprintf("%q is an empyt array", e.Key) }
+
 // ErrNoValue indicates that Values does not contain a key with a value
 type ErrNoValue struct {
 	Key string

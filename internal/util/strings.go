@@ -6,9 +6,11 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/log"
 	"go.lsp.dev/uri"
 )
 
+var logger = log.GetLogger()
 var wordRegex = regexp.MustCompile(`[^ \t\n\f\r,;\[\]\"\']+`)
 
 // BetweenStrings gets the substring between two strings.
@@ -47,6 +49,7 @@ func URIToPath(docuri uri.URI) (string, error) {
 		return "", err
 	}
 
+	logger.Printf("Go file uri %s, path: $s", parsed, parsed.Path)
 	if runtime.GOOS == "windows" {
 		// In Windows "file:///c:/tmp/foo.md" is parsed to "/c:/tmp/foo.md".
 		// Strip the first character to get a valid path.
@@ -69,6 +72,26 @@ func WordAt(str string, index int) string {
 	for _, wordIdx := range wordIdxs {
 		if wordIdx[0] <= index && index <= wordIdx[1] {
 			return str[wordIdx[0]:wordIdx[1]]
+		}
+	}
+
+	return ""
+}
+
+// ValueAt returns the value found at the given character position.
+// It removes all content of the word after a "." right of the position.
+func ValueAt(str string, index int) string {
+
+	wordIdxs := wordRegex.FindAllStringIndex(str, -1)
+	for _, wordIdx := range wordIdxs {
+		if wordIdx[0] <= index && index+1 <= wordIdx[1] {
+			leftOfWord := str[wordIdx[0] : index+1]
+			rightOfWord := str[index+1 : wordIdx[1]]
+			rightOfWordEnd := strings.Index(rightOfWord, ".")
+			if rightOfWordEnd == -1 {
+				rightOfWordEnd = len(rightOfWord) - 1
+			}
+			return leftOfWord + rightOfWord[0:rightOfWordEnd+1]
 		}
 	}
 
