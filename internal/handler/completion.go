@@ -138,30 +138,6 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string
 	return word, nil
 }
 
-func findRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
-	for i := 0; i < int(currentNode.ChildCount()); i++ {
-		child := currentNode.Child(i)
-		if isPointLargerOrEq(pointToLookUp, child.StartPoint()) && isPointLargerOrEq(child.EndPoint(), pointToLookUp) {
-			logger.Println("loop", child)
-			return findRelevantChildNode(child, pointToLookUp)
-		}
-	}
-	return currentNode
-}
-
-func isPointLarger(a sitter.Point, b sitter.Point) bool {
-	if a.Row == b.Row {
-		return a.Column > b.Column
-	}
-	return a.Row > b.Row
-}
-func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
-	if a.Row == b.Row {
-		return a.Column >= b.Column
-	}
-	return a.Row > b.Row
-}
-
 func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
 
 	var (

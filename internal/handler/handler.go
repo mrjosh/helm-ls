@@ -147,12 +147,13 @@ func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonr
 		return reply(ctx, nil, err)
 	}
 
-	h.yamllsConnector.DocumentDidOpen(params)
-
-	if _, err = h.documents.DidOpen(params); err != nil {
+	doc, err := h.documents.DidOpen(params)
+	if err != nil {
 		logger.Println(err)
 		return reply(ctx, nil, err)
 	}
+
+	h.yamllsConnector.DocumentDidOpen(doc, params)
 
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
