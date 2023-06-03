@@ -143,14 +143,17 @@ func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string
 
 			fileLine := util.BetweenStrings(supMsg.Error(), "(", ")")
 			fileLineArr := strings.Split(fileLine, ":")
+			if len(fileLineArr) < 2 {
+				err = errors.Errorf("Linter Err contains no position information.")
+				return nil, filename, err
+			}
 			lineStr := fileLineArr[1]
-			msgStr := util.AfterStrings(supMsg.Error(), "):")
-			msg = strings.TrimSpace(msgStr)
-
 			line, err = strconv.Atoi(lineStr)
 			if err != nil {
 				return nil, filename, err
 			}
+			msgStr := util.AfterStrings(supMsg.Error(), "):")
+			msg = strings.TrimSpace(msgStr)
 
 		}
 

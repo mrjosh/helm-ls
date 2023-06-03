@@ -63,7 +63,7 @@ func Templates(linter *support.Linter, values map[string]interface{}, namespace 
 	chartLoaded := linter.RunLinterRule(support.ErrorSev, fpath, err)
 
 	if !chartLoaded {
-		return
+		// ignoring this error and continuing with lint
 	}
 
 	options := chartutil.ReleaseOptions{
