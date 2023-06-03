@@ -224,16 +224,25 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 		variableSplitted = []string{}
 	)
 
-	for _, s := range splitted {
-		if s != "" {
-			variableSplitted = append(variableSplitted, s)
+	for n, s := range splitted {
+		// we want to keep the last empty string to be able
+		// distinguish between 'global.' and 'global'
+		if s == "" && n != len(splitted)-1 {
+			continue
 		}
+		variableSplitted = append(variableSplitted, s)
 	}
 
 	logger.Println(fmt.Sprintf("Word < %s >", word))
 
 	if len(variableSplitted) == 0 {
 		return reply(ctx, basicItems, err)
+	}
+
+	// $ always points to the root context so we can safely remove it
+	// as long the LSP does not know about ranges
+	if variableSplitted[0] == "$" && len(variableSplitted) > 1 {
+		variableSplitted = variableSplitted[1:]
 	}
 
 	switch variableSplitted[0] {
@@ -301,20 +310,30 @@ func (h *langHandler) getFilesVals() []lsp.CompletionItem {
 func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
 
 	var (
-		err       error
-		items     = make([]lsp.CompletionItem, 0)
-		tableName = strings.Join(splittedVar, ".")
+		err         error
+		tableName   = strings.Join(splittedVar, ".")
+		localValues chartutil.Values
+		items       = make([]lsp.CompletionItem, 0)
 	)
 
 	if len(splittedVar) > 0 {
 
-		values, err = values.Table(tableName)
+		localValues, err = values.Table(tableName)
 		if err != nil {
 			logger.Println(err)
-			if errors.Is(err, chartutil.ErrNoTable{}) {
-				return emptyItems
+			if len(splittedVar) > 1 {
+				// the current tableName was not found, maybe because it is incomplete, we can use the previous one
+				// e.g. gobal.im -> im was not found
+				// but global contains the key image, so we return all keys of global
+				localValues, err = values.Table(strings.Join(splittedVar[:len(splittedVar)-1], "."))
+				if err != nil {
+					logger.Println(err)
+					return emptyItems
+				}
+				values = localValues
 			}
-			return emptyItems
+		} else {
+			values = localValues
 		}
 
 	}
