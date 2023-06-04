@@ -16,12 +16,12 @@ func (yamllsConnector YamllsConnector) CallInitialize(params lsp.InitializeParam
 	params.ClientInfo.Name = "helm-ls"
 
 	var response interface{}
-	yamllsConnector.Conn.Call(context.Background(), lsp.MethodInitialize, params, response)
-	yamllsConnector.Conn.Notify(context.Background(), lsp.MethodInitialized, params)
+	(*yamllsConnector.Conn).Call(context.Background(), lsp.MethodInitialize, params, response)
+	(*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodInitialized, params)
 
 	changeConfigurationParams := lsp.DidChangeConfigurationParams{}
 
-	yamllsConnector.Conn.Notify(context.Background(), lsp.MethodWorkspaceDidChangeConfiguration, changeConfigurationParams)
+	(*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodWorkspaceDidChangeConfiguration, changeConfigurationParams)
 }
 
 type YamllsSettings struct {

@@ -111,4 +111,23 @@ func PositionToIndex(pos protocol.Position, content []byte) int {
 
 	index = index + int(pos.Character)
 	return index
+
+}
+
+func IndexToPosition(index int, content []byte) protocol.Position {
+	line := 0
+	char := 0
+	for i := 0; i < index-1; i++ {
+		if string(content[i]) == "\n" {
+			line++
+			char = 0
+		} else {
+			char++
+		}
+	}
+
+	return protocol.Position{
+		Line:      uint32(line),
+		Character: uint32(char),
+	}
 }

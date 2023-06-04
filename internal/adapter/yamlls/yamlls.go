@@ -12,13 +12,13 @@ import (
 var logger = log.GetLogger()
 
 type YamllsConnector struct {
-	Conn      jsonrpc2.Conn
+	Conn      *jsonrpc2.Conn
 	documents *lsplocal.DocumentStore
 }
 
 func NewYamllsConnector(workingDir string, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) *YamllsConnector {
-	yamllsCmd := exec.Command("yaml-language-server", "--stdio")
-	// yamllsCmd := exec.Command("debug-lsp.sh")
+	// yamllsCmd := exec.Command("yaml-language-server", "--stdio")
+	yamllsCmd := exec.Command("debug-lsp.sh")
 
 	stdin, err := yamllsCmd.StdinPipe()
 	if err != nil {
@@ -54,6 +54,6 @@ func NewYamllsConnector(workingDir string, clientConn jsonrpc2.Conn, documents *
 	conn := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloser))
 	conn.Go(context.Background(), yamllsHandler(clientConn, documents))
 	yamllsConnector.documents = documents
-	yamllsConnector.Conn = conn
+	yamllsConnector.Conn = &conn
 	return &yamllsConnector
 }

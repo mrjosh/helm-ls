@@ -51,7 +51,7 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 
 		logger.Println("Calling yamlls for completions")
 		var response = reflect.New(reflect.TypeOf(lsp.CompletionList{})).Interface()
-		_, err = h.yamllsConnector.Conn.Call(ctx, lsp.MethodTextDocumentCompletion, params, response)
+		_, err = (*h.yamllsConnector.Conn).Call(ctx, lsp.MethodTextDocumentCompletion, params, response)
 		if err != nil {
 			logger.Println("Error Calling yamlls for completions", err)
 		}

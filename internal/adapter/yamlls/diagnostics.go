@@ -29,7 +29,7 @@ func handleDiagnostics(req jsonrpc2.Request, clientConn jsonrpc2.Conn, documents
 func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree) (filtered []lsp.Diagnostic) {
 	filtered = []lsp.Diagnostic{}
 	for _, diagnostic := range diagnostics {
-		node := lsplocal.NodeAtPosition(ast, diagnostic.Range.Start)
+		node := lsplocal.FindRelevantChildNode(ast.RootNode(), lsplocal.GetSitterPointForLspPos(diagnostic.Range.Start))
 		if node.Type() == "text" {
 			filtered = append(filtered, diagnostic)
 		}

@@ -153,7 +153,7 @@ func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonr
 		return reply(ctx, nil, err)
 	}
 
-	h.yamllsConnector.DocumentDidOpen(doc, params)
+	h.yamllsConnector.DocumentDidOpen(doc.Ast, params)
 
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
@@ -186,7 +186,7 @@ func (h *langHandler) handleTextDocumentDidSave(ctx context.Context, reply jsonr
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 
-	h.yamllsConnector.DocumentDidSave(params)
+	h.yamllsConnector.DocumentDidSave(doc, params)
 	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, doc)
 	return reply(ctx, notification, err)
 }

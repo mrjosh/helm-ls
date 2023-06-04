@@ -20,7 +20,7 @@ func (yamllsConnector YamllsConnector) CallHover(params lsp.HoverParams, word st
 			TextDocumentPositionParams: params.TextDocumentPositionParams,
 		}
 	)
-	_, err := yamllsConnector.Conn.Call(context.Background(), lsp.MethodTextDocumentCompletion, completionParams, response)
+	_, err := (*yamllsConnector.Conn).Call(context.Background(), lsp.MethodTextDocumentCompletion, completionParams, response)
 	if err != nil {
 		return util.BuildHoverResponse(documentation, lsp.Range{})
 	}

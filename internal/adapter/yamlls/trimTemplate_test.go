@@ -158,3 +158,34 @@ apiVersion: keda.sh/v1alpha1
 		t.Log("Trimmed templated was as expected")
 	}
 }
+
+func TestTrimTemplateFromAst4(t *testing.T) {
+
+	var documentText = `
+{{- if .Values.ingress.enabled }}
+apiVersion: apps/v1
+kind: Ingress
+{{- end }}
+`
+
+	var trimmedText = `
+                                 
+apiVersion: apps/v1
+kind: Ingress
+          
+`
+	doc := &lsplocal.Document{
+		Content: documentText,
+		Ast:     lsplocal.ParseAst(documentText),
+	}
+
+	var trimmed = trimTemplateForYamllsFromAst(doc.Ast, documentText)
+
+	var result = trimmed == trimmedText
+
+	if !result {
+		t.Errorf("Trimmed templated was not as expected but was %s ", trimmed)
+	} else {
+		t.Log("Trimmed templated was as expected")
+	}
+}

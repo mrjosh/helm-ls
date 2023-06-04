@@ -1,10 +1,7 @@
 package yamlls
 
 import (
-
-	// lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	sitter "github.com/smacker/go-tree-sitter"
-	// lsp "go.lsp.dev/protocol"
 )
 
 func trimTemplateForYamllsFromAst(ast *sitter.Tree, text string) string {
@@ -26,13 +23,16 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 			switch child.Type() {
 			case
 				"if",
+				"selector_expression",
 				"else",
 				"range",
 				"function_call",
 				"with",
 				"define",
 				"{{",
+				"{{-",
 				"}}",
+				"-}}",
 				"end",
 				"interpreted_string_literal",
 				"block":
