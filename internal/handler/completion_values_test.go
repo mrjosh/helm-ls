@@ -2,6 +2,9 @@ package handler
 
 import (
 	"testing"
+
+	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"go.lsp.dev/protocol"
 )
 
 func TestEmptyValues(t *testing.T) {
@@ -81,4 +84,23 @@ func TestWrongValues(t *testing.T) {
 	if len(result) != 0 {
 		t.Errorf("Length of result was not zero.")
 	}
+}
+
+func TestCompletionAstParsing(t *testing.T) {
+
+	documentText := `{{ .Values.global. }}`
+	expectedWord := ".Values.global."
+	doc := &lsplocal.Document{
+		Content: documentText,
+		Ast:     lsplocal.ParseAst(documentText),
+	}
+	position := protocol.Position{
+		Line:      0,
+		Character: 18,
+	}
+	word := completionAstParsing(doc, position)
+	if expectedWord != word {
+		t.Errorf("Expected word '%s', but got '%s'", expectedWord, word)
+	}
+
 }
