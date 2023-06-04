@@ -1,8 +1,8 @@
 package lsp
 
 import (
+	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	sitter "github.com/smacker/go-tree-sitter"
-	"github.com/smacker/go-tree-sitter/gotemplate"
 	lsp "go.lsp.dev/protocol"
 )
 
@@ -24,7 +24,6 @@ func GetFieldIdentifierPath(node *sitter.Node, doc *Document) (path string) {
 }
 
 func buildFieldIdentifierPath(node *sitter.Node, doc *Document) string {
-
 	prepend := node.PrevNamedSibling()
 
 	currentPath := node.Content([]byte(doc.Content))

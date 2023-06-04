@@ -26,11 +26,11 @@ jobs:
       version: ${{ steps.build.outputs.version }}
     steps:
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.go-version }}
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install go dependencies
       run: go mod tidy
@@ -45,35 +45,35 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: helm_ls_darwin_amd64
-        path: ./dist/helm_ls_darwin_amd64
+        path: ./dist/helm_ls-darwin-10.12-amd64
         retention-days: 1
 
     - name: 'Upload macOS-arm64 artifact'
       uses: actions/upload-artifact@v2
       with:
         name: helm_ls_darwin_arm64
-        path: ./dist/helm_ls_darwin_arm64
+        path: ./dist/helm_ls-darwin-10.12-arm64
         retention-days: 1
 
     - name: 'Upload linux/amd64 artifact'
       uses: actions/upload-artifact@v2
       with:
         name: helm_ls_linux_amd64
-        path: ./dist/helm_ls_linux_amd64
-        retention-days: 1
-
-    - name: 'Upload windows/amd64 artifact'
-      uses: actions/upload-artifact@v2
-      with:
-        name: helm_ls_windows_amd64
-        path: ./dist/helm_ls_windows_amd64.exe
+        path: ./dist/helm_ls-linux-amd64
         retention-days: 1
 
     - name: 'Upload linux/arm artifact'
       uses: actions/upload-artifact@v2
       with:
         name: helm_ls_linux_arm
-        path: ./dist/helm_ls_linux_arm
+        path: ./dist/helm_ls-linux-arm64
+        retention-days: 1
+
+    - name: 'Upload windows/amd64 artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: helm_ls_windows_amd64
+        path: ./dist/helm_ls-windows-4.0-amd64.exe
         retention-days: 1
 
   publish:
@@ -100,27 +100,27 @@ jobs:
 
       - name: Generate Linux-64 SHA256 checksums
         run: |
-          sha256sum helm_ls_linux_amd64/helm_ls_linux_amd64 > helm_ls_linux_amd64.sha256sum
+          sha256sum helm_ls_linux_amd64/helm_ls-linux-amd64 > helm_ls_linux_amd64.sha256sum
           echo "SHA_LINUX_64=$(cat helm_ls_linux_amd64.sha256sum)" >> $GITHUB_ENV
 
       - name: Generate Windows-64 SHA256 checksums
         run: |
-          sha256sum helm_ls_windows_amd64/helm_ls_windows_amd64.exe > helm_ls_windows_amd64.sha256sum
+          sha256sum helm_ls_windows_amd64/helm_ls-windows-4.0-amd64.exe > helm_ls_windows_amd64.sha256sum
           echo "SHA_WINDOWS_64=$(cat helm_ls_windows_amd64.sha256sum)" >> $GITHUB_ENV
 
       - name: Generate macOS-amd64 SHA256 checksums
         run: |
-          sha256sum helm_ls_darwin_amd64/helm_ls_darwin_amd64 > helm_ls_darwin_amd64.sha256sum
+          sha256sum helm_ls_darwin_amd64/helm_ls-darwin-10.12-amd64 > helm_ls_darwin_amd64.sha256sum
           echo "SHA_MACOS=$(cat helm_ls_darwin_amd64.sha256sum)" >> $GITHUB_ENV
 
       - name: Generate macOS-arm64 SHA256 checksums
         run: |
-          sha256sum helm_ls_darwin_arm64/helm_ls_darwin_arm64 > helm_ls_darwin_arm64.sha256sum
+          sha256sum helm_ls_darwin_arm64/helm_ls-darwin-10.12-arm64 > helm_ls_darwin_arm64.sha256sum
           echo "SHA_MACOS_ARM=$(cat helm_ls_darwin_arm64.sha256sum)" >> $GITHUB_ENV
 
       - name: Generate Linux-ARM SHA256 checksums
         run: |
-          sha256sum helm_ls_linux_arm/helm_ls_linux_arm > helm_ls_linux_arm.sha256sum
+          sha256sum helm_ls_linux_arm/helm_ls-linux-arm64 > helm_ls_linux_arm.sha256sum
           echo "SHA_LINUX_ARM=$(cat helm_ls_linux_arm.sha256sum)" >> $GITHUB_ENV
 
       - if: env.TAG_NAME == 'master'
@@ -139,15 +139,15 @@ jobs:
           gzip: false
           allow_override: true
           files: |
-            helm_ls_darwin_amd64:./helm_ls_darwin_amd64/helm_ls_darwin_amd64
+            helm_ls_darwin_amd64:./helm_ls_darwin_amd64/helm_ls-darwin-10.12-amd64
             helm_ls_darwin_amd64.sha256sum:./helm_ls_darwin_amd64.sha256sum
-            helm_ls_darwin_arm64:./helm_ls_darwin_arm64/helm_ls_darwin_arm64
+            helm_ls_darwin_arm64:./helm_ls_darwin_arm64/helm_ls-darwin-10.12-arm64
             helm_ls_darwin_arm64.sha256sum:./helm_ls_darwin_arm64.sha256sum
-            helm_ls_windows_amd64:./helm_ls_windows_amd64/helm_ls_windows_amd64.exe
+            helm_ls_windows_amd64:./helm_ls_windows_amd64/helm_ls-windows-4.0-amd64.exe
             helm_ls_windows_amd64.sha256sum:./helm_ls_windows_amd64.sha256sum
-            helm_ls_linux_amd64:./helm_ls_linux_amd64/helm_ls_linux_amd64
+            helm_ls_linux_amd64:./helm_ls_linux_amd64/helm_ls-linux-amd64
             helm_ls_linux_amd64.sha256sum:./helm_ls_linux_amd64.sha256sum
-            helm_ls_linux_arm:./helm_ls_linux_arm/helm_ls_linux_arm
+            helm_ls_linux_arm:./helm_ls_linux_arm/helm_ls-linux-arm64
             helm_ls_linux_arm.sha256sum:./helm_ls_linux_arm.sha256sum
           body: |
             ```

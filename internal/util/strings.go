@@ -6,9 +6,11 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/log"
 	"go.lsp.dev/uri"
 )
 
+var logger = log.GetLogger()
 var wordRegex = regexp.MustCompile(`[^ \t\n\f\r,;\[\]\"\']+`)
 
 // BetweenStrings gets the substring between two strings.
@@ -47,6 +49,7 @@ func URIToPath(docuri uri.URI) (string, error) {
 		return "", err
 	}
 
+	logger.Printf("Go file uri %s, path: $s", parsed, parsed.Path)
 	if runtime.GOOS == "windows" {
 		// In Windows "file:///c:/tmp/foo.md" is parsed to "/c:/tmp/foo.md".
 		// Strip the first character to get a valid path.
