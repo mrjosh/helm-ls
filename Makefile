@@ -4,13 +4,12 @@ export GOBIN?=$(BIN)
 export GO=$(shell which go)
 export CGO_ENABLED=1
 export GOX=$(BIN)/gox
-export XGO=$(BIN)/xgo
 
 $(eval GIT_COMMIT=$(shell git rev-parse --short HEAD))
 $(eval BRANCH_NAME=$(shell git rev-parse --abbrev-ref HEAD))
 $(eval COMPILED_BY=$(shell hostname))
 
-GO_LDFLAGS := $(LDFLAGS) -X "main.CompiledBy=${COMPILED_BY}" -X "main.Version=${GIT_COMMIT}" -X "main.BranchName=${BRANCH_NAME}" -X "main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'`"
+export GO_LDFLAGS="-X main.CompiledBy=${COMPILED_BY} -X main.Version=${GIT_COMMIT} -X main.BranchName=${BRANCH_NAME} -X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'`"
 
 export LINTER=$(GOBIN)/golangci-lint
 export LINTERCMD=run --no-config -v \
@@ -68,21 +67,19 @@ test:
 install-gox:
 	@$(GO) install github.com/mitchellh/gox@v1.0.1
 
-install-xgo:
-	@$(GO) install src.techknowlogick.com/xgo@latest
-
-
 .PHONY: build-linux
-build-linux: install-xgo
-	$(XGO) -dest dist -ldflags '$(GO_LDFLAGS)' -targets 'linux/amd64,linux/arm64' -out helm_ls .
+build-linux: install-gox
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=linux --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=arm --os=linux --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
 
 .PHONY: build-macOS
-build-macOS: install-xgo
-	$(XGO) -dest dist -ldflags '$(GO_LDFLAGS)' -targets 'darwin-10.12/amd64,darwin-10.12/arm64' -out helm_ls .
+build-macOS: install-gox
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=darwin --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=arm64 --os=darwin --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
 
 .PHONY: build-windows
-build-windows: install-xgo
-	$(XGO) -buildmode exe -dest dist -ldflags '-linkmode external -extldflags "-static" $(GO_LDFLAGS)' -targets 'windows/amd64' -out helm_ls .
+build-windows: install-gox
+	@$(GOX) -ldflags ${GO_LDFLAGS} --arch=amd64 --os=windows --output="dist/helm_ls_{{.OS}}_{{.Arch}}"
 
 .PHONY: build-artifacts
 build-artifacts:
