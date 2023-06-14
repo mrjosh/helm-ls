@@ -49,7 +49,7 @@ func URIToPath(docuri uri.URI) (string, error) {
 		return "", err
 	}
 
-	logger.Printf("Go file uri %s, path: $s", parsed, parsed.Path)
+	logger.Printf("Go file uri %s, path: %s", parsed, parsed.Path)
 	if runtime.GOOS == "windows" {
 		// In Windows "file:///c:/tmp/foo.md" is parsed to "/c:/tmp/foo.md".
 		// Strip the first character to get a valid path.

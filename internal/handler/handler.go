@@ -37,7 +37,7 @@ func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
 	return jsonrpc2.ReplyHandler(handler.handle)
 }
 
-func (h *langHandler) handle(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
+func (h *langHandler) handle(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 	logger.Debug("helm-lint-langserver: request:", req)
 
 	switch req.Method() {
@@ -66,7 +66,7 @@ func (h *langHandler) handle(ctx context.Context, reply jsonrpc2.Replier, req js
 	return jsonrpc2.MethodNotFoundHandler(ctx, reply, req)
 }
 
-func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
+func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 
 	var params lsp.InitializeParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
@@ -83,6 +83,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	chartFile := filepath.Join(params.RootURI.Filename(), "Chart.yaml")
 	chartMetadata, err := chartutil.LoadChartfile(chartFile)
 	if err != nil {
+		logger.Println("Error loaing Chart.yaml file", err)
 		return err
 	}
 	h.chartMetadata = *chartMetadata
