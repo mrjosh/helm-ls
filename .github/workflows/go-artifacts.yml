@@ -156,7 +156,6 @@ jobs:
             ```
             ${{ env.SHA_LINUX_64 }}
             ${{ env.SHA_MACOS }}
-            ${{ env.SHA_MACOS_ARM }}
             ${{ env.SHA_WINDOWS_64 }}
             ${{ env.SHA_LINUX_ARM }}
             ```
