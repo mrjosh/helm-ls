@@ -21,7 +21,6 @@ import (
 	"log"
 	"path"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"text/template"
@@ -96,8 +95,6 @@ type renderable struct {
 const warnStartDelim = "HELM_ERR_START"
 const warnEndDelim = "HELM_ERR_END"
 const recursionMaxNums = 1000
-
-var warnRegex = regexp.MustCompile(warnStartDelim + `((?s).*)` + warnEndDelim)
 
 func warnWrap(warn string) string {
 	return warnStartDelim + warn + warnEndDelim
@@ -300,28 +297,30 @@ func cleanupParseError(filename string, err error) error {
 	return fmt.Errorf("parse error at (%s): %s", string(location), errMsg)
 }
 
-func cleanupExecError(filename string, err error) error {
-	if _, isExecError := err.(template.ExecError); !isExecError {
-		return err
-	}
+//func cleanupExecError(filename string, err error) error {
+//if _, isExecError := err.(template.ExecError); !isExecError {
+//return err
+//}
 
-	tokens := strings.SplitN(err.Error(), ": ", 3)
-	if len(tokens) != 3 {
-		// This might happen if a non-templating error occurs
-		return fmt.Errorf("execution error in (%s): %s", filename, err)
-	}
+//tokens := strings.SplitN(err.Error(), ": ", 3)
+//if len(tokens) != 3 {
+//// This might happen if a non-templating error occurs
+//return fmt.Errorf("execution error in (%s): %s", filename, err)
+//}
 
-	// The first token is "template"
-	// The second token is either "filename:lineno" or "filename:lineNo:columnNo"
-	location := tokens[1]
+//// The first token is "template"
+//// The second token is either "filename:lineno" or "filename:lineNo:columnNo"
+//location := tokens[1]
 
-	parts := warnRegex.FindStringSubmatch(tokens[2])
-	if len(parts) >= 2 {
-		return fmt.Errorf("execution error at (%s): %s", string(location), parts[1])
-	}
+//warnRegex := regexp.MustCompile(warnStartDelim + `((?s).*)` + warnEndDelim)
 
-	return err
-}
+//parts := warnRegex.FindStringSubmatch(tokens[2])
+//if len(parts) >= 2 {
+//return fmt.Errorf("execution error at (%s): %s", string(location), parts[1])
+//}
+
+//return err
+//}
 
 func sortTemplates(tpls map[string]renderable) []string {
 	keys := make([]string, len(tpls))

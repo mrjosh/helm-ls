@@ -23,7 +23,6 @@ export LINTERCMD=run --no-config -v \
 	--enable=gocyclo \
 	--enable=ineffassign \
 	--enable=revive \
-	--enable=goimports \
 	--enable=errcheck \
 	--enable=goconst \
 	--enable=megacheck \

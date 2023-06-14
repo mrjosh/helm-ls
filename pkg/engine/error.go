@@ -1,9 +1,8 @@
 package engine
 
 type LintError struct {
-	location int
-	message  string
-	errors   []error
+	message string
+	errors  []error
 }
 
 func NewLintError(msg string, errs ...error) *LintError {

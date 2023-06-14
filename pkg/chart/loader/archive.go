@@ -35,6 +35,8 @@ import (
 
 var drivePathPattern = regexp.MustCompile(`^[a-zA-Z]:/`)
 
+const ChartFileName = "Chart.yaml"
+
 // FileLoader loads a chart from a file
 type FileLoader string
 
@@ -77,7 +79,13 @@ func LoadFile(name string) (*chart.Chart, error) {
 // of this is invoking `helm template values.yaml mychart` which would otherwise produce a confusing error
 // if we didn't check for this.
 func ensureArchive(name string, raw *os.File) error {
-	defer raw.Seek(0, 0) // reset read offset to allow archive loading to proceed.
+
+	defer func() {
+		if _, err := raw.Seek(0, 0); err != nil {
+			panic(err)
+		}
+		// reset read offset to allow archive loading to proceed.
+	}()
 
 	// Check the file format to give us a chance to provide the user with more actionable feedback.
 	buffer := make([]byte, 512)
@@ -165,7 +173,7 @@ func LoadArchiveFiles(in io.Reader) ([]*BufferedFile, error) {
 			return nil, errors.New("chart contains illegally named files")
 		}
 
-		if parts[0] == "Chart.yaml" {
+		if parts[0] == ChartFileName {
 			return nil, errors.New("chart yaml not in base directory")
 		}
 

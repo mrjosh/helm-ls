@@ -17,6 +17,14 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+type ChildNodeType string
+
+const (
+	ChildNodeTypeIdentifier = "identifier"
+	ChildNodeTypeDot        = "dot"
+	ChildNodeTypeDotSymbol  = "."
+)
+
 var (
 	emptyItems               = make([]lsp.CompletionItem, 0)
 	functionsCompletionItems = make([]lsp.CompletionItem, 0)
@@ -47,7 +55,7 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	var (
 		word             = completionAstParsing(doc, params.Position)
 		splitted         = strings.Split(word, ".")
-		items            = make([]lsp.CompletionItem, 0)
+		items            []lsp.CompletionItem
 		variableSplitted = []string{}
 	)
 
@@ -92,11 +100,13 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 }
 
 func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string {
+
 	var (
 		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
 		pointToLoopUp = sitter.Point{
 			Row:    position.Line,
-			Column: position.Character}
+			Column: position.Character,
+		}
 		relevantChildNode = findRelevantChildNode(currentNode, pointToLoopUp)
 		word              string
 	)
@@ -104,18 +114,17 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 	logger.Println("currentNode", currentNode)
 	logger.Println("relevantChildNode", relevantChildNode.Type())
 
-	ct := relevantChildNode.Type()
-	if ct == "identifier" {
+	switch relevantChildNode.Type() {
+	case ChildNodeTypeIdentifier:
 		word = relevantChildNode.Content([]byte(doc.Content))
-	}
-	if ct == "dot" {
+	case ChildNodeTypeDot:
 		logger.Println("TraverseIdentifierPathUp")
 		word = lsplocal.TraverseIdentifierPathUp(relevantChildNode, doc)
-	}
-	if ct == "." {
+	case ChildNodeTypeDotSymbol:
 		logger.Println("GetFieldIdentifierPath")
 		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
 	}
+
 	return word
 }
 
@@ -130,12 +139,6 @@ func findRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point)
 	return currentNode
 }
 
-func isPointLarger(a sitter.Point, b sitter.Point) bool {
-	if a.Row == b.Row {
-		return a.Column > b.Column
-	}
-	return a.Row > b.Row
-}
 func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
 	if a.Row == b.Row {
 		return a.Column >= b.Column

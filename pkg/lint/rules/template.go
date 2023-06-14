@@ -46,7 +46,7 @@ var (
 )
 
 // Templates lints the templates in the Linter.
-func Templates(linter *support.Linter, values map[string]interface{}, namespace string, strict bool) {
+func Templates(linter *support.Linter, values map[string]interface{}, namespace string, _ bool) {
 	fpath := "templates/"
 	templatesPath := filepath.Join(linter.ChartDir, fpath)
 
@@ -60,11 +60,10 @@ func Templates(linter *support.Linter, values map[string]interface{}, namespace 
 	// Load chart and parse templates
 	chart, err := loader.Load(linter.ChartDir)
 
-	chartLoaded := linter.RunLinterRule(support.ErrorSev, fpath, err)
-
-	if !chartLoaded {
-		// ignoring this error and continuing with lint
-	}
+	_ = linter.RunLinterRule(support.ErrorSev, fpath, err)
+	//if !chartLoaded {
+	// ignoring this error and continuing with lint
+	//}
 
 	options := chartutil.ReleaseOptions{
 		Name:      "test-release",

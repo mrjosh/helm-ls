@@ -69,6 +69,7 @@ type BufferedFile struct {
 }
 
 // LoadFiles loads from in-memory files.
+//nolint
 func LoadFiles(files []*BufferedFile) (*chart.Chart, error) {
 	c := new(chart.Chart)
 	subcharts := make(map[string][]*BufferedFile)

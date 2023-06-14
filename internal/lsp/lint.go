@@ -67,7 +67,7 @@ func loadValues(dir string, filename ...string) (map[string]interface{}, error) 
 	return vals, nil
 }
 
-// GetDiagnostics will run helm linter agains the currect document URI
+// GetDiagnostics will run helm linter against the currect document URI
 // and converts the helm.support.Message to lsp.Diagnostics
 func GetDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
 
@@ -124,7 +124,7 @@ func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string
 	var (
 		err      error
 		msg      string
-		line     int = 1
+		line     = 1
 		severity lsp.DiagnosticSeverity
 		filename = getFilePathFromLinterErr(supMsg)
 	)
@@ -144,8 +144,7 @@ func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string
 			fileLine := util.BetweenStrings(supMsg.Error(), "(", ")")
 			fileLineArr := strings.Split(fileLine, ":")
 			if len(fileLineArr) < 2 {
-				err = errors.Errorf("Linter Err contains no position information.")
-				return nil, filename, err
+				return nil, filename, errors.Errorf("linter Err contains no position information")
 			}
 			lineStr := fileLineArr[1]
 			line, err = strconv.Atoi(lineStr)

@@ -1,6 +1,8 @@
 package lsp
 
 import (
+	"context"
+
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
@@ -9,7 +11,8 @@ import (
 func ParseAst(content string) *sitter.Tree {
 	parser := sitter.NewParser()
 	parser.SetLanguage(gotemplate.GetLanguage())
-	return parser.Parse(nil, []byte(content))
+	tree, _ := parser.ParseCtx(context.Background(), nil, []byte(content))
+	return tree
 }
 
 func NodeAtPosition(tree *sitter.Tree, position lsp.Position) *sitter.Node {

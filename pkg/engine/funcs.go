@@ -27,6 +27,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const NotImplementedErrString = "not implemented"
+
 // funcMap returns a mapping of all of the functions that Engine has.
 //
 // Because some functions are late-bound (e.g. contain context-sensitive
@@ -59,9 +61,9 @@ func funcMap() template.FuncMap {
 		// This is a placeholder for the "include" function, which is
 		// late-bound to a template. By declaring it here, we preserve the
 		// integrity of the linter.
-		"include":  func(string, interface{}) string { return "not implemented" },
-		"tpl":      func(string, interface{}) interface{} { return "not implemented" },
-		"required": func(string, interface{}) (interface{}, error) { return "not implemented", nil },
+		"include":  func(string, interface{}) string { return NotImplementedErrString },
+		"tpl":      func(string, interface{}) interface{} { return NotImplementedErrString },
+		"required": func(string, interface{}) (interface{}, error) { return NotImplementedErrString, nil },
 		// Provide a placeholder for the "lookup" function, which requires a kubernetes
 		// connection.
 		"lookup": func(string, string, string, string) (map[string]interface{}, error) {

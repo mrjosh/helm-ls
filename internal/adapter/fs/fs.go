@@ -2,7 +2,6 @@ package fs
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -67,12 +66,13 @@ func (fs *FileStorage) Canonical(path string) string {
 }
 
 func (fs *FileStorage) FileExists(path string) (bool, error) {
+
 	fi, err := fs.fileInfo(path)
 	if err != nil {
 		return false, err
-	} else {
-		return fi != nil && (*fi).Mode().IsRegular(), nil
 	}
+
+	return fi != nil && (*fi).Mode().IsRegular(), nil
 }
 
 func (fs *FileStorage) DirExists(path string) (bool, error) {
@@ -112,7 +112,7 @@ func (fs *FileStorage) IsDescendantOf(dir string, path string) (bool, error) {
 }
 
 func (fs *FileStorage) Read(path string) ([]byte, error) {
-	return ioutil.ReadFile(path)
+	return os.ReadFile(path)
 }
 
 func (fs *FileStorage) Write(path string, content []byte) error {

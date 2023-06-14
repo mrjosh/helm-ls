@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"path/filepath"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/fs"
@@ -73,14 +74,18 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 		return err
 	}
 
-	vf := filepath.Join(params.RootURI.Filename(), "values.yaml")
+	if len(params.WorkspaceFolders) == 0 {
+		return errors.New("length WorkspaceFolders is 0")
+	}
+
+	vf := filepath.Join(params.WorkspaceFolders[0].URI, "values.yaml")
 	vals, err := chartutil.ReadValuesFile(vf)
 	if err != nil {
 		return err
 	}
 	h.values = vals
 
-	chartFile := filepath.Join(params.RootURI.Filename(), "Chart.yaml")
+	chartFile := filepath.Join(params.WorkspaceFolders[0].URI, "Chart.yaml")
 	chartMetadata, err := chartutil.LoadChartfile(chartFile)
 	if err != nil {
 		logger.Println("Error loaing Chart.yaml file", err)
@@ -106,7 +111,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	}, nil)
 }
 
-func (h *langHandler) handleShutdown(_ context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
+func (h *langHandler) handleShutdown(_ context.Context, _ jsonrpc2.Replier, _ jsonrpc2.Request) (err error) {
 	return h.connPool.Close()
 }
 

@@ -40,8 +40,7 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	)
 
 	if parent == nil {
-		err = errors.New("Could not parse ast correctly.")
-		return reply(ctx, nil, err)
+		return reply(ctx, nil, errors.New("could not parse ast correctly"))
 	}
 
 	pt := parent.Type()
