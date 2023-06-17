@@ -78,14 +78,15 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 		return errors.New("length WorkspaceFolders is 0")
 	}
 
-	vf := filepath.Join(params.WorkspaceFolders[0].URI, "values.yaml")
+	vf := filepath.Join(params.WorkspaceFolders[0].Name, "values.yaml")
 	vals, err := chartutil.ReadValuesFile(vf)
 	if err != nil {
+		logger.Println("Error loaing values.yaml file", err)
 		return err
 	}
 	h.values = vals
 
-	chartFile := filepath.Join(params.WorkspaceFolders[0].URI, "Chart.yaml")
+	chartFile := filepath.Join(params.WorkspaceFolders[0].Name, "Chart.yaml")
 	chartMetadata, err := chartutil.LoadChartfile(chartFile)
 	if err != nil {
 		logger.Println("Error loaing Chart.yaml file", err)
