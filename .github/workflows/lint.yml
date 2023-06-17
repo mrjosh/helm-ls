@@ -2,10 +2,6 @@ name: Lint
 
 on:
   push:
-    tags:
-      - v*
-    branches:
-      - "*"
   pull_request:
 
 jobs:
@@ -15,7 +11,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.19.1]
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -27,8 +23,5 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Install linter
-      run: make install-metalinter
-
     - name: Lint
-      run: make ci-lint
+      run: make lint
