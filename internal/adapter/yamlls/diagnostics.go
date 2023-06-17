@@ -20,17 +20,21 @@ func handleDiagnostics(req jsonrpc2.Request, clientConn jsonrpc2.Conn, documents
 	if !ok {
 		logger.Println("Error handling diagnostic. Could not get document: " + params.URI.Filename())
 	}
-	doc.DiagnosticsCache.Yamldiagnostics = filterDiagnostics(params.Diagnostics, doc.Ast)
+	doc.DiagnosticsCache.Yamldiagnostics = filterDiagnostics(params.Diagnostics, doc.Ast, doc.Content)
 	params.Diagnostics = doc.DiagnosticsCache.GetMergedDiagnostics()
 
 	clientConn.Notify(context.Background(), lsp.MethodTextDocumentPublishDiagnostics, &params)
 }
 
-func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree) (filtered []lsp.Diagnostic) {
+func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content string) (filtered []lsp.Diagnostic) {
 	filtered = []lsp.Diagnostic{}
 	for _, diagnostic := range diagnostics {
-		node := lsplocal.FindRelevantChildNode(ast.RootNode(), lsplocal.GetSitterPointForLspPos(diagnostic.Range.Start))
-		if node.Type() == "text" {
+		node := lsplocal.NodeAtPosition(ast, diagnostic.Range.Start)
+		childNode := lsplocal.FindRelevantChildNode(ast.RootNode(), lsplocal.GetSitterPointForLspPos(diagnostic.Range.Start))
+		diagnostic.Message = "Yamlls: " + diagnostic.Message
+		if node.Type() == "text" && childNode.Type() == "text" {
+			logger.Debug("Diagnostic", diagnostic)
+			logger.Debug("Node", node.Content([]byte(content)))
 			filtered = append(filtered, diagnostic)
 		}
 	}

@@ -34,7 +34,6 @@ func FindRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point)
 	for i := 0; i < int(currentNode.ChildCount()); i++ {
 		child := currentNode.Child(i)
 		if isPointLargerOrEq(pointToLookUp, child.StartPoint()) && isPointLargerOrEq(child.EndPoint(), pointToLookUp) {
-			logger.Println("loop", child)
 			return FindRelevantChildNode(child, pointToLookUp)
 		}
 	}

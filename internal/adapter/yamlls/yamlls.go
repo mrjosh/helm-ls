@@ -17,8 +17,7 @@ type YamllsConnector struct {
 }
 
 func NewYamllsConnector(workingDir string, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) *YamllsConnector {
-	// yamllsCmd := exec.Command("yaml-language-server", "--stdio")
-	yamllsCmd := exec.Command("debug-lsp.sh")
+	yamllsCmd := exec.Command("yaml-language-server", "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()
 	if err != nil {
