@@ -1,5 +1,6 @@
-[![golangci-lint-status](https://github.com/mrjosh/helm-ls/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/mrjosh/helm-ls/actions/workflows/golangci-lint.yml)
-[![Release](https://github.com/mrjosh/helm-ls/actions/workflows/go-artifacts.yml/badge.svg)](https://github.com/mrjosh/helm-ls/releases/latest)
+[![Lint](https://github.com/mrjosh/helm-ls/actions/workflows/lint.yml/badge.svg)](https://github.com/mrjosh/helm-ls/actions/workflows/lint.yml)
+[![Tests](https://github.com/mrjosh/helm-ls/actions/workflows/tests.yml/badge.svg)](https://github.com/mrjosh/helm-ls/actions/workflows/tests.yml)
+[![Release](https://github.com/mrjosh/helm-ls/actions/workflows/artifacts.yml/badge.svg)](https://github.com/mrjosh/helm-ls/releases/latest)
 ![License](https://img.shields.io/github/license/mrjosh/helm-ls)
 
 <pre align="center">
@@ -8,8 +9,6 @@
 / __  /  __/ | | | | | / /__\__ \
 \/ /_/ \___|_|_| |_| |_\____/___/
 </pre>
-
-## ⚠️ This project is still in early development. ⚠️
 
 ## Helm Language Server Protocol
 helm-ls is [helm](https://github.com/helm/helm) language server protocol [LSP](https://microsoft.github.io/language-server-protocol/).
