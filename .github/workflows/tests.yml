@@ -1,4 +1,4 @@
-name: golangci-lint
+name: Tests
 
 on:
   push:
@@ -10,8 +10,8 @@ on:
 
 jobs:
 
-  golangci:
-    name: lint
+  tests:
+    name: tests
     strategy:
       matrix:
         go-version: [1.19.1]
@@ -27,8 +27,5 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Install linter
-      run: make install-metalinter
-
-    - name: Lint
-      run: make ci-lint
+    - name: Run tests
+      run: make test

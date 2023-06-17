@@ -15,7 +15,7 @@ on:
 
 jobs:
 
-  goartifacts:
+  artifacts:
     name: artifacts
     strategy:
       matrix:
@@ -70,7 +70,7 @@ jobs:
         retention-days: 1
 
   publish:
-    needs: [goartifacts]
+    needs: [artifacts]
     runs-on: ubuntu-20.04
     permissions:
       contents: write
@@ -137,7 +137,7 @@ jobs:
             helm_ls_linux_arm.sha256sum:./helm_ls_linux_arm.sha256sum
           body: |
             ```
-            ${{ needs.goartifacts.outputs.version }}
+            ${{ needs.artifacts.outputs.version }}
             ```
             ### macOS (x64)
             1. Download **helm_ls_darwin_amd64**

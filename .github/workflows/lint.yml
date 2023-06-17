@@ -1,0 +1,34 @@
+name: Lint
+
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - "*"
+  pull_request:
+
+jobs:
+
+  golangci:
+    name: lint
+    strategy:
+      matrix:
+        go-version: [1.19.1]
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install linter
+      run: make install-metalinter
+
+    - name: Lint
+      run: make ci-lint

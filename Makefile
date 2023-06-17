@@ -60,7 +60,7 @@ install-metalinter:
 	@$(GO) install -v github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.2
 
 test:
-	$(GO) test ./... -v -race
+	@$(GO) test ./... -v -race
 
 install-gox:
 	@$(GO) install github.com/mitchellh/gox@v1.0.1
