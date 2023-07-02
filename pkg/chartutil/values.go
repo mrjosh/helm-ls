@@ -19,6 +19,7 @@ package chartutil
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 

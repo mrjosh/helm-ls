@@ -8,7 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	gotemplate "github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
+	sitter "github.com/smacker/go-tree-sitter"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 )
@@ -31,11 +34,11 @@ func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Repli
 	}
 
 	var (
-		word             = doc.ValueAt(params.Position)
-		splitted         = strings.Split(word, ".")
-		variableSplitted = []string{}
-		position         lsp.Position
-		defitionFilePath string
+		word               = doc.ValueAt(params.Position)
+		splitted           = strings.Split(word, ".")
+		variableSplitted   = []string{}
+		position           lsp.Position
+		definitionFilePath string
 	)
 
 	if word == "" {
@@ -58,20 +61,20 @@ func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Repli
 
 	switch variableSplitted[0] {
 	case "Values":
-		defitionFilePath = filepath.Join(h.rootURI.Filename(), "values.yaml")
+		definitionFilePath = filepath.Join(h.rootURI.Filename(), "values.yaml")
 		if len(variableSplitted) > 1 {
 			position, err = h.getValueDefinition(variableSplitted[1:])
 		}
 	case "Chart":
-		defitionFilePath = filepath.Join(h.rootURI.Filename(), "Chart.yaml")
+		definitionFilePath = filepath.Join(h.rootURI.Filename(), "Chart.yaml")
 		if len(variableSplitted) > 1 {
 			position, err = h.getChartDefinition(variableSplitted[1:])
 		}
 	}
 
-	if err == nil && defitionFilePath != "" {
+	if err == nil && definitionFilePath != "" {
 		result := lsp.Location{
-			URI:   "file://" + lsp.DocumentURI(defitionFilePath),
+			URI:   "file://" + lsp.DocumentURI(definitionFilePath),
 			Range: lsp.Range{Start: position},
 		}
 
@@ -79,6 +82,34 @@ func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Repli
 	}
 	logger.Printf("Had no match for definition. Error: %v", err)
 	return reply(ctx, nil, err)
+}
+
+func definitionAstParsing(doc *lsplocal.Document, position lsp.Position) string {
+	var (
+		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
+		pointToLoopUp = sitter.Point{
+			Row:    position.Line,
+			Column: position.Character,
+		}
+		relevantChildNode = lsplocal.FindRelevantChildNode(currentNode, pointToLoopUp)
+		word              string
+	)
+
+	switch relevantChildNode.Type() {
+	case gotemplate.NodeTypeIdentifier:
+		if relevantChildNode.Parent().Type() == gotemplate.NodeTypeVariable {
+
+			variableName := relevantChildNode.Content([]byte(doc.Content))
+			lsplocal.GetVariableDefinition(variableName, relevantChildNode.Parent(), doc)
+		}
+	case gotemplate.NodeTypeDot:
+		word = lsplocal.TraverseIdentifierPathUp(relevantChildNode, doc)
+	case gotemplate.NodeTypeDotSymbol:
+		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
+	}
+
+	return word
+
 }
 
 func (h *langHandler) getValueDefinition(splittedVar []string) (lsp.Position, error) {

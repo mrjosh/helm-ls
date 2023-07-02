@@ -20,6 +20,24 @@ func NodeAtPosition(tree *sitter.Tree, position lsp.Position) *sitter.Node {
 	return tree.RootNode().NamedDescendantForPointRange(start, start)
 }
 
+func FindRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
+	for i := 0; i < int(currentNode.ChildCount()); i++ {
+		child := currentNode.Child(i)
+		if isPointLargerOrEq(pointToLookUp, child.StartPoint()) && isPointLargerOrEq(child.EndPoint(), pointToLookUp) {
+			logger.Println("loop", child)
+			return FindRelevantChildNode(child, pointToLookUp)
+		}
+	}
+	return currentNode
+}
+
+func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
+	if a.Row == b.Row {
+		return a.Column >= b.Column
+	}
+	return a.Row > b.Row
+}
+
 func GetFieldIdentifierPath(node *sitter.Node, doc *Document) (path string) {
 	path = buildFieldIdentifierPath(node, doc)
 	logger.Println("buildFieldIdentifierPath:", path)

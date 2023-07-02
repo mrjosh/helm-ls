@@ -10,19 +10,12 @@ import (
 	"strings"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	gotemplate "github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	sitter "github.com/smacker/go-tree-sitter"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 	yaml "gopkg.in/yaml.v2"
-)
-
-type ChildNodeType string
-
-const (
-	ChildNodeTypeIdentifier = "identifier"
-	ChildNodeTypeDot        = "dot"
-	ChildNodeTypeDotSymbol  = "."
 )
 
 var (
@@ -107,7 +100,7 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 			Row:    position.Line,
 			Column: position.Character,
 		}
-		relevantChildNode = findRelevantChildNode(currentNode, pointToLoopUp)
+		relevantChildNode = lsplocal.FindRelevantChildNode(currentNode, pointToLoopUp)
 		word              string
 	)
 
@@ -115,12 +108,12 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 	logger.Println("relevantChildNode", relevantChildNode.Type())
 
 	switch relevantChildNode.Type() {
-	case ChildNodeTypeIdentifier:
+	case gotemplate.NodeTypeIdentifier:
 		word = relevantChildNode.Content([]byte(doc.Content))
-	case ChildNodeTypeDot:
+	case gotemplate.NodeTypeDot:
 		logger.Println("TraverseIdentifierPathUp")
 		word = lsplocal.TraverseIdentifierPathUp(relevantChildNode, doc)
-	case ChildNodeTypeDotSymbol:
+	case gotemplate.NodeTypeDotSymbol:
 		logger.Println("GetFieldIdentifierPath")
 		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
 	}
@@ -128,22 +121,8 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 	return word
 }
 
-func findRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
-	for i := 0; i < int(currentNode.ChildCount()); i++ {
-		child := currentNode.Child(i)
-		if isPointLargerOrEq(pointToLookUp, child.StartPoint()) && isPointLargerOrEq(child.EndPoint(), pointToLookUp) {
-			logger.Println("loop", child)
-			return findRelevantChildNode(child, pointToLookUp)
-		}
-	}
-	return currentNode
-}
-
-func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
-	if a.Row == b.Row {
-		return a.Column >= b.Column
-	}
-	return a.Row > b.Row
+func FindRelevantChildNode(currentNode *sitter.Node, pointToLoopUp sitter.Point) {
+	panic("unimplemented")
 }
 
 func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
