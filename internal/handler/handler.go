@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/url"
 	"path/filepath"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/fs"
@@ -78,18 +79,23 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 		return errors.New("length WorkspaceFolders is 0")
 	}
 
-	vf := filepath.Join(params.WorkspaceFolders[0].Name, "values.yaml")
+	workspace_uri, err := url.Parse(params.WorkspaceFolders[0].URI)
+	if err != nil {
+		return err
+	}
+
+	vf := filepath.Join(workspace_uri.Path, "values.yaml")
 	vals, err := chartutil.ReadValuesFile(vf)
 	if err != nil {
-		logger.Println("Error loaing values.yaml file", err)
+		logger.Println("Error loading values.yaml file", err)
 		return err
 	}
 	h.values = vals
 
-	chartFile := filepath.Join(params.WorkspaceFolders[0].Name, "Chart.yaml")
+	chartFile := filepath.Join(workspace_uri.Path, "Chart.yaml")
 	chartMetadata, err := chartutil.LoadChartfile(chartFile)
 	if err != nil {
-		logger.Println("Error loaing Chart.yaml file", err)
+		logger.Println("Error loading Chart.yaml file", err)
 		return err
 	}
 	h.chartMetadata = *chartMetadata
