@@ -84,7 +84,10 @@ func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Repli
 	return reply(ctx, nil, err)
 }
 
-func definitionAstParsing(doc *lsplocal.Document, position lsp.Position) string {
+// definitionAstParsing takes the current node
+// depending on the node type it either returns the node that defines the current variable
+// or the yaml selector for the current value
+func (h *langHandler) definitionAstParsing(doc *lsplocal.Document, position lsp.Position) lsp.Location {
 	var (
 		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
 		pointToLoopUp = sitter.Point{
@@ -92,7 +95,6 @@ func definitionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 			Column: position.Character,
 		}
 		relevantChildNode = lsplocal.FindRelevantChildNode(currentNode, pointToLoopUp)
-		word              string
 	)
 
 	switch relevantChildNode.Type() {
@@ -100,16 +102,54 @@ func definitionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 		if relevantChildNode.Parent().Type() == gotemplate.NodeTypeVariable {
 
 			variableName := relevantChildNode.Content([]byte(doc.Content))
-			lsplocal.GetVariableDefinition(variableName, relevantChildNode.Parent(), doc)
+			var node = lsplocal.GetVariableDefinition(variableName, relevantChildNode.Parent(), doc.Content)
+			return lsp.Location{URI: doc.URI, Range: lsp.Range{Start: node.StartPoint(), End: node.EndPoint()}}
 		}
-	case gotemplate.NodeTypeDot:
-		word = lsplocal.TraverseIdentifierPathUp(relevantChildNode, doc)
-	case gotemplate.NodeTypeDotSymbol:
-		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
+	case gotemplate.NodeTypeDot, gotemplate.NodeTypeDotSymbol:
+		return h.getDefinitionForValue(relevantChildNode, doc)
 	}
 
-	return word
+	return lsp.Location{}
+}
 
+func (h *langHandler) getDefinitionForValue(node *sitter.Node, doc *lsplocal.Document) lsp.Location {
+	var (
+		yamlPathString     = getYamlPath(node, doc)
+		yamlPath, err      = util.NewYamlPath(yamlPathString)
+		definitionFilePath string
+		position           lsp.Position
+	)
+	if err != nil {
+		return lsp.Location{}
+	}
+
+	if yamlPath.IsValuesPath() {
+		definitionFilePath = filepath.Join(h.rootURI.Filename(), "values.yaml")
+		position, err = h.getValueDefinition(yamlPath.GetTail())
+	}
+	if yamlPath.IsChartPath() {
+		definitionFilePath = filepath.Join(h.rootURI.Filename(), "Chart.yaml")
+		position, err = h.getChartDefinition(yamlPath.GetTail())
+	}
+
+	if err == nil && definitionFilePath != "" {
+		return lsp.Location{
+			URI:   "file://" + lsp.DocumentURI(definitionFilePath),
+			Range: lsp.Range{Start: position},
+		}
+	}
+	return lsp.Location{}
+}
+
+func getYamlPath(node *sitter.Node, doc *lsplocal.Document) string {
+	switch node.Type() {
+	case gotemplate.NodeTypeDot:
+		return lsplocal.TraverseIdentifierPathUp(node, doc)
+	case gotemplate.NodeTypeDotSymbol:
+		return lsplocal.GetFieldIdentifierPath(node, doc)
+	default:
+		return ""
+	}
 }
 
 func (h *langHandler) getValueDefinition(splittedVar []string) (lsp.Position, error) {
@@ -119,6 +159,7 @@ func (h *langHandler) getChartDefinition(splittedVar []string) (lsp.Position, er
 
 	modifyedVar := make([]string, 0)
 
+	// for Releases, we make the first letter lowercase TODO: only do this when really needed
 	for _, value := range splittedVar {
 		restOfString := ""
 		if (len(value)) > 1 {
