@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path/filepath"
+	"log"
 	"strings"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
@@ -17,8 +17,6 @@ import (
 )
 
 func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-
-	logger.Println(fmt.Sprintf("Definition provider"))
 	if req.Params() == nil {
 		return &jsonrpc2.Error{Code: jsonrpc2.InvalidParams}
 	}
@@ -32,62 +30,17 @@ func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Repli
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
+	result, err := h.definitionAstParsing(doc, params.Position)
 
-	var (
-		word               = doc.ValueAt(params.Position)
-		splitted           = strings.Split(word, ".")
-		variableSplitted   = []string{}
-		position           lsp.Position
-		definitionFilePath string
-	)
+	log.Println("result", result)
 
-	if word == "" {
-		return reply(ctx, nil, err)
+	if err != nil {
+		return reply(ctx, err, err)
 	}
-
-	for _, s := range splitted {
-		if s != "" {
-			variableSplitted = append(variableSplitted, s)
-		}
-	}
-
-	// $ always points to the root context so we can safely remove it
-	// as long the LSP does not know about ranges
-	if variableSplitted[0] == "$" && len(variableSplitted) > 1 {
-		variableSplitted = variableSplitted[1:]
-	}
-
-	logger.Println(fmt.Sprintf("Definition checking for word < %s >", word))
-
-	switch variableSplitted[0] {
-	case "Values":
-		definitionFilePath = filepath.Join(h.rootURI.Filename(), "values.yaml")
-		if len(variableSplitted) > 1 {
-			position, err = h.getValueDefinition(variableSplitted[1:])
-		}
-	case "Chart":
-		definitionFilePath = filepath.Join(h.rootURI.Filename(), "Chart.yaml")
-		if len(variableSplitted) > 1 {
-			position, err = h.getChartDefinition(variableSplitted[1:])
-		}
-	}
-
-	if err == nil && definitionFilePath != "" {
-		result := lsp.Location{
-			URI:   "file://" + lsp.DocumentURI(definitionFilePath),
-			Range: lsp.Range{Start: position},
-		}
-
-		return reply(ctx, result, err)
-	}
-	logger.Printf("Had no match for definition. Error: %v", err)
-	return reply(ctx, nil, err)
+	return reply(ctx, result, err)
 }
 
-// definitionAstParsing takes the current node
-// depending on the node type it either returns the node that defines the current variable
-// or the yaml selector for the current value
-func (h *langHandler) definitionAstParsing(doc *lsplocal.Document, position lsp.Position) lsp.Location {
+func (h *langHandler) definitionAstParsing(doc *lsplocal.Document, position lsp.Position) (lsp.Location, error) {
 	var (
 		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
 		pointToLoopUp = sitter.Point{
@@ -100,52 +53,74 @@ func (h *langHandler) definitionAstParsing(doc *lsplocal.Document, position lsp.
 	switch relevantChildNode.Type() {
 	case gotemplate.NodeTypeIdentifier:
 		if relevantChildNode.Parent().Type() == gotemplate.NodeTypeVariable {
-
-			variableName := relevantChildNode.Content([]byte(doc.Content))
-			var node = lsplocal.GetVariableDefinition(variableName, relevantChildNode.Parent(), doc.Content)
-			return lsp.Location{URI: doc.URI, Range: lsp.Range{Start: node.StartPoint(), End: node.EndPoint()}}
+			return h.getDefinitionForVariable(relevantChildNode, doc)
 		}
-	case gotemplate.NodeTypeDot, gotemplate.NodeTypeDotSymbol:
+		return h.getDefinitionForFixedIdentifier(relevantChildNode, doc)
+	case gotemplate.NodeTypeDot, gotemplate.NodeTypeDotSymbol, gotemplate.NodeTypeFieldIdentifier:
 		return h.getDefinitionForValue(relevantChildNode, doc)
 	}
 
-	return lsp.Location{}
+	return lsp.Location{}, fmt.Errorf("Definition not implemented for node type %s", relevantChildNode.Type())
 }
 
-func (h *langHandler) getDefinitionForValue(node *sitter.Node, doc *lsplocal.Document) lsp.Location {
+func (h *langHandler) getDefinitionForVariable(node *sitter.Node, doc *lsplocal.Document) (lsp.Location, error) {
+	variableName := node.Content([]byte(doc.Content))
+	var defintionNode = lsplocal.GetVariableDefinition(variableName, node.Parent(), doc.Content)
+	if defintionNode == nil {
+		return lsp.Location{}, fmt.Errorf("Could not find definition for %s", variableName)
+	}
+	return lsp.Location{URI: doc.URI, Range: lsp.Range{Start: util.PointToPosition(defintionNode.StartPoint())}}, nil
+}
+
+// getDefinitionForFixedIdentifier checks if the current identifier has a constant definition and returns it
+func (h *langHandler) getDefinitionForFixedIdentifier(node *sitter.Node, doc *lsplocal.Document) (lsp.Location, error) {
+	var name = node.Content([]byte(doc.Content))
+	switch name {
+	case "Values":
+		return lsp.Location{
+			URI: h.projectFiles.GetValuesFileURI()}, nil
+	case "Chart":
+		return lsp.Location{
+			URI: h.projectFiles.GetChartFileURI()}, nil
+	}
+
+	return lsp.Location{}, fmt.Errorf("Could not find definition for %s", name)
+}
+
+func (h *langHandler) getDefinitionForValue(node *sitter.Node, doc *lsplocal.Document) (lsp.Location, error) {
 	var (
-		yamlPathString     = getYamlPath(node, doc)
-		yamlPath, err      = util.NewYamlPath(yamlPathString)
-		definitionFilePath string
-		position           lsp.Position
+		yamlPathString    = getYamlPath(node, doc)
+		yamlPath, err     = util.NewYamlPath(yamlPathString)
+		definitionFileURI lsp.DocumentURI
+		position          lsp.Position
 	)
 	if err != nil {
-		return lsp.Location{}
+		return lsp.Location{}, err
 	}
 
 	if yamlPath.IsValuesPath() {
-		definitionFilePath = filepath.Join(h.rootURI.Filename(), "values.yaml")
+		definitionFileURI = h.projectFiles.GetValuesFileURI()
 		position, err = h.getValueDefinition(yamlPath.GetTail())
 	}
 	if yamlPath.IsChartPath() {
-		definitionFilePath = filepath.Join(h.rootURI.Filename(), "Chart.yaml")
+		definitionFileURI = h.projectFiles.GetChartFileURI()
 		position, err = h.getChartDefinition(yamlPath.GetTail())
 	}
 
-	if err == nil && definitionFilePath != "" {
+	if err == nil && definitionFileURI != "" {
 		return lsp.Location{
-			URI:   "file://" + lsp.DocumentURI(definitionFilePath),
+			URI:   definitionFileURI,
 			Range: lsp.Range{Start: position},
-		}
+		}, nil
 	}
-	return lsp.Location{}
+	return lsp.Location{}, fmt.Errorf("Could not find definition for %s", yamlPath)
 }
 
 func getYamlPath(node *sitter.Node, doc *lsplocal.Document) string {
 	switch node.Type() {
 	case gotemplate.NodeTypeDot:
 		return lsplocal.TraverseIdentifierPathUp(node, doc)
-	case gotemplate.NodeTypeDotSymbol:
+	case gotemplate.NodeTypeDotSymbol, gotemplate.NodeTypeFieldIdentifier:
 		return lsplocal.GetFieldIdentifierPath(node, doc)
 	default:
 		return ""
@@ -155,11 +130,10 @@ func getYamlPath(node *sitter.Node, doc *lsplocal.Document) string {
 func (h *langHandler) getValueDefinition(splittedVar []string) (lsp.Position, error) {
 	return util.GetPositionOfNode(h.valueNode, splittedVar)
 }
+
 func (h *langHandler) getChartDefinition(splittedVar []string) (lsp.Position, error) {
-
 	modifyedVar := make([]string, 0)
-
-	// for Releases, we make the first letter lowercase TODO: only do this when really needed
+	// for Charts, we make the first letter lowercase
 	for _, value := range splittedVar {
 		restOfString := ""
 		if (len(value)) > 1 {
@@ -168,6 +142,5 @@ func (h *langHandler) getChartDefinition(splittedVar []string) (lsp.Position, er
 		firstLetterLowercase := strings.ToLower(string(value[0])) + restOfString
 		modifyedVar = append(modifyedVar, firstLetterLowercase)
 	}
-
 	return util.GetPositionOfNode(h.chartNode, modifyedVar)
 }

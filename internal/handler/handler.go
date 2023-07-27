@@ -25,23 +25,23 @@ type langHandler struct {
 	connPool      jsonrpc2.Conn
 	linterName    string
 	documents     *lsplocal.DocumentStore
+	projectFiles  ProjectFiles
 	values        chartutil.Values
 	chartMetadata chart.Metadata
 	valueNode     yamlv3.Node
 	chartNode     yamlv3.Node
-	rootURI       uri.URI
 }
 
 func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
 	fileStorage, _ := fs.NewFileStorage("")
 	handler := &langHandler{
-		linterName: "helm-lint",
-		connPool:   connPool,
-		documents:  lsplocal.NewDocumentStore(fileStorage),
-		values:     make(map[string]interface{}),
-		valueNode:  yamlv3.Node{},
-		chartNode:  yamlv3.Node{},
-		rootURI:    "",
+		linterName:   "helm-lint",
+		connPool:     connPool,
+		documents:    lsplocal.NewDocumentStore(fileStorage),
+		projectFiles: ProjectFiles{},
+		values:       make(map[string]interface{}),
+		valueNode:    yamlv3.Node{},
+		chartNode:    yamlv3.Node{},
 	}
 	logger.Printf("helm-lint-langserver: connections opened")
 	return jsonrpc2.ReplyHandler(handler.handle)
@@ -93,6 +93,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	}
 
 	vf := filepath.Join(workspace_uri.Path, "values.yaml")
+	h.projectFiles = NewProjectFiles(uri.URI(params.WorkspaceFolders[0].URI), "")
 
 	vals, err := chartutil.ReadValuesFile(vf)
 	if err != nil {

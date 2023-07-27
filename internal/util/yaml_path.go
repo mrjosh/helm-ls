@@ -21,14 +21,13 @@ func NewYamlPath(yamlPathString string) (YamlPath, error) {
 			variableSplitted = append(variableSplitted, s)
 		}
 	}
+	if len(variableSplitted) == 0 {
+		return YamlPath{}, fmt.Errorf("Could not parse yaml path: %s", yamlPathString)
+	}
 	// $ always points to the root context so we can safely remove it
 	// as long the LSP does not know about ranges
 	if variableSplitted[0] == "$" && len(variableSplitted) > 1 {
 		variableSplitted = variableSplitted[1:]
-	}
-
-	if len(variableSplitted) == 0 {
-		return YamlPath{}, fmt.Errorf("Could not parse yaml path: %s", yamlPathString)
 	}
 
 	return YamlPath{

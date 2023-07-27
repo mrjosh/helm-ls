@@ -10,7 +10,7 @@ import (
 func GetPositionOfNode(node yamlv3.Node, query []string) (lsp.Position, error) {
 
 	if node.IsZero() {
-		return lsp.Position{}, fmt.Errorf("Could not find Position of %s in values.yaml. Node was zero.", query)
+		return lsp.Position{}, fmt.Errorf("could not find Position of %s in values.yaml. Node was zero", query)
 	}
 	println(node.Value)
 
@@ -24,15 +24,13 @@ func GetPositionOfNode(node yamlv3.Node, query []string) (lsp.Position, error) {
 		if value.Value == query[0] {
 			if len(query) > 1 {
 				if len(node.Content) < index+1 {
-					return lsp.Position{}, fmt.Errorf("Could not find Position of %s in values.yaml", query)
-				} else {
-					return GetPositionOfNode(*node.Content[index+1], query[1:])
+					return lsp.Position{}, fmt.Errorf("could not find Position of %s in values.yaml", query)
 				}
-			} else {
-				return lsp.Position{Line: uint32(value.Line) - 1, Character: uint32(value.Column) - 1}, nil
+				return GetPositionOfNode(*node.Content[index+1], query[1:])
 			}
+			return lsp.Position{Line: uint32(value.Line) - 1, Character: uint32(value.Column) - 1}, nil
 		}
 	}
-	return lsp.Position{}, fmt.Errorf("Could not find Position of %s in values.yaml. Found no match.", query)
+	return lsp.Position{}, fmt.Errorf("could not find Position of %s in values.yaml. Found no match", query)
 
 }
