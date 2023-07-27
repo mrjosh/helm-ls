@@ -2,9 +2,8 @@ export ROOT=$(realpath $(dir $(firstword $(MAKEFILE_LIST))))
 export BIN=$(ROOT)/bin
 export GOBIN?=$(BIN)
 export GO=$(shell which go)
-export CGO_ENABLED=1
-export GOX=$(BIN)/gox
-export XGO=$(BIN)/xgo
+export PACKAGE_NAME=github.com/mrjosh/helm-ls
+export GOLANG_CROSS_VERSION=v1.20.6
 
 $(eval GIT_COMMIT=$(shell git rev-parse --short HEAD))
 $(eval BRANCH_NAME=$(shell git rev-parse --abbrev-ref HEAD))
@@ -46,10 +45,6 @@ lint:
 			echo "and fix them if necessary before submitting the code for reviewal."; \
 		fi
 
-.PHONY: gox
-gox:
-	@gox -output="dist/helm_ls_{{.OS}}_{{.Arch}}"
-
 # for ci jobs, runs lint against the changed packages in the commit
 ci-lint:
 	@$(LINTER) $(LINTERCMD) --deadline 10m ./...
@@ -62,28 +57,13 @@ install-metalinter:
 test:
 	@$(GO) test ./... -v -race
 
-install-gox:
-	@$(GO) install github.com/mitchellh/gox@v1.0.1
-
-install-xgo:
-	@$(GO) install src.techknowlogick.com/xgo@latest
-
-
-.PHONY: build-linux
-build-linux: install-xgo
-	echo ${GO_LDFLAGS}
-	$(XGO) -dest dist -ldflags '$(GO_LDFLAGS)' -targets 'linux/amd64,linux/arm64' -out helm_ls .
-
-.PHONY: build-macOS
-build-macOS: install-xgo
-	$(XGO) -dest dist -ldflags '$(GO_LDFLAGS)' -targets 'darwin-10.12/amd64' -out helm_ls .
-
-.PHONY: build-windows
-build-windows: install-xgo
-	$(XGO) -buildmode exe -dest dist -ldflags '-linkmode external -extldflags "-static" $(GO_LDFLAGS)' -targets 'windows/amd64' -out helm_ls .
-
-.PHONY: build-artifacts
-build-artifacts:
-	@$(MAKE) build-linux && \
-		$(MAKE) build-macOS && \
-		$(MAKE) build-windows
+.PHONY: build-release
+build-release:
+	@docker run \
+			--rm \
+			-e CGO_ENABLED=1 \
+			-v /var/run/docker.sock:/var/run/docker.sock \
+			-v `pwd`:/go/src/$(PACKAGE_NAME) \
+			-w /go/src/$(PACKAGE_NAME) \
+			ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
+			--clean --skip-validate --skip-publish --snapshot
