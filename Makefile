@@ -76,7 +76,7 @@ build-linux: install-xgo
 
 .PHONY: build-macOS
 build-macOS: install-xgo
-	$(XGO) -dest dist -ldflags '$(GO_LDFLAGS)' -targets 'darwin-10.12/amd64' -out helm_ls .
+	$(XGO) -dest dist -ldflags '$(GO_LDFLAGS)' -targets 'darwin-10.12/amd64,darwin/arm64' -out helm_ls .
 
 .PHONY: build-windows
 build-windows: install-xgo
