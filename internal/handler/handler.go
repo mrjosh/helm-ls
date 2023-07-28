@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/url"
-	"path/filepath"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/fs"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
@@ -87,35 +85,33 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 		return errors.New("length WorkspaceFolders is 0")
 	}
 
-	workspace_uri, err := url.Parse(params.WorkspaceFolders[0].URI)
+	workspaceURI, err := uri.Parse(params.WorkspaceFolders[0].URI)
 	if err != nil {
 		return err
 	}
 
-	vf := filepath.Join(workspace_uri.Path, "values.yaml")
-	h.projectFiles = NewProjectFiles(uri.URI(params.WorkspaceFolders[0].URI), "")
+	h.projectFiles = NewProjectFiles(workspaceURI, "")
 
-	vals, err := chartutil.ReadValuesFile(vf)
+	vals, err := chartutil.ReadValuesFile(h.projectFiles.ValuesFile)
 	if err != nil {
 		logger.Println("Error loading values.yaml file", err)
 		return err
 	}
 	h.values = vals
 
-	chartFile := filepath.Join(workspace_uri.Path, "Chart.yaml")
-	chartMetadata, err := chartutil.LoadChartfile(chartFile)
+	chartMetadata, err := chartutil.LoadChartfile(h.projectFiles.ChartFile)
 	if err != nil {
 		logger.Println("Error loading Chart.yaml file", err)
 		return err
 	}
 	h.chartMetadata = *chartMetadata
-	valueNodes, err := chartutil.ReadYamlFileToNodes(vf)
+	valueNodes, err := chartutil.ReadYamlFileToNodes(h.projectFiles.ValuesFile)
 	if err != nil {
 		return err
 	}
 	h.valueNode = valueNodes
 
-	chartNode, err := chartutil.ReadYamlFileToNodes(chartFile)
+	chartNode, err := chartutil.ReadYamlFileToNodes(h.projectFiles.ChartFile)
 	if err != nil {
 		return err
 	}
