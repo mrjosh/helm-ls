@@ -88,7 +88,6 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	vals, err := chartutil.ReadValuesFile(vf)
 	if err != nil {
 		logger.Println("Error loading values.yaml file", err)
-		return err
 	}
 	h.values = vals
 
@@ -96,7 +95,6 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	chartMetadata, err := chartutil.LoadChartfile(chartFile)
 	if err != nil {
 		logger.Println("Error loading Chart.yaml file", err)
-		return err
 	}
 	h.chartMetadata = *chartMetadata
 
