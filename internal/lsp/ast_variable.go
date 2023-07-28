@@ -6,6 +6,9 @@ import (
 )
 
 func GetVariableDefinitionOfNode(node *sitter.Node, template string) *sitter.Node {
+	if node == nil {
+		return nil
+	}
 	if node.Type() != gotemplate.NodeTypeVariable {
 		return nil
 	}
@@ -21,15 +24,21 @@ func GetVariableDefinition(variableName string, node *sitter.Node, template stri
 		return nil
 	}
 
-	logger.Println("GetVariableDefinition:", node.Type())
+	logger.Println("GetVariableDefinition:", node.Type(), variableName)
 
 	switch node.Type() {
 	case gotemplate.NodeTypeRangeVariableDefinition:
-		indexDefinition := node.NamedChild(0).Child(1).Content([]byte(template))
-		elementDefinition := node.NamedChild(1).Child(1).Content([]byte(template))
-		if indexDefinition == variableName ||
-			elementDefinition == variableName {
-			return node
+		var (
+			indexDefinitionNode   = node.ChildByFieldName("index")
+			elementDefinitionNode = node.ChildByFieldName("element")
+			indexDefinitionName   = indexDefinitionNode.ChildByFieldName("name").Content([]byte(template))
+			elementDefinitionName = elementDefinitionNode.ChildByFieldName("name").Content([]byte(template))
+		)
+		if indexDefinitionName == variableName {
+			return indexDefinitionNode
+		}
+		if elementDefinitionName == variableName {
+			return elementDefinitionNode
 		}
 	case gotemplate.NodeTypeVariableDefinition:
 		currentVariableName := node.ChildByFieldName("variable").Child(1).Content([]byte(template))
