@@ -62,6 +62,10 @@ build-release:
 	@docker run \
 			--rm \
 			-e CGO_ENABLED=1 \
+			-e COMPILED_BY=$(COMPILED_BY) \
+			-e BRANCH_NAME=$(BRANCH_NAME) \
+			-e BUILD_TIME=$(BUILD_TIME) \
+			-e GIT_COMMIT=$(GIT_COMMIT) \
 			-v /var/run/docker.sock:/var/run/docker.sock \
 			-v `pwd`:/go/src/$(PACKAGE_NAME) \
 			-w /go/src/$(PACKAGE_NAME) \

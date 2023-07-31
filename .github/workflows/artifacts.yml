@@ -15,16 +15,25 @@ on:
 
 jobs:
   artifacts:
-    runs-on: ubuntu-latest
+    name: artifacts
+    strategy:
+      matrix:
+        go-version: [1.19.1]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     outputs:
       version: ${{ steps.build.outputs.version }}
     steps:
     - name: Install Go
       uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
     - name: Checkout code
       uses: actions/checkout@v3
     - name: release publish
-      run: make build-release
+      run: |
+        make build-release
+        printf '::set-output name=version::%s\n' "$(./dist/linux-amd64_linux_amd64_v1/helm-ls version)"
 
     - name: 'Upload macOS-amd64 artifact'
       uses: actions/upload-artifact@v2

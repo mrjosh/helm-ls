@@ -12,7 +12,7 @@ builds:
     flags:
       - -mod=readonly
     ldflags:
-      - -s -w -X main.version={{.Version}}
+      - -s -w -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
   - id: darwin-arm64
     binary: helm-ls
     main: ./
@@ -24,13 +24,9 @@ builds:
       - CC=oa64-clang
       - CXX=oa64-clang++
     flags:
-      # - "-mod={{ .Env.MOD }}"
-      # - "-tags={{ .Env.BUILD_TAGS }}"
       - -trimpath
-    # ldflags:
-    #   - "{{ .Env.BUILD_VARS }}"
-    #   - "{{ .Env.STRIP_FLAGS }}"
-    #   - "-linkmode={{ .Env.LINKMODE }}"
+    ldflags:
+      - -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
   - id: linux-amd64
     main: ./
     binary: helm-ls
@@ -41,7 +37,7 @@ builds:
     flags:
       - -mod=readonly
     ldflags:
-      - -s -w -X main.version={{.Version}}
+      - -s -w -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
   - id: linux-arm64
     main: ./
     binary: helm-ls
@@ -55,7 +51,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w -X main.version={{.Version}}
+      - -s -w -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
   - id: windows-amd64
     main: ./
     binary: helm-ls
@@ -69,6 +65,8 @@ builds:
     flags:
       - -trimpath
       - -buildmode=exe
+    ldflags:
+      - -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
 checksum:
   name_template: 'checksums.txt'
 snapshot:
