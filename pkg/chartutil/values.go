@@ -153,8 +153,8 @@ func ReadValuesFile(filename string) (Values, error) {
 	return ReadValues(data)
 }
 
-// ReadYamlFileToNodes will parse a YAML file into a yaml Nodes.
-func ReadYamlFileToNodes(filename string) (node yamlv3.Node, err error) {
+// ReadYamlFileToNode will parse a YAML file into a yaml Node.
+func ReadYamlFileToNode(filename string) (node yamlv3.Node, err error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return yamlv3.Node{}, err

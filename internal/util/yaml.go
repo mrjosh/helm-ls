@@ -8,11 +8,9 @@ import (
 )
 
 func GetPositionOfNode(node yamlv3.Node, query []string) (lsp.Position, error) {
-
 	if node.IsZero() {
 		return lsp.Position{}, fmt.Errorf("could not find Position of %s in values.yaml. Node was zero", query)
 	}
-	println(node.Value)
 
 	for index, value := range node.Content {
 		if value.Value == "" {

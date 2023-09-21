@@ -12,11 +12,9 @@ func GetVariableDefinitionOfNode(node *sitter.Node, template string) *sitter.Nod
 	if node.Type() != gotemplate.NodeTypeVariable {
 		return nil
 	}
-
 	variableName := node.Child(1).Content([]byte(template))
 
 	return GetVariableDefinition(variableName, node, template)
-
 }
 
 func GetVariableDefinition(variableName string, node *sitter.Node, template string) *sitter.Node {
@@ -24,7 +22,7 @@ func GetVariableDefinition(variableName string, node *sitter.Node, template stri
 		return nil
 	}
 
-	logger.Println("GetVariableDefinition:", node.Type(), variableName)
+	logger.Debug("GetVariableDefinition:", node.Type(), variableName)
 
 	switch node.Type() {
 	case gotemplate.NodeTypeRangeVariableDefinition:
@@ -42,8 +40,8 @@ func GetVariableDefinition(variableName string, node *sitter.Node, template stri
 		}
 	case gotemplate.NodeTypeVariableDefinition:
 		currentVariableName := node.ChildByFieldName("variable").Child(1).Content([]byte(template))
-		logger.Println("currentVariableName:", currentVariableName)
-		logger.Println("variableName:", variableName)
+		logger.Debug("currentVariableName:", currentVariableName)
+		logger.Debug("variableName:", variableName)
 		if currentVariableName == variableName {
 			return node
 		}

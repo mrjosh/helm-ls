@@ -74,7 +74,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 
 // Input:
 // {{ $variable }}           # line 2
-// -----|
+// -----|                    # this line incides the coursor position for the test
 func TestDefinitionVariable(t *testing.T) {
 	genericDefinitionTest(t, lsp.Position{Line: 2, Character: 8}, lsp.Location{
 		URI: testDocumentTemplateURI,

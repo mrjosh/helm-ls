@@ -121,10 +121,6 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 	return word
 }
 
-func FindRelevantChildNode(currentNode *sitter.Node, pointToLoopUp sitter.Point) {
-	panic("unimplemented")
-}
-
 func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
 
 	var (

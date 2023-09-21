@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
@@ -32,10 +31,12 @@ func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Repli
 	}
 	result, err := h.definitionAstParsing(doc, params.Position)
 
-	log.Println("result", result)
-
 	if err != nil {
-		return reply(ctx, err, err)
+		// supress errors for clients
+		// otherwise using go-to-definition on words that have no definition
+		// will result in an error
+		logger.Println(err)
+		return reply(ctx, nil, nil)
 	}
 	return reply(ctx, result, err)
 }
