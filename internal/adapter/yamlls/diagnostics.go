@@ -31,12 +31,25 @@ func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content s
 	for _, diagnostic := range diagnostics {
 		node := lsplocal.NodeAtPosition(ast, diagnostic.Range.Start)
 		childNode := lsplocal.FindRelevantChildNode(ast.RootNode(), lsplocal.GetSitterPointForLspPos(diagnostic.Range.Start))
-		diagnostic.Message = "Yamlls: " + diagnostic.Message
 		if node.Type() == "text" && childNode.Type() == "text" {
 			logger.Debug("Diagnostic", diagnostic)
 			logger.Debug("Node", node.Content([]byte(content)))
-			filtered = append(filtered, diagnostic)
+			if diagnisticIsRelevant(diagnostic, childNode) {
+				diagnostic.Message = "Yamlls: " + diagnostic.Message
+				filtered = append(filtered, diagnostic)
+			}
 		}
 	}
 	return filtered
+}
+
+func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
+	logger.Println("Diagnostic", diagnostic.Message)
+	switch diagnostic.Message {
+	case "Map keys must be unique":
+		return !lsplocal.IsInElseBranch(node)
+	default:
+		return true
+	}
+
 }

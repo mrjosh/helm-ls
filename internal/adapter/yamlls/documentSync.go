@@ -39,19 +39,23 @@ func (yamllsConnector YamllsConnector) DocumentDidChange(doc *lsplocal.Document,
 	}
 	var trimmedText = trimTemplateForYamllsFromAst(doc.Ast, doc.Content)
 
-	logger.Println("Sending DocumentDidChange previous", params)
+	logger.Debug("Sending DocumentDidChange previous", params)
 	for i, change := range params.ContentChanges {
 		var (
 			start = util.PositionToIndex(change.Range.Start, []byte(doc.Content))
 			end   = start + len([]byte(change.Text))
 		)
 
-		logger.Println("Start end", start, end)
-		logger.Println("Setting change text to ", trimmedText[start:end])
+		if end >= len(trimmedText) {
+			end = len(trimmedText) - 1
+		}
+
+		logger.Debug("Start end", start, end)
+		logger.Debug("Setting change text to ", trimmedText[start:end])
 		params.ContentChanges[i].Text = trimmedText[start:end]
 	}
 
-	logger.Println("Sending DocumentDidChange", params)
+	logger.Debug("Sending DocumentDidChange", params)
 	(*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidChange, params)
 }
 
@@ -60,7 +64,7 @@ func (yamllsConnector YamllsConnector) DocumentDidChangeFullSync(doc *lsplocal.D
 		return
 	}
 
-	logger.Println("Sending DocumentDidChange with full sync, current content:", doc.Content)
+	logger.Debug("Sending DocumentDidChange with full sync, current content:", doc.Content)
 	var trimmedText = trimTemplateForYamllsFromAst(doc.Ast.Copy(), doc.Content)
 
 	params.ContentChanges = []lsp.TextDocumentContentChangeEvent{

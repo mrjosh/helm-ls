@@ -111,7 +111,6 @@ func PositionToIndex(pos protocol.Position, content []byte) int {
 
 	index = index + int(pos.Character)
 	return index
-
 }
 
 func IndexToPosition(index int, content []byte) protocol.Position {
