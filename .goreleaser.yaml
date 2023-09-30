@@ -1,0 +1,80 @@
+builds:
+  - id: darwin-amd64
+    main: ./
+    binary: helm-ls
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    env:
+      - CC=o64-clang
+      - CXX=o64-clang++
+    flags:
+      - -mod=readonly
+    ldflags:
+      - -s -w -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
+  - id: darwin-arm64
+    binary: helm-ls
+    main: ./
+    goarch:
+      - arm64
+    goos:
+      - darwin
+    env:
+      - CC=oa64-clang
+      - CXX=oa64-clang++
+    flags:
+      - -trimpath
+    ldflags:
+      - -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
+  - id: linux-amd64
+    main: ./
+    binary: helm-ls
+    goos:
+      - linux
+    goarch:
+      - amd64
+    flags:
+      - -mod=readonly
+    ldflags:
+      - -s -w -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
+  - id: linux-arm64
+    main: ./
+    binary: helm-ls
+    goos:
+      - linux
+    goarch:
+      - arm64
+    env:
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
+  - id: windows-amd64
+    main: ./
+    binary: helm-ls
+    goarch:
+      - amd64
+    goos:
+      - windows
+    env:
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
+    flags:
+      - -trimpath
+      - -buildmode=exe
+    ldflags:
+      - -X main.Version={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.BranchName={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
