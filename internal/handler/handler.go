@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/url"
-	"path/filepath"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/fs"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
@@ -13,6 +11,8 @@ import (
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
+	yamlv3 "gopkg.in/yaml.v3"
 
 	"github.com/mrjosh/helm-ls/internal/log"
 )
@@ -23,17 +23,23 @@ type langHandler struct {
 	connPool      jsonrpc2.Conn
 	linterName    string
 	documents     *lsplocal.DocumentStore
+	projectFiles  ProjectFiles
 	values        chartutil.Values
 	chartMetadata chart.Metadata
+	valueNode     yamlv3.Node
+	chartNode     yamlv3.Node
 }
 
 func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
 	fileStorage, _ := fs.NewFileStorage("")
 	handler := &langHandler{
-		linterName: "helm-lint",
-		connPool:   connPool,
-		documents:  lsplocal.NewDocumentStore(fileStorage),
-		values:     make(map[string]interface{}),
+		linterName:   "helm-lint",
+		connPool:     connPool,
+		documents:    lsplocal.NewDocumentStore(fileStorage),
+		projectFiles: ProjectFiles{},
+		values:       make(map[string]interface{}),
+		valueNode:    yamlv3.Node{},
+		chartNode:    yamlv3.Node{},
 	}
 	logger.Printf("helm-lint-langserver: connections opened")
 	return jsonrpc2.ReplyHandler(handler.handle)
@@ -79,24 +85,35 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 		return errors.New("length WorkspaceFolders is 0")
 	}
 
-	workspace_uri, err := url.Parse(params.WorkspaceFolders[0].URI)
+	workspaceURI, err := uri.Parse(params.WorkspaceFolders[0].URI)
 	if err != nil {
 		return err
 	}
 
-	vf := filepath.Join(workspace_uri.Path, "values.yaml")
-	vals, err := chartutil.ReadValuesFile(vf)
+	h.projectFiles = NewProjectFiles(workspaceURI, "")
+
+	vals, err := chartutil.ReadValuesFile(h.projectFiles.ValuesFile)
 	if err != nil {
 		logger.Println("Error loading values.yaml file", err)
 	}
 	h.values = vals
 
-	chartFile := filepath.Join(workspace_uri.Path, "Chart.yaml")
-	chartMetadata, err := chartutil.LoadChartfile(chartFile)
+	chartMetadata, err := chartutil.LoadChartfile(h.projectFiles.ChartFile)
 	if err != nil {
 		logger.Println("Error loading Chart.yaml file", err)
 	}
 	h.chartMetadata = *chartMetadata
+	valueNodes, err := chartutil.ReadYamlFileToNode(h.projectFiles.ValuesFile)
+	if err != nil {
+		return err
+	}
+	h.valueNode = valueNodes
+
+	chartNode, err := chartutil.ReadYamlFileToNode(h.projectFiles.ChartFile)
+	if err != nil {
+		return err
+	}
+	h.chartNode = chartNode
 
 	return reply(ctx, lsp.InitializeResult{
 		Capabilities: lsp.ServerCapabilities{
@@ -111,7 +128,8 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 				TriggerCharacters: []string{".", "$."},
 				ResolveProvider:   false,
 			},
-			HoverProvider: true,
+			HoverProvider:      true,
+			DefinitionProvider: true,
 		},
 	}, nil)
 }

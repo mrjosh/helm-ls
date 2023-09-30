@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	yamlv3 "gopkg.in/yaml.v3"
 	"sigs.k8s.io/yaml"
 
 	"github.com/mrjosh/helm-ls/pkg/chart"
@@ -150,6 +151,17 @@ func ReadValuesFile(filename string) (Values, error) {
 		return map[string]interface{}{}, err
 	}
 	return ReadValues(data)
+}
+
+// ReadYamlFileToNode will parse a YAML file into a yaml Node.
+func ReadYamlFileToNode(filename string) (node yamlv3.Node, err error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return yamlv3.Node{}, err
+	}
+
+	err = yamlv3.Unmarshal(data, &node)
+	return node, err
 }
 
 // ReleaseOptions represents the additional release options needed
