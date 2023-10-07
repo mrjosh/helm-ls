@@ -20,10 +20,22 @@ func handleDiagnostics(req jsonrpc2.Request, clientConn jsonrpc2.Conn, documents
 	if !ok {
 		logger.Println("Error handling diagnostic. Could not get document: " + params.URI.Filename())
 	}
-	doc.DiagnosticsCache.Yamldiagnostics = filterDiagnostics(params.Diagnostics, doc.Ast, doc.Content)
-	params.Diagnostics = doc.DiagnosticsCache.GetMergedDiagnostics()
+	doc.DiagnosticsCache.YamlDiagnostics = filterDiagnostics(params.Diagnostics, doc.Ast, doc.Content)
 
-	clientConn.Notify(context.Background(), lsp.MethodTextDocumentPublishDiagnostics, &params)
+	//TODO: if set to true diagnostics from yamlls will be shown directly when they appear
+	// this can cause a lot of distraction, as you will get a lot of diagnostics when in the
+	// middle of typing template blocks
+	// if set to false diagnostics will only be sent to the client at the same time the
+	// helm lint diagnostics are sent, which only happens after saving a file
+	//
+	// potential problem: the first time we get diagnostics they should always be sent to
+	// the client
+	var showYamllsDiagnosticsAlways = true
+
+	if showYamllsDiagnosticsAlways {
+		params.Diagnostics = doc.DiagnosticsCache.GetMergedDiagnostics()
+		clientConn.Notify(context.Background(), lsp.MethodTextDocumentPublishDiagnostics, &params)
+	}
 }
 
 func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content string) (filtered []lsp.Diagnostic) {
@@ -48,7 +60,10 @@ func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
 	switch diagnostic.Message {
 	case "Map keys must be unique":
 		return !lsplocal.IsInElseBranch(node)
-	case "All mapping items must start at the same column", "Implicit map keys need to be followed by map values", "Implicit keys need to be on a single line", "A block sequence may not be used as an implicit map key":
+	case "All mapping items must start at the same column",
+		"Implicit map keys need to be followed by map values",
+		"Implicit keys need to be on a single line",
+		"A block sequence may not be used as an implicit map key":
 		// TODO: could add a check if is is caused by includes
 		return false
 

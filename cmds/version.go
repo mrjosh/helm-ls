@@ -3,8 +3,11 @@ package cmds
 import (
 	"fmt"
 
+	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/spf13/cobra"
 )
+
+var logger = log.GetLogger()
 
 func newVersionCmd() *cobra.Command {
 	return &cobra.Command{
@@ -20,6 +23,7 @@ func newVersionCmd() *cobra.Command {
 				fmt.Sprintf("Golang: %s", versionInfo.GoVersion),
 				fmt.Sprintf("Compiled by: %s", versionInfo.CompiledBy),
 			)
+			logger.Debug("Additional debug info")
 		},
 	}
 }

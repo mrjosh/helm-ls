@@ -17,16 +17,17 @@ type YamllsConnector struct {
 }
 
 func NewYamllsConnector(workingDir string, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) *YamllsConnector {
+	// TODO: make the path to the executable configureable
 	yamllsCmd := exec.Command("yaml-language-server", "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()
 	if err != nil {
-		logger.Println("Could not start yaml-language-server, some features may be missing.")
+		logger.Println("Could not connect to stdin of yaml-language-server, some features may be missing.")
 		return &YamllsConnector{}
 	}
 	stout, err := yamllsCmd.StdoutPipe()
 	if err != nil {
-		logger.Println("Could not start yaml-language-server, some features may be missing.")
+		logger.Println("Could not connect to stdout of yaml-language-server, some features may be missing.")
 		return &YamllsConnector{}
 	}
 
@@ -39,13 +40,13 @@ func NewYamllsConnector(workingDir string, clientConn jsonrpc2.Conn, documents *
 	if err != nil {
 		switch e := err.(type) {
 		case *exec.Error:
-			logger.Println("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.")
+			logger.Println("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.", err)
 			return &YamllsConnector{}
 		case *exec.ExitError:
 			logger.Println("Could not start yaml-language-server, some features may be missing. Command exit rc =", e.ExitCode())
 			return &YamllsConnector{}
 		default:
-			logger.Println("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.")
+			logger.Println("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.", err)
 			return &YamllsConnector{}
 		}
 	}

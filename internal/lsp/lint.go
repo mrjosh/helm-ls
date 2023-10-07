@@ -30,7 +30,7 @@ func NotifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, doc *Document)
 	if err != nil {
 		return nil, err
 	}
-	doc.DiagnosticsCache.Helmdiagnostics = diagnostics
+	doc.DiagnosticsCache.HelmDiagnostics = diagnostics
 
 	return nil, conn.Notify(
 		ctx,

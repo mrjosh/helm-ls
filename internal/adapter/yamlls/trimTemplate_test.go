@@ -1,8 +1,9 @@
 package yamlls
 
 import (
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"testing"
+
+	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 )
 
 type TrimTemplateTestData struct {
@@ -163,6 +164,28 @@ metadata:
 	{documentText: `{{ $x := "test" }}`, trimmedText: `                  `},
 	{documentText: `{{ /* comment */ }}`, trimmedText: `                   `},
 	{documentText: `{{define "name"}} T1 {{end}}`, trimmedText: `                            `},
+	{
+		documentText: `
+          {{- if .Values.controller.customStartupProbe }}
+          startupProbe: {}
+          {{- else if .Values.controller.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.controller.containerPorts.controller }}
+          {{- end }}
+	  `,
+		trimmedText: `
+                                                         
+          startupProbe: {}
+                                                                
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.controller.containerPorts.controller }}
+                    
+	  `,
+	},
 }
 
 func TestTrimTemplate(t *testing.T) {

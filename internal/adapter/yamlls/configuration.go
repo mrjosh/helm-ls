@@ -10,8 +10,13 @@ import (
 func handleConfiguration(req jsonrpc2.Request) [5]interface{} {
 	var params lsp.ConfigurationParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
-		logger.Println("Error ")
+		logger.Error("Error parsing configuration request from yamlls", err)
 	}
-	settings := [5]interface{}{YamllsSettings{Schemas: map[string]string{"kubernetes": "**"}, Completion: true, Hover: true}}
+	settings := [5]interface{}{YamllsSettings{
+		Schemas:    map[string]string{"kubernetes": "**"},
+		Completion: true,
+		Hover:      true,
+	},
+	}
 	return settings
 }

@@ -6,7 +6,6 @@ import (
 
 func trimTemplateForYamllsFromAst(ast *sitter.Tree, text string) string {
 	var result = []byte(text)
-	// logger.Println(ast.RootNode())
 	prettyPrintNode(ast.RootNode(), []byte(text), result)
 	return string(result)
 }
@@ -19,22 +18,28 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 		for i := 0; i < int(childCount); i++ {
 			logger.Debug("FieldName", node.FieldNameForChild(i))
 			child := node.Child(i)
+			logger.Println("FieldNameForChild in in_action: ", node.FieldNameForChild(i))
+
 			if child.Type() == "end" {
 				earaseTemplate(child, previous, result)
 				earaseTemplate(child.NextSibling(), previous, result)
 				earaseTemplate(child.PrevSibling(), previous, result)
 				break
+			} else if "condition" == node.FieldNameForChild(i) {
+				if_action_condition := child
+				if_action_condition_content := child.Content(previous)
+				logger.Println("if_action_condition_content: ", if_action_condition_content)
+				earaseTemplate(if_action_condition, previous, result)
+				earaseTemplate(if_action_condition.NextSibling(), previous, result)
+				if if_action_condition.PrevSibling() != nil && if_action_condition.PrevSibling().Type() == "if" {
+					earaseTemplate(if_action_condition.PrevSibling(), previous, result)
+					earaseTemplate(if_action_condition.PrevSibling().PrevSibling(), previous, result)
+				}
 			} else {
 				prettyPrintNode(child, previous, result)
 			}
 		}
-		if_action_condition := node.ChildByFieldName("condition")
-		earaseTemplate(if_action_condition, previous, result)
-		earaseTemplate(if_action_condition.NextSibling(), previous, result)
-		if if_action_condition.PrevSibling() != nil && if_action_condition.PrevSibling().Type() == "if" {
-			earaseTemplate(if_action_condition.PrevSibling(), previous, result)
-			earaseTemplate(if_action_condition.PrevSibling().PrevSibling(), previous, result)
-		}
+
 	case "block_action", "with_action", "range_action":
 		for i := 0; i < int(childCount); i++ {
 			child := node.Child(i)
@@ -78,7 +83,7 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 }
 
 func earaseTemplate(node *sitter.Node, previous []byte, result []byte) {
-	logger.Debug("Content that is earased", node.Content(previous))
+	logger.Println("Content that is earased", node.Content(previous))
 	for i := range []byte(node.Content(previous)) {
 		result[int(node.StartByte())+i] = byte(' ')
 	}

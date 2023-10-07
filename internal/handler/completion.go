@@ -122,17 +122,17 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string
 		word              string
 	)
 
-	logger.Println("currentNode", currentNode)
-	logger.Println("relevantChildNode", relevantChildNode.Type())
+	logger.Debug("currentNode", currentNode)
+	logger.Debug("relevantChildNode", relevantChildNode.Type())
 
 	switch relevantChildNode.Type() {
 	case gotemplate.NodeTypeIdentifier:
 		word = relevantChildNode.Content([]byte(doc.Content))
 	case gotemplate.NodeTypeDot:
-		logger.Println("TraverseIdentifierPathUp")
+		logger.Debug("TraverseIdentifierPathUp")
 		word = lsplocal.TraverseIdentifierPathUp(relevantChildNode, doc)
 	case gotemplate.NodeTypeDotSymbol:
-		logger.Println("GetFieldIdentifierPath")
+		logger.Debug("GetFieldIdentifierPath")
 		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
 	}
 	return word, nil

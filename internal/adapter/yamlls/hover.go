@@ -8,6 +8,8 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
+// Calls the Completion method of yamlls to get a fitting hover response
+// TODO: clarify why the hover method of yamlls can't be used
 func (yamllsConnector YamllsConnector) CallHover(params lsp.HoverParams, word string) lsp.Hover {
 	if yamllsConnector.Conn == nil {
 		return lsp.Hover{}
@@ -20,6 +22,7 @@ func (yamllsConnector YamllsConnector) CallHover(params lsp.HoverParams, word st
 			TextDocumentPositionParams: params.TextDocumentPositionParams,
 		}
 	)
+
 	_, err := (*yamllsConnector.Conn).Call(context.Background(), lsp.MethodTextDocumentCompletion, completionParams, response)
 	if err != nil {
 		return util.BuildHoverResponse(documentation, lsp.Range{})

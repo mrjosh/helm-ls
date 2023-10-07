@@ -3,9 +3,13 @@ package lsp
 import lsp "go.lsp.dev/protocol"
 
 type diagnosticsCache struct {
-	Yamldiagnostics []lsp.Diagnostic
-	Helmdiagnostics []lsp.Diagnostic
+	YamlDiagnostics []lsp.Diagnostic
+	HelmDiagnostics []lsp.Diagnostic
 }
+
+// TODO: this should be configurable
+// max diagnostics that are shown for a single file
+const yamlDiagnosticsLimit = 50
 
 func NewDiagnosticsCache() diagnosticsCache {
 	return diagnosticsCache{
@@ -16,11 +20,13 @@ func NewDiagnosticsCache() diagnosticsCache {
 
 func (d diagnosticsCache) GetMergedDiagnostics() (merged []lsp.Diagnostic) {
 	merged = []lsp.Diagnostic{}
-	for _, diagnostic := range d.Yamldiagnostics {
+	for _, diagnostic := range d.HelmDiagnostics {
 		merged = append(merged, diagnostic)
 	}
-	for _, diagnostic := range d.Helmdiagnostics {
-		merged = append(merged, diagnostic)
+	for i, diagnostic := range d.YamlDiagnostics {
+		if i < yamlDiagnosticsLimit {
+			merged = append(merged, diagnostic)
+		}
 	}
 	return merged
 }
