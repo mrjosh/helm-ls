@@ -105,13 +105,13 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	h.chartMetadata = *chartMetadata
 	valueNodes, err := chartutil.ReadYamlFileToNode(h.projectFiles.ValuesFile)
 	if err != nil {
-		return err
+		logger.Println("Error loading values.yaml file", err)
 	}
 	h.valueNode = valueNodes
 
 	chartNode, err := chartutil.ReadYamlFileToNode(h.projectFiles.ChartFile)
 	if err != nil {
-		return err
+		logger.Println("Error loading Chart.yaml file", err)
 	}
 	h.chartNode = chartNode
 
