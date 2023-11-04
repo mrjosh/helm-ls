@@ -16,9 +16,10 @@ func (yamllsConnector YamllsConnector) CallCompletion(params lsp.CompletionParam
 	var response = reflect.New(reflect.TypeOf(lsp.CompletionList{})).Interface()
 	_, err := (*yamllsConnector.Conn).Call(context.Background(), lsp.MethodTextDocumentCompletion, params, response)
 	if err != nil {
-		logger.Println("Error Calling yamlls for completions", err)
+		logger.Error("Error Calling yamlls for completions", err)
+		return &lsp.CompletionList{}
 	}
 
-	logger.Println("Got completions from yamlls", response)
+	logger.Debug("Got completions from yamlls", response)
 	return response.(*lsp.CompletionList)
 }

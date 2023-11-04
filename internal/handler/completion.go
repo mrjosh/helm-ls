@@ -45,24 +45,10 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 
-	word, err := completionAstParsing(doc, params.Position)
+	word, isTextNode := completionAstParsing(doc, params.Position)
 
-	if err != nil {
-
-		logger.Println("Calling yamlls for completions")
-		var response = reflect.New(reflect.TypeOf(lsp.CompletionList{})).Interface()
-		_, err = (*h.yamllsConnector.Conn).Call(ctx, lsp.MethodTextDocumentCompletion, params, response)
-		if err != nil {
-			logger.Println("Error Calling yamlls for completions", err)
-		}
-
-		logger.Println("Got completions from yamlls", response)
-		return reply(ctx, response, err)
-		// if err != nil { TODO: use this version
-		// 	response := *h.yamllsConnector.CallCompletion(params)
-		// 	logger.Println("Got completions from yamlls", response)
-		// 	return reply(ctx, response, err)
-		// }
+	if isTextNode {
+		return yamllsCompletions(err, h, ctx, params, reply)
 	}
 
 	var (
@@ -111,7 +97,13 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	return reply(ctx, items, err)
 }
 
-func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string, error) {
+func yamllsCompletions(err error, h *langHandler, ctx context.Context, params lsp.CompletionParams, reply jsonrpc2.Replier) error {
+	response := *h.yamllsConnector.CallCompletion(params)
+	logger.Debug("Got completions from yamlls", response)
+	return reply(ctx, response, err)
+}
+
+func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string, bool) {
 	var (
 		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
 		pointToLoopUp = sitter.Point{
@@ -134,8 +126,10 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string
 	case gotemplate.NodeTypeDotSymbol:
 		logger.Debug("GetFieldIdentifierPath")
 		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
+	case gotemplate.NodeTypeText:
+		return word, true
 	}
-	return word, nil
+	return word, false
 }
 
 func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
