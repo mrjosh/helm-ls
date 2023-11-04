@@ -24,7 +24,15 @@ func NewDocumentStore(fs FileStorage) *DocumentStore {
 	}
 }
 
-func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams) (*Document, error) {
+func (s *DocumentStore) GetAllDocs() []*Document {
+	var docs []*Document
+	for _, doc := range s.documents {
+		docs = append(docs, doc)
+	}
+	return docs
+}
+
+func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams,helmlsConfig *util.HelmlsConfiguration) (*Document, error) {
 	//langID := params.TextDocument.LanguageID
 	//if langID != "markdown" && langID != "vimwiki" && langID != "pandoc" {
 		//return nil, nil
@@ -40,7 +48,7 @@ func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams) (*Document
 		Path:    path,
 		Content: params.TextDocument.Text,
 		Ast:  ParseAst(params.TextDocument.Text),
-		DiagnosticsCache: NewDiagnosticsCache(),
+		DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
 	}
 	s.documents[path] = doc
 	return doc, nil

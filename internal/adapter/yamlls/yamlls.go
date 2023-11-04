@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/log"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
 )
 
@@ -14,11 +15,11 @@ var logger = log.GetLogger()
 type YamllsConnector struct {
 	Conn      *jsonrpc2.Conn
 	documents *lsplocal.DocumentStore
+	config    util.YamllsConfiguration
 }
 
-func NewYamllsConnector(workingDir string, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) *YamllsConnector {
-	// TODO: make the path to the executable configureable
-	yamllsCmd := exec.Command("yaml-language-server", "--stdio")
+func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) *YamllsConnector {
+	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()
 	if err != nil {
@@ -52,7 +53,8 @@ func NewYamllsConnector(workingDir string, clientConn jsonrpc2.Conn, documents *
 	}
 	var yamllsConnector = YamllsConnector{}
 	conn := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloser))
-	conn.Go(context.Background(), yamllsHandler(clientConn, documents))
+	yamllsConnector.config = yamllsConfiguration
+	conn.Go(context.Background(), yamllsConnector.yamllsHandler(clientConn, documents))
 	yamllsConnector.documents = documents
 	yamllsConnector.Conn = &conn
 	return &yamllsConnector

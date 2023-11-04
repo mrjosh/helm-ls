@@ -8,14 +8,14 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func yamllsHandler(clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) jsonrpc2.Handler {
+func (yamllsConnector YamllsConnector) yamllsHandler(clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) jsonrpc2.Handler {
 	return func(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 
 		switch req.Method() {
 		case lsp.MethodTextDocumentPublishDiagnostics:
 			handleDiagnostics(req, clientConn, documents)
 		case lsp.MethodWorkspaceConfiguration:
-			settings := handleConfiguration(req)
+			settings := yamllsConnector.handleConfiguration(req)
 			return reply(ctx, settings, nil)
 		}
 

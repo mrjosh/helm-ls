@@ -9,6 +9,17 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
+func (yamllsConnector YamllsConnector) InitiallySyncOpenDocuments() {
+	for _, doc := range yamllsConnector.documents.GetAllDocs() {
+		yamllsConnector.DocumentDidOpen(doc.Ast, lsp.DidOpenTextDocumentParams{
+			TextDocument: lsp.TextDocumentItem{
+				URI:  doc.URI,
+				Text: doc.Content,
+			},
+		})
+	}
+}
+
 func (yamllsConnector YamllsConnector) DocumentDidOpen(ast *sitter.Tree, params lsp.DidOpenTextDocumentParams) {
 	logger.Println("YamllsConnector DocumentDidOpen", params.TextDocument.URI)
 	if yamllsConnector.Conn == nil {

@@ -1,7 +1,6 @@
 package log
 
 import (
-	"os"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -12,6 +11,7 @@ type logger interface {
 	Error(args ...interface{})
 	Debug(args ...interface{})
 	Printf(format string, args ...interface{})
+	SetLevel(level logrus.Level)
 }
 
 var l logger
@@ -28,12 +28,5 @@ func GetLogger() logger {
 func createLogger() logger {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
-	//TODO: make this also configurable with lsp configs
-	// Check the value of the environment variable
-	if os.Getenv("LOG_LEVEL") == "debug" {
-		logger.SetLevel(logrus.DebugLevel)
-	} else {
-		logger.SetLevel(logrus.InfoLevel)
-	}
 	return logger
 }

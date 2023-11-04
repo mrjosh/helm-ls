@@ -7,16 +7,12 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func handleConfiguration(req jsonrpc2.Request) [5]interface{} {
+func (yamllsConnector YamllsConnector) handleConfiguration(req jsonrpc2.Request) []interface{} {
 	var params lsp.ConfigurationParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		logger.Error("Error parsing configuration request from yamlls", err)
 	}
-	settings := [5]interface{}{YamllsSettings{
-		Schemas:    map[string]string{"kubernetes": "**"},
-		Completion: true,
-		Hover:      true,
-	},
-	}
+	logger.Debug("Yamlls ConfigurationParams", params)
+	settings := []interface{}{yamllsConnector.config.YamllsSettings}
 	return settings
 }

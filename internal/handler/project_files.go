@@ -13,6 +13,7 @@ import (
 type ProjectFiles struct {
 	ValuesFile string
 	ChartFile  string
+	RootURI    uri.URI
 }
 
 func (p ProjectFiles) GetValuesFileURI() lsp.DocumentURI {
@@ -35,5 +36,6 @@ func NewProjectFiles(rootURI uri.URI, valuesFileName string) ProjectFiles {
 	return ProjectFiles{
 		ValuesFile: valuesFileName,
 		ChartFile:  filepath.Join(rootURI.Filename(), chartutil.ChartfileName),
+		RootURI:    rootURI,
 	}
 }
