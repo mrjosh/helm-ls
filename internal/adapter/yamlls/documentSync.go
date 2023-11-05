@@ -10,6 +10,9 @@ import (
 )
 
 func (yamllsConnector YamllsConnector) InitiallySyncOpenDocuments() {
+	if yamllsConnector.Conn == nil {
+		return
+	}
 	for _, doc := range yamllsConnector.documents.GetAllDocs() {
 		yamllsConnector.DocumentDidOpen(doc.Ast, lsp.DidOpenTextDocumentParams{
 			TextDocument: lsp.TextDocumentItem{

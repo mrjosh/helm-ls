@@ -20,7 +20,7 @@ func IsInElseBranch(node *sitter.Node) bool {
 				}
 			}
 		}
-
+		curser.Close()
 	}
 	return IsInElseBranch(parent)
 }

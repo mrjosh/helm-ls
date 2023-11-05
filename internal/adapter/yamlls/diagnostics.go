@@ -10,7 +10,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func handleDiagnostics(req jsonrpc2.Request, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) {
+func (yamllsConnector *YamllsConnector) handleDiagnostics(req jsonrpc2.Request, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) {
 	var params lsp.PublishDiagnosticsParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		logger.Println("Error handling diagnostic", err)
@@ -20,19 +20,10 @@ func handleDiagnostics(req jsonrpc2.Request, clientConn jsonrpc2.Conn, documents
 	if !ok {
 		logger.Println("Error handling diagnostic. Could not get document: " + params.URI.Filename())
 	}
-	doc.DiagnosticsCache.YamlDiagnostics = filterDiagnostics(params.Diagnostics, doc.Ast, doc.Content)
 
-	//TODO: if set to true diagnostics from yamlls will be shown directly when they appear
-	// this can cause a lot of distraction, as you will get a lot of diagnostics when in the
-	// middle of typing template blocks
-	// if set to false diagnostics will only be sent to the client at the same time the
-	// helm lint diagnostics are sent, which only happens after saving a file
-	//
-	// potential problem: the first time we get diagnostics they should always be sent to
-	// the client
-	var showYamllsDiagnosticsAlways = true
-
-	if showYamllsDiagnosticsAlways {
+	doc.DiagnosticsCache.SetYamlDiagnostics(filterDiagnostics(params.Diagnostics, doc.Ast, doc.Content))
+	if doc.DiagnosticsCache.ShouldShowDiagnosticsOnNewYamlDiagnostics() {
+		logger.Debug("Publishing yamlls diagnostics")
 		params.Diagnostics = doc.DiagnosticsCache.GetMergedDiagnostics()
 		clientConn.Notify(context.Background(), lsp.MethodTextDocumentPublishDiagnostics, &params)
 	}

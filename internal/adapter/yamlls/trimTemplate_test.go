@@ -186,6 +186,42 @@ metadata:
                     
 	  `,
 	},
+	{
+		documentText: `
+      {{ if eq .Values.replicaCout 1 }}
+      {{- $kube := ""  -}}
+      apiVersion: v1
+      kind: Service
+      bka: dsa
+      metadata:
+        name: {{ include "hello-world.fullname" . }}
+        labels:
+          {{- include "hello-world.labels" . | nindent 4 }}
+      spec:
+        type: {{ .Values.service.type }}
+        ports:
+          - port:  {{ .Values.service.port }}
+            targetPort: http
+      {{ end }}
+      `,
+		trimmedText: `
+                                       
+                          
+      apiVersion: v1
+      kind: Service
+      bka: dsa
+      metadata:
+        name: {{ include "hello-world.fullname" . }}
+        labels:
+          {{- include "hello-world.labels" . | nindent 4 }}
+      spec:
+        type: {{ .Values.service.type }}
+        ports:
+          - port:  {{ .Values.service.port }}
+            targetPort: http
+               
+      `,
+	},
 }
 
 func TestTrimTemplate(t *testing.T) {

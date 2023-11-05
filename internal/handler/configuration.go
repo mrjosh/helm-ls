@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"reflect"
+	// "reflect"
 
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
@@ -28,8 +28,6 @@ func (h *langHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
 		logger.Println("Workspace configuration:", result)
 	}
 
-	if !reflect.DeepEqual(h.helmlsConfig, result[0]) {
-		h.helmlsConfig = result[0]
-		h.initializationWithConfig(ctx)
-	}
+	h.helmlsConfig = result[0]
+	h.initializationWithConfig(ctx)
 }

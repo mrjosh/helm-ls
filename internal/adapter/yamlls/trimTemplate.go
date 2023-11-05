@@ -15,30 +15,27 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 
 	switch node.Type() {
 	case "if_action":
-		for i := 0; i < int(childCount); i++ {
-			logger.Debug("FieldName", node.FieldNameForChild(i))
-			child := node.Child(i)
-			logger.Println("FieldNameForChild in in_action: ", node.FieldNameForChild(i))
-
-			if child.Type() == "end" {
-				earaseTemplate(child, previous, result)
-				earaseTemplate(child.NextSibling(), previous, result)
-				earaseTemplate(child.PrevSibling(), previous, result)
-				break
-			} else if "condition" == node.FieldNameForChild(i) {
-				if_action_condition := child
-				if_action_condition_content := child.Content(previous)
-				logger.Println("if_action_condition_content: ", if_action_condition_content)
-				earaseTemplate(if_action_condition, previous, result)
-				earaseTemplate(if_action_condition.NextSibling(), previous, result)
-				if if_action_condition.PrevSibling() != nil && if_action_condition.PrevSibling().Type() == "if" {
-					earaseTemplate(if_action_condition.PrevSibling(), previous, result)
-					earaseTemplate(if_action_condition.PrevSibling().PrevSibling(), previous, result)
-				}
-			} else {
-				prettyPrintNode(child, previous, result)
+		curser := sitter.NewTreeCursor(node)
+		curser.GoToFirstChild()
+		for curser.GoToNextSibling() {
+			if curser.CurrentFieldName() == "condition" {
+				earaseTemplate(curser.CurrentNode(), previous, result)
+				earaseTemplate(curser.CurrentNode().NextSibling(), previous, result)
+				continue
+			}
+			switch curser.CurrentNode().Type() {
+			case "if", "else if":
+				earaseTemplate(curser.CurrentNode(), previous, result)
+				earaseTemplate(curser.CurrentNode().PrevSibling(), previous, result)
+			case "end":
+				earaseTemplate(curser.CurrentNode(), previous, result)
+				earaseTemplate(curser.CurrentNode().PrevSibling(), previous, result)
+				earaseTemplate(curser.CurrentNode().NextSibling(), previous, result)
+			default:
+				prettyPrintNode(curser.CurrentNode(), previous, result)
 			}
 		}
+		curser.Close()
 
 	case "block_action", "with_action", "range_action":
 		for i := 0; i < int(childCount); i++ {

@@ -88,13 +88,11 @@ func configureYamlls(h *langHandler) {
 
 func configureLogLevel(helmlsConfig util.HelmlsConfiguration) {
 	if level, err := logrus.ParseLevel(helmlsConfig.LogLevel); err == nil {
-		if os.Getenv("LOG_LEVEL") == "debug" {
-			logger.SetLevel(logrus.DebugLevel)
-		} else {
-			logger.SetLevel(level)
-		}
 		logger.SetLevel(level)
 	} else {
 		logger.Println("Error parsing log level", err)
+	}
+	if os.Getenv("LOG_LEVEL") == "debug" {
+		logger.SetLevel(logrus.DebugLevel)
 	}
 }
