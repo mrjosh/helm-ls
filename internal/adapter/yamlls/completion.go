@@ -7,7 +7,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector YamllsConnector) CallCompletion(params lsp.CompletionParams) *lsp.CompletionList {
+func (yamllsConnector Connector) CallCompletion(params lsp.CompletionParams) *lsp.CompletionList {
 	if yamllsConnector.Conn == nil {
 		return &lsp.CompletionList{}
 	}

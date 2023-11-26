@@ -27,10 +27,8 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 			case "if", "else if":
 				earaseTemplate(curser.CurrentNode(), previous, result)
 				earaseTemplate(curser.CurrentNode().PrevSibling(), previous, result)
-			case "end":
-				earaseTemplate(curser.CurrentNode(), previous, result)
-				earaseTemplate(curser.CurrentNode().PrevSibling(), previous, result)
-				earaseTemplate(curser.CurrentNode().NextSibling(), previous, result)
+			case "end", "else":
+				earaseTemplateAndSiblings(curser.CurrentNode(), previous, result)
 			default:
 				prettyPrintNode(curser.CurrentNode(), previous, result)
 			}
@@ -63,15 +61,10 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 		}
 	case "define_action":
 		earaseTemplate(node, previous, result)
+	case "function_call":
+		trimFunctionCall(node, previous, result)
 	case "comment", "variable_definition":
-		earaseTemplate(node, previous, result)
-		var prevSibling, nextSibling = node.PrevSibling(), node.NextSibling()
-		if prevSibling != nil {
-			earaseTemplate(prevSibling, previous, result)
-		}
-		if nextSibling != nil {
-			earaseTemplate(nextSibling, previous, result)
-		}
+		earaseTemplateAndSiblings(node, previous, result)
 	default:
 		for i := 0; i < int(childCount); i++ {
 			prettyPrintNode(node.Child(i), previous, result)
@@ -79,7 +72,31 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 	}
 }
 
+func trimFunctionCall(node *sitter.Node, previous []byte, result []byte) {
+	functionName := node.ChildByFieldName("function")
+	if functionName.Content(previous) == "include" {
+		parent := node.Parent()
+		if parent != nil && parent.Type() == "chained_pipeline" {
+			earaseTemplateAndSiblings(parent, previous, result)
+		}
+	}
+}
+
+func earaseTemplateAndSiblings(node *sitter.Node, previous []byte, result []byte) {
+	earaseTemplate(node, previous, result)
+	var prevSibling, nextSibling = node.PrevSibling(), node.NextSibling()
+	if prevSibling != nil {
+		earaseTemplate(prevSibling, previous, result)
+	}
+	if nextSibling != nil {
+		earaseTemplate(nextSibling, previous, result)
+	}
+}
+
 func earaseTemplate(node *sitter.Node, previous []byte, result []byte) {
+	if node == nil {
+		return
+	}
 	logger.Println("Content that is earased", node.Content(previous))
 	for i := range []byte(node.Content(previous)) {
 		result[int(node.StartByte())+i] = byte(' ')

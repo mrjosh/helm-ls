@@ -10,7 +10,7 @@ import (
 
 // Calls the Completion method of yamlls to get a fitting hover response
 // TODO: clarify why the hover method of yamlls can't be used
-func (yamllsConnector YamllsConnector) CallHover(params lsp.HoverParams, word string) lsp.Hover {
+func (yamllsConnector Connector) CallHover(params lsp.HoverParams, word string) lsp.Hover {
 	if yamllsConnector.Conn == nil {
 		return lsp.Hover{}
 	}

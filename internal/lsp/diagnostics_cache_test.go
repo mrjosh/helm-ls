@@ -9,7 +9,7 @@ import (
 )
 
 func TestDiagnosticsCache_SetYamlDiagnostics(t *testing.T) {
-	helmlsConfig := &util.HelmlsConfiguration{}
+	helmlsConfig := util.HelmlsConfiguration{}
 	cache := NewDiagnosticsCache(helmlsConfig)
 
 	diagnostics := []lsp.Diagnostic{
@@ -34,7 +34,7 @@ func TestDiagnosticsCache_SetYamlDiagnostics(t *testing.T) {
 }
 
 func TestDiagnosticsCache_GetMergedDiagnostics(t *testing.T) {
-	helmlsConfig := &util.DefaultConfig
+	helmlsConfig := util.DefaultConfig
 	cache := NewDiagnosticsCache(helmlsConfig)
 
 	yamlDiagnostics := []lsp.Diagnostic{
@@ -72,7 +72,7 @@ func TestDiagnosticsCache_GetMergedDiagnostics(t *testing.T) {
 }
 
 func TestDiagnosticsCache_ShouldShowDiagnosticsOnNewYamlDiagnostics(t *testing.T) {
-	helmlsConfig := &util.HelmlsConfiguration{}
+	helmlsConfig := util.HelmlsConfiguration{}
 	cache := NewDiagnosticsCache(helmlsConfig)
 	yamlDiagnostics := []lsp.Diagnostic{
 		{
@@ -102,7 +102,7 @@ func TestDiagnosticsCache_ShouldShowDiagnosticsOnNewYamlDiagnostics(t *testing.T
 }
 
 func TestDiagnosticsCache_ShouldShowDiagnosticsOnNewYamlDiagnosticsForInitialDiagnostics(t *testing.T) {
-	helmlsConfig := &util.HelmlsConfiguration{}
+	helmlsConfig := util.HelmlsConfiguration{}
 	cache := NewDiagnosticsCache(helmlsConfig)
 	yamlDiagnostics := []lsp.Diagnostic{
 		{

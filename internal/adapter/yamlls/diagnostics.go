@@ -10,7 +10,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector *YamllsConnector) handleDiagnostics(req jsonrpc2.Request, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) {
+func (yamllsConnector *Connector) handleDiagnostics(req jsonrpc2.Request, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) {
 	var params lsp.PublishDiagnosticsParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		logger.Println("Error handling diagnostic", err)
@@ -25,7 +25,10 @@ func (yamllsConnector *YamllsConnector) handleDiagnostics(req jsonrpc2.Request, 
 	if doc.DiagnosticsCache.ShouldShowDiagnosticsOnNewYamlDiagnostics() {
 		logger.Debug("Publishing yamlls diagnostics")
 		params.Diagnostics = doc.DiagnosticsCache.GetMergedDiagnostics()
-		clientConn.Notify(context.Background(), lsp.MethodTextDocumentPublishDiagnostics, &params)
+		err := clientConn.Notify(context.Background(), lsp.MethodTextDocumentPublishDiagnostics, &params)
+		if err != nil {
+			logger.Println("Error calling yamlls for diagnostics", err)
+		}
 	}
 }
 

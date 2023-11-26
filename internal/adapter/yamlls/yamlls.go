@@ -12,24 +12,23 @@ import (
 
 var logger = log.GetLogger()
 
-type YamllsConnector struct {
-	Conn      *jsonrpc2.Conn
-	documents *lsplocal.DocumentStore
-	config    util.YamllsConfiguration
+type Connector struct {
+	Conn   *jsonrpc2.Conn
+	config util.YamllsConfiguration
 }
 
-func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) *YamllsConnector {
+func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) *Connector {
 	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()
 	if err != nil {
 		logger.Println("Could not connect to stdin of yaml-language-server, some features may be missing.")
-		return &YamllsConnector{}
+		return &Connector{}
 	}
 	stout, err := yamllsCmd.StdoutPipe()
 	if err != nil {
 		logger.Println("Could not connect to stdout of yaml-language-server, some features may be missing.")
-		return &YamllsConnector{}
+		return &Connector{}
 	}
 
 	readWriteCloser := readWriteCloseSubprocess{
@@ -42,20 +41,19 @@ func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonr
 		switch e := err.(type) {
 		case *exec.Error:
 			logger.Println("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.", err)
-			return &YamllsConnector{}
+			return &Connector{}
 		case *exec.ExitError:
 			logger.Println("Could not start yaml-language-server, some features may be missing. Command exit rc =", e.ExitCode())
-			return &YamllsConnector{}
+			return &Connector{}
 		default:
 			logger.Println("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.", err)
-			return &YamllsConnector{}
+			return &Connector{}
 		}
 	}
-	var yamllsConnector = YamllsConnector{}
+	var yamllsConnector = Connector{}
 	conn := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloser))
 	yamllsConnector.config = yamllsConfiguration
 	conn.Go(context.Background(), yamllsConnector.yamllsHandler(clientConn, documents))
-	yamllsConnector.documents = documents
 	yamllsConnector.Conn = &conn
 	return &yamllsConnector
 }

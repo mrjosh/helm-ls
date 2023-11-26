@@ -9,11 +9,11 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector YamllsConnector) InitiallySyncOpenDocuments() {
+func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Document) {
 	if yamllsConnector.Conn == nil {
 		return
 	}
-	for _, doc := range yamllsConnector.documents.GetAllDocs() {
+	for _, doc := range docs {
 		yamllsConnector.DocumentDidOpen(doc.Ast, lsp.DidOpenTextDocumentParams{
 			TextDocument: lsp.TextDocumentItem{
 				URI:  doc.URI,
@@ -23,23 +23,29 @@ func (yamllsConnector YamllsConnector) InitiallySyncOpenDocuments() {
 	}
 }
 
-func (yamllsConnector YamllsConnector) DocumentDidOpen(ast *sitter.Tree, params lsp.DidOpenTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.DidOpenTextDocumentParams) {
 	logger.Println("YamllsConnector DocumentDidOpen", params.TextDocument.URI)
 	if yamllsConnector.Conn == nil {
 		return
 	}
 	params.TextDocument.Text = trimTemplateForYamllsFromAst(ast, params.TextDocument.Text)
 
-	(*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidOpen, params)
+	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidOpen, params)
+	if err != nil {
+		logger.Println("Error calling yamlls for didOpen", err)
+	}
 }
 
-func (yamllsConnector YamllsConnector) DocumentDidSave(doc *lsplocal.Document, params lsp.DidSaveTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params lsp.DidSaveTextDocumentParams) {
 	if yamllsConnector.Conn == nil {
 		return
 	}
 	params.Text = trimTemplateForYamllsFromAst(doc.Ast, doc.Content)
 
-	(*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidSave, params)
+	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidSave, params)
+	if err != nil {
+		logger.Println("Error calling yamlls for didSave", err)
+	}
 
 	yamllsConnector.DocumentDidChangeFullSync(doc, lsp.DidChangeTextDocumentParams{TextDocument: lsp.VersionedTextDocumentIdentifier{
 		TextDocumentIdentifier: params.TextDocument,
@@ -47,7 +53,7 @@ func (yamllsConnector YamllsConnector) DocumentDidSave(doc *lsplocal.Document, p
 	})
 }
 
-func (yamllsConnector YamllsConnector) DocumentDidChange(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
 	if yamllsConnector.Conn == nil {
 		return
 	}
@@ -70,10 +76,13 @@ func (yamllsConnector YamllsConnector) DocumentDidChange(doc *lsplocal.Document,
 	}
 
 	logger.Debug("Sending DocumentDidChange", params)
-	(*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidChange, params)
+	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidChange, params)
+	if err != nil {
+		logger.Println("Error calling yamlls for didChange", err)
+	}
 }
 
-func (yamllsConnector YamllsConnector) DocumentDidChangeFullSync(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
 	if yamllsConnector.Conn == nil {
 		return
 	}

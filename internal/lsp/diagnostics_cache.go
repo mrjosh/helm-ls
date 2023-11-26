@@ -8,12 +8,12 @@ import (
 type diagnosticsCache struct {
 	YamlDiagnostics             []lsp.Diagnostic
 	HelmDiagnostics             []lsp.Diagnostic
-	helmlsConfig                *util.HelmlsConfiguration
+	helmlsConfig                util.HelmlsConfiguration
 	gotYamlDiagnosticsTimes     int
 	yamlDiagnosticsCountReduced bool
 }
 
-func NewDiagnosticsCache(helmlsConfig *util.HelmlsConfiguration) diagnosticsCache {
+func NewDiagnosticsCache(helmlsConfig util.HelmlsConfiguration) diagnosticsCache {
 	return diagnosticsCache{
 		[]lsp.Diagnostic{},
 		[]lsp.Diagnostic{},

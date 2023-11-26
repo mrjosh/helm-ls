@@ -7,7 +7,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector YamllsConnector) handleConfiguration(req jsonrpc2.Request) []interface{} {
+func (yamllsConnector Connector) handleConfiguration(req jsonrpc2.Request) []interface{} {
 	var params lsp.ConfigurationParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		logger.Error("Error parsing configuration request from yamlls", err)

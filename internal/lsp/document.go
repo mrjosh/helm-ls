@@ -32,7 +32,7 @@ func (s *DocumentStore) GetAllDocs() []*Document {
 	return docs
 }
 
-func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams,helmlsConfig *util.HelmlsConfiguration) (*Document, error) {
+func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams,helmlsConfig util.HelmlsConfiguration) (*Document, error) {
 	//langID := params.TextDocument.LanguageID
 	//if langID != "markdown" && langID != "vimwiki" && langID != "pandoc" {
 		//return nil, nil

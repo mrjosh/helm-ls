@@ -8,7 +8,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector *YamllsConnector) yamllsHandler(clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) jsonrpc2.Handler {
+func (yamllsConnector *Connector) yamllsHandler(clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) jsonrpc2.Handler {
 	return func(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 
 		switch req.Method() {

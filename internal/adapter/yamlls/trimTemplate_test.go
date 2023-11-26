@@ -116,6 +116,23 @@ kind: Ingress
 	},
 	{
 		documentText: `
+{{- if .Values.ingress.enabled }}
+apiVersion: apps/v1
+{{- else }}
+apiVersion: apps/v2
+{{- end }}
+`,
+
+		trimmedText: `
+                                 
+apiVersion: apps/v1
+           
+apiVersion: apps/v2
+          
+`,
+	},
+	{
+		documentText: `
 apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
@@ -143,9 +160,9 @@ kind: Ingress
 metadata:
   name: {{ include "common.names.fullname" . }}
   namespace: {{ .Release.Namespace | quote }}
-  labels: {{- include "common.labels.standard" . | nindent 4 }}
+  labels:                                                      
                                   
-    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+                                                                                                          
               
     app.kubernetes.io/component: grafana
   annotations:
@@ -153,10 +170,10 @@ metadata:
     kubernetes.io/tls-acme: "true"
               
                                          
-    {{- include "common.tplvalues.render" (dict "value" .Values.ingress.annotations "context" $) | nindent 4 }}
+                                                                                                               
               
                                        
-    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+                                                                                                               
               
 		`,
 	},
@@ -213,7 +230,7 @@ metadata:
       metadata:
         name: {{ include "hello-world.fullname" . }}
         labels:
-          {{- include "hello-world.labels" . | nindent 4 }}
+                                                           
       spec:
         type: {{ .Values.service.type }}
         ports:
@@ -221,6 +238,17 @@ metadata:
             targetPort: http
                
       `,
+	},
+	{
+		// todo: Handle this case better
+		documentText: `
+			{{ if }}
+			{{- end  -}}
+			`,
+		trimmedText: `
+			      }}
+			            
+			`,
 	},
 }
 
