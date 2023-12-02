@@ -84,7 +84,7 @@ type Document struct {
 	Content                 string
 	lines                   []string
 	Ast                     *sitter.Tree
-	DiagnosticsCache        diagnosticsCache        
+	DiagnosticsCache        DiagnosticsCache        
 }
 
 // ApplyChanges updates the content of the document from LSP textDocument/didChange events.

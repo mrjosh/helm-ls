@@ -27,6 +27,10 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	}
 
 	workspaceURI, err := uri.Parse(params.WorkspaceFolders[0].URI)
+	if err != nil {
+		logger.Println("Error parsing workspace URI", err)
+		return err
+	}
 	h.yamllsConnector.CallInitialize(workspaceURI)
 
 	h.projectFiles = NewProjectFiles(workspaceURI, "")
@@ -73,7 +77,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	}, nil)
 }
 
-func (h *langHandler) initializationWithConfig(ctx context.Context) {
+func (h *langHandler) initializationWithConfig() {
 	configureLogLevel(h.helmlsConfig)
 	configureYamlls(h)
 }

@@ -32,7 +32,7 @@ func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Repli
 	result, err := h.definitionAstParsing(doc, params.Position)
 
 	if err != nil {
-		// supress errors for clients
+		// suppress errors for clients
 		// otherwise using go-to-definition on words that have no definition
 		// will result in an error
 		logger.Println(err)

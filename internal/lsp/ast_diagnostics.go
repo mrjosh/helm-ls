@@ -24,13 +24,3 @@ func IsInElseBranch(node *sitter.Node) bool {
 	}
 	return IsInElseBranch(parent)
 }
-
-func getIndexOfChild(parent *sitter.Node, child *sitter.Node) (int, error) {
-	count := parent.ChildCount()
-	for i := 0; i < int(count); i++ {
-		if parent.Child(i) == child {
-			return i, nil
-		}
-	}
-	return -1, nil
-}

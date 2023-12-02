@@ -40,13 +40,6 @@ func FindRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point)
 	return currentNode
 }
 
-func isPointLarger(a sitter.Point, b sitter.Point) bool {
-	if a.Row == b.Row {
-		return a.Column > b.Column
-	}
-	return a.Row > b.Row
-}
-
 func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
 	if a.Row == b.Row {
 		return a.Column >= b.Column

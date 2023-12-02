@@ -97,5 +97,8 @@ func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Documen
 	}
 
 	logger.Println("Sending DocumentDidChange with full sync", params)
-	(*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidChange, params)
+	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidChange, params)
+	if err != nil {
+		logger.Println("Error calling yamlls for didChange", err)
+	}
 }

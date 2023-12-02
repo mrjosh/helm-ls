@@ -48,7 +48,7 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	word, isTextNode := completionAstParsing(doc, params.Position)
 
 	if isTextNode {
-		return yamllsCompletions(err, h, ctx, params, reply)
+		return yamllsCompletions(ctx, err, h, params, reply)
 	}
 
 	var (
@@ -97,7 +97,7 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	return reply(ctx, items, err)
 }
 
-func yamllsCompletions(err error, h *langHandler, ctx context.Context, params lsp.CompletionParams, reply jsonrpc2.Replier) error {
+func yamllsCompletions(ctx context.Context, err error, h *langHandler, params lsp.CompletionParams, reply jsonrpc2.Replier) error {
 	response := *h.yamllsConnector.CallCompletion(params)
 	logger.Debug("Got completions from yamlls", response)
 	return reply(ctx, response, err)

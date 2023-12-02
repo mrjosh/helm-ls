@@ -241,14 +241,8 @@ metadata:
 	},
 	{
 		// todo: Handle this case better
-		documentText: `
-			{{ if }}
-			{{- end  -}}
-			`,
-		trimmedText: `
-			      }}
-			            
-			`,
+		documentText: `{{ if }}{{- end -}}`,
+		trimmedText:  `      }}           `,
 	},
 }
 

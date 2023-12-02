@@ -27,8 +27,15 @@ func (yamllsConnector Connector) CallInitialize(workspaceURI uri.URI) {
 		logger.Error("Error calling yamlls for initialize", err)
 		return
 	}
-	(*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodInitialized, params)
+	err = (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodInitialized, params)
+
+	if err != nil {
+		logger.Error("Error calling yamlls for initialized", err)
+	}
 
 	changeConfigurationParams := lsp.DidChangeConfigurationParams{}
-	(*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodWorkspaceDidChangeConfiguration, changeConfigurationParams)
+	err = (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodWorkspaceDidChangeConfiguration, changeConfigurationParams)
+	if err != nil {
+		logger.Error("Error calling yamlls for didChangeConfiguration", err)
+	}
 }

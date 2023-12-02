@@ -9,7 +9,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *langHandler) handleWorkspaceDidChangeConfiguration(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
+func (h *langHandler) handleWorkspaceDidChangeConfiguration(ctx context.Context, reply jsonrpc2.Replier, _ jsonrpc2.Request) (err error) {
 	// go h.retrieveWorkspaceConfiguration(ctx)
 	logger.Println("Changing workspace config is not implemented")
 	return reply(ctx, nil, nil)
@@ -35,5 +35,5 @@ func (h *langHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
 	}
 
 	h.helmlsConfig = result[0]
-	h.initializationWithConfig(ctx)
+	h.initializationWithConfig()
 }
