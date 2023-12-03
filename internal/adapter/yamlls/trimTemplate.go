@@ -53,7 +53,9 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 				"-}}",
 				"end",
 				"interpreted_string_literal",
-				"block":
+				"block",
+				"variable_definition",
+				"range_variable_definition":
 				earaseTemplate(child, previous, result)
 			default:
 				prettyPrintNode(child, previous, result)

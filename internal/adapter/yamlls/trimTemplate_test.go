@@ -244,6 +244,36 @@ metadata:
 		documentText: `{{ if }}{{- end -}}`,
 		trimmedText:  `      }}           `,
 	},
+	{
+		documentText: `{{- $shards := $.Values.shards | int }}`,
+		trimmedText:  `                                       `,
+	},
+	{
+		documentText: `
+{{- if $.Values.externalAccess.enabled }}
+{{- $shards := $.Values.shards | int }}
+{{- $replicas := $.Values.replicaCount | int }}
+{{- $totalNodes := mul $shards $replicas }}
+{{- range $shard, $e := until $shards }}
+{{- range $i, $_e := until $replicas }}
+{{- $targetPod := printf "%s-shard%d-%d" (include "common.names.fullname" $) $shard $i }}
+{{- end }}
+{{- end }}
+{{- end }}
+		`,
+		trimmedText: `
+                                         
+                                       
+                                               
+                                           
+                                        
+                                       
+                                                                                         
+          
+          
+          
+		`,
+	},
 }
 
 func TestTrimTemplate(t *testing.T) {
