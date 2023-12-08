@@ -32,7 +32,7 @@ func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.Di
 
 	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidOpen, params)
 	if err != nil {
-		logger.Println("Error calling yamlls for didOpen", err)
+		logger.Error("Error calling yamlls for didOpen", err)
 	}
 }
 
@@ -44,7 +44,7 @@ func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params 
 
 	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidSave, params)
 	if err != nil {
-		logger.Println("Error calling yamlls for didSave", err)
+		logger.Error("Error calling yamlls for didSave", err)
 	}
 
 	yamllsConnector.DocumentDidChangeFullSync(doc, lsp.DidChangeTextDocumentParams{TextDocument: lsp.VersionedTextDocumentIdentifier{

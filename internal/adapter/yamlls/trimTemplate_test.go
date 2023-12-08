@@ -274,6 +274,28 @@ metadata:
           
 		`,
 	},
+	{
+		documentText: `
+data:
+  pod_template.yaml: |-
+  {{- if .Values.worker.podTemplate }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.worker.podTemplate "context" $) | nindent 4 }}
+  {{- else }}
+    apiVersion: v1
+    kind: Pod
+  {{ end }}
+`,
+		trimmedText: `
+data:
+  pod_template.yaml: |-
+                                      
+                                                                                                              
+             
+    apiVersion: v1
+    kind: Pod
+           
+`,
+	},
 }
 
 func TestTrimTemplate(t *testing.T) {

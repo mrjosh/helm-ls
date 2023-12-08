@@ -15,52 +15,9 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 
 	switch node.Type() {
 	case "if_action":
-		curser := sitter.NewTreeCursor(node)
-		curser.GoToFirstChild()
-		for curser.GoToNextSibling() {
-			if curser.CurrentFieldName() == "condition" {
-				earaseTemplate(curser.CurrentNode(), previous, result)
-				earaseTemplate(curser.CurrentNode().NextSibling(), previous, result)
-				continue
-			}
-			switch curser.CurrentNode().Type() {
-			case "if", "else if":
-				earaseTemplate(curser.CurrentNode(), previous, result)
-				earaseTemplate(curser.CurrentNode().PrevSibling(), previous, result)
-			case "end", "else":
-				earaseTemplateAndSiblings(curser.CurrentNode(), previous, result)
-			default:
-				prettyPrintNode(curser.CurrentNode(), previous, result)
-			}
-		}
-		curser.Close()
-
+		trim_if_action(node, previous, result)
 	case "block_action", "with_action", "range_action":
-		for i := 0; i < int(childCount); i++ {
-			child := node.Child(i)
-			switch child.Type() {
-			case
-				"if",
-				"selector_expression",
-				"else",
-				"range",
-				"function_call",
-				"with",
-				"define",
-				"{{",
-				"{{-",
-				"}}",
-				"-}}",
-				"end",
-				"interpreted_string_literal",
-				"block",
-				"variable_definition",
-				"range_variable_definition":
-				earaseTemplate(child, previous, result)
-			default:
-				prettyPrintNode(child, previous, result)
-			}
-		}
+		trim_action(childCount, node, previous, result)
 	case "define_action":
 		earaseTemplate(node, previous, result)
 	case "function_call":
@@ -72,6 +29,56 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 			prettyPrintNode(node.Child(i), previous, result)
 		}
 	}
+}
+
+func trim_action(childCount uint32, node *sitter.Node, previous []byte, result []byte) {
+	for i := 0; i < int(childCount); i++ {
+		child := node.Child(i)
+		switch child.Type() {
+		case
+			"if",
+			"selector_expression",
+			"else",
+			"range",
+			"function_call",
+			"with",
+			"define",
+			"{{",
+			"{{-",
+			"}}",
+			"-}}",
+			"end",
+			"interpreted_string_literal",
+			"block",
+			"variable_definition",
+			"range_variable_definition":
+			earaseTemplate(child, previous, result)
+		default:
+			prettyPrintNode(child, previous, result)
+		}
+	}
+}
+
+func trim_if_action(node *sitter.Node, previous []byte, result []byte) {
+	curser := sitter.NewTreeCursor(node)
+	curser.GoToFirstChild()
+	for curser.GoToNextSibling() {
+		if curser.CurrentFieldName() == "condition" {
+			earaseTemplate(curser.CurrentNode(), previous, result)
+			earaseTemplate(curser.CurrentNode().NextSibling(), previous, result)
+			continue
+		}
+		switch curser.CurrentNode().Type() {
+		case "if", "else if":
+			earaseTemplate(curser.CurrentNode(), previous, result)
+			earaseTemplate(curser.CurrentNode().PrevSibling(), previous, result)
+		case "end", "else":
+			earaseTemplateAndSiblings(curser.CurrentNode(), previous, result)
+		default:
+			prettyPrintNode(curser.CurrentNode(), previous, result)
+		}
+	}
+	curser.Close()
 }
 
 func trimFunctionCall(node *sitter.Node, previous []byte, result []byte) {

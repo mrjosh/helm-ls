@@ -28,7 +28,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 
 	workspaceURI, err := uri.Parse(params.WorkspaceFolders[0].URI)
 	if err != nil {
-		logger.Println("Error parsing workspace URI", err)
+		logger.Error("Error parsing workspace URI", err)
 		return err
 	}
 	h.yamllsConnector.CallInitialize(workspaceURI)
@@ -37,24 +37,24 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 
 	vals, err := chartutil.ReadValuesFile(h.projectFiles.ValuesFile)
 	if err != nil {
-		logger.Println("Error loading values.yaml file", err)
+		logger.Error("Error loading values.yaml file", err)
 	}
 	h.values = vals
 
 	chartMetadata, err := chartutil.LoadChartfile(h.projectFiles.ChartFile)
 	if err != nil {
-		logger.Println("Error loading Chart.yaml file", err)
+		logger.Error("Error loading Chart.yaml file", err)
 	}
 	h.chartMetadata = *chartMetadata
 	valueNodes, err := chartutil.ReadYamlFileToNode(h.projectFiles.ValuesFile)
 	if err != nil {
-		logger.Println("Error loading values.yaml file", err)
+		logger.Error("Error loading values.yaml file", err)
 	}
 	h.valueNode = valueNodes
 
 	chartNode, err := chartutil.ReadYamlFileToNode(h.projectFiles.ChartFile)
 	if err != nil {
-		logger.Println("Error loading Chart.yaml file", err)
+		logger.Error("Error loading Chart.yaml file", err)
 	}
 	h.chartNode = chartNode
 

@@ -22,12 +22,12 @@ func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonr
 
 	stdin, err := yamllsCmd.StdinPipe()
 	if err != nil {
-		logger.Println("Could not connect to stdin of yaml-language-server, some features may be missing.")
+		logger.Error("Could not connect to stdin of yaml-language-server, some features may be missing.")
 		return &Connector{}
 	}
 	stout, err := yamllsCmd.StdoutPipe()
 	if err != nil {
-		logger.Println("Could not connect to stdout of yaml-language-server, some features may be missing.")
+		logger.Error("Could not connect to stdout of yaml-language-server, some features may be missing.")
 		return &Connector{}
 	}
 
@@ -40,13 +40,13 @@ func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonr
 	if err != nil {
 		switch e := err.(type) {
 		case *exec.Error:
-			logger.Println("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.", err)
+			logger.Error("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.", err)
 			return &Connector{}
 		case *exec.ExitError:
-			logger.Println("Could not start yaml-language-server, some features may be missing. Command exit rc =", e.ExitCode())
+			logger.Error("Could not start yaml-language-server, some features may be missing. Command exit rc =", e.ExitCode())
 			return &Connector{}
 		default:
-			logger.Println("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.", err)
+			logger.Error("Could not start yaml-language-server, some features may be missing. Spawning subprocess failed.", err)
 			return &Connector{}
 		}
 	}

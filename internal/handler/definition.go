@@ -35,7 +35,7 @@ func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Repli
 		// suppress errors for clients
 		// otherwise using go-to-definition on words that have no definition
 		// will result in an error
-		logger.Println(err)
+		logger.Println("Error getting definitions", err)
 		return reply(ctx, nil, nil)
 	}
 	return reply(ctx, result, err)

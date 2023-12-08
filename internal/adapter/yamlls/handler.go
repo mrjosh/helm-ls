@@ -17,6 +17,8 @@ func (yamllsConnector *Connector) yamllsHandler(clientConn jsonrpc2.Conn, docume
 		case lsp.MethodWorkspaceConfiguration:
 			settings := yamllsConnector.handleConfiguration(req)
 			return reply(ctx, settings, nil)
+		default:
+			logger.Debug("Method not handled by yamlls handler: ", req.Method())
 		}
 
 		return reply(ctx, true, nil)
