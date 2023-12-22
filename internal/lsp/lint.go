@@ -24,17 +24,20 @@ import (
 
 var logger = log.GetLogger()
 
-func NotifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, uri uri.URI) (*jsonrpc2.Notification, error) {
-	diagnostics, err := GetDiagnostics(uri)
+func NotifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, doc *Document) (*jsonrpc2.Notification, error) {
+	diagnostics, err := GetDiagnostics(doc.URI)
+
 	if err != nil {
 		return nil, err
 	}
+	doc.DiagnosticsCache.HelmDiagnostics = diagnostics
+
 	return nil, conn.Notify(
 		ctx,
 		lsp.MethodTextDocumentPublishDiagnostics,
 		&lsp.PublishDiagnosticsParams{
-			URI:         uri,
-			Diagnostics: diagnostics,
+			URI:         doc.URI,
+			Diagnostics: doc.DiagnosticsCache.GetMergedDiagnostics(),
 		},
 	)
 }

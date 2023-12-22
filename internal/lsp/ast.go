@@ -20,6 +20,16 @@ func NodeAtPosition(tree *sitter.Tree, position lsp.Position) *sitter.Node {
 	return tree.RootNode().NamedDescendantForPointRange(start, start)
 }
 
+func FindDirectChildNodeByStart(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
+	for i := 0; i < int(currentNode.ChildCount()); i++ {
+		child := currentNode.Child(i)
+		if child.StartPoint().Column == pointToLookUp.Column && child.StartPoint().Row == pointToLookUp.Row {
+			return child
+		}
+	}
+	return currentNode
+}
+
 func FindRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
 	for i := 0; i < int(currentNode.ChildCount()); i++ {
 		child := currentNode.Child(i)
@@ -44,6 +54,7 @@ func GetFieldIdentifierPath(node *sitter.Node, doc *Document) (path string) {
 }
 
 func buildFieldIdentifierPath(node *sitter.Node, doc *Document) string {
+
 	prepend := node.PrevNamedSibling()
 
 	currentPath := node.Content([]byte(doc.Content))
@@ -107,5 +118,12 @@ func GetLspRangeForNode(node *sitter.Node) lsp.Range {
 			Line:      end.Row,
 			Character: end.Column,
 		},
+	}
+}
+
+func GetSitterPointForLspPos(pos lsp.Position) sitter.Point {
+	return sitter.Point{
+		Row:    pos.Line,
+		Column: pos.Character,
 	}
 }

@@ -6,12 +6,13 @@ import (
 	"errors"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/fs"
+	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
-	"go.lsp.dev/uri"
 	yamlv3 "gopkg.in/yaml.v3"
 
 	"github.com/mrjosh/helm-ls/internal/log"
@@ -20,38 +21,44 @@ import (
 var logger = log.GetLogger()
 
 type langHandler struct {
-	connPool      jsonrpc2.Conn
-	linterName    string
-	documents     *lsplocal.DocumentStore
-	projectFiles  ProjectFiles
-	values        chartutil.Values
-	chartMetadata chart.Metadata
-	valueNode     yamlv3.Node
-	chartNode     yamlv3.Node
+	connPool        jsonrpc2.Conn
+	linterName      string
+	documents       *lsplocal.DocumentStore
+	projectFiles    ProjectFiles
+	values          chartutil.Values
+	chartMetadata   chart.Metadata
+	valueNode       yamlv3.Node
+	chartNode       yamlv3.Node
+	yamllsConnector *yamlls.Connector
+	helmlsConfig    util.HelmlsConfiguration
 }
 
 func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
 	fileStorage, _ := fs.NewFileStorage("")
+	documents := lsplocal.NewDocumentStore(fileStorage)
 	handler := &langHandler{
-		linterName:   "helm-lint",
-		connPool:     connPool,
-		documents:    lsplocal.NewDocumentStore(fileStorage),
-		projectFiles: ProjectFiles{},
-		values:       make(map[string]interface{}),
-		valueNode:    yamlv3.Node{},
-		chartNode:    yamlv3.Node{},
+		linterName:      "helm-lint",
+		connPool:        connPool,
+		projectFiles:    ProjectFiles{},
+		values:          make(map[string]interface{}),
+		valueNode:       yamlv3.Node{},
+		chartNode:       yamlv3.Node{},
+		documents:       documents,
+		helmlsConfig:    util.DefaultConfig,
+		yamllsConnector: &yamlls.Connector{},
 	}
 	logger.Printf("helm-lint-langserver: connections opened")
 	return jsonrpc2.ReplyHandler(handler.handle)
 }
 
 func (h *langHandler) handle(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
-	logger.Debug("helm-lint-langserver: request:", req)
+	logger.Debug("helm-lint-langserver: request method:", req.Method())
 
 	switch req.Method() {
 	case lsp.MethodInitialize:
 		return h.handleInitialize(ctx, reply, req)
 	case lsp.MethodInitialized:
+		go h.retrieveWorkspaceConfiguration(ctx)
 		return reply(ctx, nil, nil)
 	case lsp.MethodShutdown:
 		return h.handleShutdown(ctx, reply, req)
@@ -69,69 +76,13 @@ func (h *langHandler) handle(ctx context.Context, reply jsonrpc2.Replier, req js
 		return h.handleDefinition(ctx, reply, req)
 	case lsp.MethodTextDocumentHover:
 		return h.handleHover(ctx, reply, req)
+	case lsp.MethodWorkspaceDidChangeConfiguration:
+		return h.handleWorkspaceDidChangeConfiguration(ctx, reply, req)
+	default:
+		logger.Debug("Unsupported method", req.Method())
 	}
 
 	return jsonrpc2.MethodNotFoundHandler(ctx, reply, req)
-}
-
-func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
-
-	var params lsp.InitializeParams
-	if err := json.Unmarshal(req.Params(), &params); err != nil {
-		return err
-	}
-
-	if len(params.WorkspaceFolders) == 0 {
-		return errors.New("length WorkspaceFolders is 0")
-	}
-
-	workspaceURI, err := uri.Parse(params.WorkspaceFolders[0].URI)
-	if err != nil {
-		return err
-	}
-
-	h.projectFiles = NewProjectFiles(workspaceURI, "")
-
-	vals, err := chartutil.ReadValuesFile(h.projectFiles.ValuesFile)
-	if err != nil {
-		logger.Println("Error loading values.yaml file", err)
-	}
-	h.values = vals
-
-	chartMetadata, err := chartutil.LoadChartfile(h.projectFiles.ChartFile)
-	if err != nil {
-		logger.Println("Error loading Chart.yaml file", err)
-	}
-	h.chartMetadata = *chartMetadata
-	valueNodes, err := chartutil.ReadYamlFileToNode(h.projectFiles.ValuesFile)
-	if err != nil {
-		logger.Println("Error loading values.yaml file", err)
-	}
-	h.valueNode = valueNodes
-
-	chartNode, err := chartutil.ReadYamlFileToNode(h.projectFiles.ChartFile)
-	if err != nil {
-		logger.Println("Error loading Chart.yaml file", err)
-	}
-	h.chartNode = chartNode
-
-	return reply(ctx, lsp.InitializeResult{
-		Capabilities: lsp.ServerCapabilities{
-			TextDocumentSync: lsp.TextDocumentSyncOptions{
-				Change:    lsp.TextDocumentSyncKindFull,
-				OpenClose: true,
-				Save: &lsp.SaveOptions{
-					IncludeText: true,
-				},
-			},
-			CompletionProvider: &lsp.CompletionOptions{
-				TriggerCharacters: []string{".", "$."},
-				ResolveProvider:   false,
-			},
-			HoverProvider:      true,
-			DefinitionProvider: true,
-		},
-	}, nil)
 }
 
 func (h *langHandler) handleShutdown(_ context.Context, _ jsonrpc2.Replier, _ jsonrpc2.Request) (err error) {
@@ -145,12 +96,19 @@ func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonr
 		return reply(ctx, nil, err)
 	}
 
-	if _, err = h.documents.DidOpen(params); err != nil {
+	doc, err := h.documents.DidOpen(params, h.helmlsConfig)
+	if err != nil {
 		logger.Println(err)
 		return reply(ctx, nil, err)
 	}
 
-	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, params.TextDocument.URI)
+	h.yamllsConnector.DocumentDidOpen(doc.Ast, params)
+
+	doc, ok := h.documents.Get(params.TextDocument.URI)
+	if !ok {
+		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+	}
+	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, doc)
 	return reply(ctx, notification, err)
 }
 
@@ -172,6 +130,12 @@ func (h *langHandler) handleTextDocumentDidSave(ctx context.Context, reply jsonr
 		return err
 	}
 
-	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, params.TextDocument.URI)
+	doc, ok := h.documents.Get(params.TextDocument.URI)
+	if !ok {
+		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+	}
+
+	h.yamllsConnector.DocumentDidSave(doc, params)
+	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, doc)
 	return reply(ctx, notification, err)
 }

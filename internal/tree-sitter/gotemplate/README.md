@@ -1,6 +1,6 @@
 ## Grammar
 
-Taken from https://github.com/ngalaiko/tree-sitter-go-template, or currently this updated branch: https://github.com/msvechla/tree-sitter-go-template/tree/fix_brackets.
+Taken from https://github.com/ngalaiko/tree-sitter-go-template, or currently this updated branch: https://github.com/qvalentin/tree-sitter-go-template
 
 ## Binding
 

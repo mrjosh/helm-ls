@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	lspinternal "github.com/mrjosh/helm-ls/internal/lsp"
+
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
@@ -22,7 +23,7 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		return &jsonrpc2.Error{Code: jsonrpc2.InvalidParams}
 	}
 
-	var params lsp.DefinitionParams
+	var params lsp.HoverParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		return err
 	}
@@ -40,11 +41,20 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	)
 
 	if parent == nil {
-		return reply(ctx, nil, errors.New("could not parse ast correctly"))
+		err = errors.New("Could not parse ast correctly")
+		return reply(ctx, nil, err)
 	}
 
 	pt := parent.Type()
 	ct := currentNode.Type()
+	if ct == "text" {
+		var word = doc.WordAt(params.Position)
+		if len(word) > 2 && string(word[len(word)-1]) == ":" {
+			word = word[0 : len(word)-1]
+		}
+		var response, err = h.yamllsConnector.CallHover(ctx, params, word)
+		return reply(ctx, response, err)
+	}
 	if pt == "function_call" && ct == "identifier" {
 		word = currentNode.Content([]byte(doc.Content))
 	}
@@ -93,7 +103,10 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		}
 
 		if err == nil {
-			result := buildHoverResponse(value, wordRange)
+			if value == "" {
+				value = "\"\""
+			}
+			result := util.BuildHoverResponse(value, wordRange)
 			return reply(ctx, result, err)
 		}
 		return reply(ctx, nil, err)
@@ -111,26 +124,11 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	logger.Println("Start search with word " + searchWord)
 	for _, completionItem := range toSearch {
 		if searchWord == completionItem.Name {
-			result := buildHoverResponse(fmt.Sprint(completionItem.Doc), wordRange)
+			result := util.BuildHoverResponse(fmt.Sprint(completionItem.Doc), wordRange)
 			return reply(ctx, result, err)
 		}
 	}
 	return reply(ctx, lsp.Hover{}, err)
-}
-
-func buildHoverResponse(value string, wordRange lsp.Range) lsp.Hover {
-	if value == "" {
-		value = "\"\""
-	}
-	content := lsp.MarkupContent{
-		Kind:  lsp.Markdown,
-		Value: value,
-	}
-	result := lsp.Hover{
-		Contents: content,
-		Range:    &wordRange,
-	}
-	return result
 }
 
 func (h *langHandler) getChartMetadataHover(key string) (string, error) {

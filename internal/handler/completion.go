@@ -45,8 +45,13 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 
+	word, isTextNode := completionAstParsing(doc, params.Position)
+
+	if isTextNode {
+		return yamllsCompletions(ctx, err, h, params, reply)
+	}
+
 	var (
-		word             = completionAstParsing(doc, params.Position)
 		splitted         = strings.Split(word, ".")
 		items            []lsp.CompletionItem
 		variableSplitted = []string{}
@@ -92,8 +97,13 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	return reply(ctx, items, err)
 }
 
-func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string {
+func yamllsCompletions(ctx context.Context, err error, h *langHandler, params lsp.CompletionParams, reply jsonrpc2.Replier) error {
+	response := *h.yamllsConnector.CallCompletion(params)
+	logger.Debug("Got completions from yamlls", response)
+	return reply(ctx, response, err)
+}
 
+func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string, bool) {
 	var (
 		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
 		pointToLoopUp = sitter.Point{
@@ -104,21 +114,22 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) string 
 		word              string
 	)
 
-	logger.Println("currentNode", currentNode)
-	logger.Println("relevantChildNode", relevantChildNode.Type())
+	logger.Debug("currentNode", currentNode)
+	logger.Debug("relevantChildNode", relevantChildNode.Type())
 
 	switch relevantChildNode.Type() {
 	case gotemplate.NodeTypeIdentifier:
 		word = relevantChildNode.Content([]byte(doc.Content))
 	case gotemplate.NodeTypeDot:
-		logger.Println("TraverseIdentifierPathUp")
+		logger.Debug("TraverseIdentifierPathUp")
 		word = lsplocal.TraverseIdentifierPathUp(relevantChildNode, doc)
 	case gotemplate.NodeTypeDotSymbol:
-		logger.Println("GetFieldIdentifierPath")
+		logger.Debug("GetFieldIdentifierPath")
 		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
+	case gotemplate.NodeTypeText:
+		return word, true
 	}
-
-	return word
+	return word, false
 }
 
 func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {

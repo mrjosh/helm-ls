@@ -98,7 +98,7 @@ func TestCompletionAstParsing(t *testing.T) {
 		Line:      0,
 		Character: 18,
 	}
-	word := completionAstParsing(doc, position)
+	word, _ := completionAstParsing(doc, position)
 	if expectedWord != word {
 		t.Errorf("Expected word '%s', but got '%s'", expectedWord, word)
 	}

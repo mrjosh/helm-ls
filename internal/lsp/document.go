@@ -1,13 +1,14 @@
 package lsp
 
 import (
+	"bytes"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/pkg/errors"
+	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
-	sitter "github.com/smacker/go-tree-sitter"
 )
 
 // documentStore holds opened documents.
@@ -23,7 +24,15 @@ func NewDocumentStore(fs FileStorage) *DocumentStore {
 	}
 }
 
-func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams) (*Document, error) {
+func (s *DocumentStore) GetAllDocs() []*Document {
+	var docs []*Document
+	for _, doc := range s.documents {
+		docs = append(docs, doc)
+	}
+	return docs
+}
+
+func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams,helmlsConfig util.HelmlsConfiguration) (*Document, error) {
 	//langID := params.TextDocument.LanguageID
 	//if langID != "markdown" && langID != "vimwiki" && langID != "pandoc" {
 		//return nil, nil
@@ -39,6 +48,7 @@ func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams) (*Document
 		Path:    path,
 		Content: params.TextDocument.Text,
 		Ast:  ParseAst(params.TextDocument.Text),
+		DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
 	}
 	s.documents[path] = doc
 	return doc, nil
@@ -74,13 +84,23 @@ type Document struct {
 	Content                 string
 	lines                   []string
 	Ast                     *sitter.Tree
+	DiagnosticsCache        DiagnosticsCache        
 }
 
 // ApplyChanges updates the content of the document from LSP textDocument/didChange events.
 func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
+	var content = []byte(d.Content)
 	for _, change := range changes {
-    d.Content = d.Content[:change.Range.Start.Character] + change.Text + d.Content[change.Range.End.Character:]
+		start, end := util.PositionToIndex(change.Range.Start, content), util.PositionToIndex(change.Range.End, content)
+
+		var buf bytes.Buffer
+		buf.Write(content[:start])
+		buf.Write([]byte(change.Text))
+		buf.Write(content[end:])
+		content = buf.Bytes()
 	}
+	d.Content = string(content)
+
 	d.ApplyChangesToAst(d.Content)
 
 	d.lines = nil
@@ -99,7 +119,6 @@ func (d *Document) WordAt(pos lsp.Position) string {
 }
 
 func (d *Document) ValueAt(pos lsp.Position) string {
-
   logger.Debug(pos)
 
 	line, ok := d.GetLine(int(pos.Line))

@@ -8,8 +8,10 @@ import (
 
 type logger interface {
 	Println(args ...interface{})
+	Error(args ...interface{})
 	Debug(args ...interface{})
 	Printf(format string, args ...interface{})
+	SetLevel(level logrus.Level)
 }
 
 var l logger
