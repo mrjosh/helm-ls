@@ -23,6 +23,8 @@ func newServeCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().Bool("stdio", true, "Use stdio")
+
 	return cmd
 }
 
