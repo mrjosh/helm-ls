@@ -21,12 +21,14 @@ import (
 var (
 	emptyItems               = make([]lsp.CompletionItem, 0)
 	functionsCompletionItems = make([]lsp.CompletionItem, 0)
+	textCompletionsItems     = make([]lsp.CompletionItem, 0)
 )
 
 func init() {
 	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(helmFuncs)...)
 	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(builtinFuncs)...)
 	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(sprigFuncs)...)
+	textCompletionsItems = append(textCompletionsItems, getTextCompletionItems(textSnippets)...)
 }
 
 func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
@@ -48,7 +50,10 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	word, isTextNode := completionAstParsing(doc, params.Position)
 
 	if isTextNode {
-		return yamllsCompletions(ctx, err, h, params, reply)
+		var result = make([]lsp.CompletionItem, 0)
+		result = append(result, textCompletionsItems...)
+		result = append(result, yamllsCompletions(ctx, h, params)...)
+		return reply(ctx, result, err)
 	}
 
 	var (
@@ -97,10 +102,10 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	return reply(ctx, items, err)
 }
 
-func yamllsCompletions(ctx context.Context, err error, h *langHandler, params lsp.CompletionParams, reply jsonrpc2.Replier) error {
-	response := *h.yamllsConnector.CallCompletion(params)
+func yamllsCompletions(ctx context.Context, h *langHandler, params lsp.CompletionParams) []lsp.CompletionItem {
+	response := *h.yamllsConnector.CallCompletion(ctx, params)
 	logger.Debug("Got completions from yamlls", response)
-	return reply(ctx, response, err)
+	return response.Items
 }
 
 func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string, bool) {
@@ -241,6 +246,13 @@ func getFunctionCompletionItems(helmDocs []HelmDocumentation) (result []lsp.Comp
 	return result
 }
 
+func getTextCompletionItems(helmSnippet []HelmSnippet) (result []lsp.CompletionItem) {
+	for _, item := range helmSnippet {
+		result = append(result, textCompletionItem(item))
+	}
+	return result
+}
+
 func functionCompletionItem(helmDocumentation HelmDocumentation) lsp.CompletionItem {
 	return lsp.CompletionItem{
 		Label:         helmDocumentation.Name,
@@ -248,5 +260,20 @@ func functionCompletionItem(helmDocumentation HelmDocumentation) lsp.CompletionI
 		Detail:        helmDocumentation.Detail,
 		Documentation: helmDocumentation.Doc,
 		Kind:          lsp.CompletionItemKindFunction,
+	}
+}
+
+func textCompletionItem(helmSnippet HelmSnippet) lsp.CompletionItem {
+	return lsp.CompletionItem{
+		Label: helmSnippet.Name,
+		TextEdit: &lsp.TextEdit{
+			Range:   lsp.Range{},
+			NewText: helmSnippet.Snippet,
+		},
+		Detail:           helmSnippet.Detail,
+		Documentation:    helmSnippet.Doc,
+		Kind:             lsp.CompletionItemKindText,
+		InsertTextFormat: lsp.InsertTextFormatSnippet,
+		FilterText:       helmSnippet.Filter,
 	}
 }
