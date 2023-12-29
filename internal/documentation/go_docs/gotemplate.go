@@ -1,4 +1,4 @@
-// The content of the Snippet was taken from https://pkg.go.dev/text/template
+// The content of the snippets was taken from https://pkg.go.dev/text/template
 // So the following license applies to them:
 
 // Copyright (c) 2009 The Go Authors. All rights reserved.
@@ -30,9 +30,9 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-package handler
+package go_docs
 
-type HelmSnippet struct {
+type GoTemplateSnippet struct {
 	Name    string
 	Detail  string
 	Doc     string
@@ -41,7 +41,7 @@ type HelmSnippet struct {
 }
 
 var (
-	textSnippets = []HelmSnippet{
+	TextSnippets = []GoTemplateSnippet{
 		{
 			Name:    "comment",
 			Detail:  "{{- /* a comment with white space trimmed from preceding and following text */ -}}",
@@ -53,7 +53,6 @@ var (
 			Detail:  "template",
 			Doc:     "",
 			Snippet: "{{- $0 }}",
-			Filter:  "{}", // TODO: is this useful?
 		},
 		{
 			Name:    "if",
