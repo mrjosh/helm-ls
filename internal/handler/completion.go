@@ -131,7 +131,7 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string
 	case gotemplate.NodeTypeDotSymbol:
 		logger.Debug("GetFieldIdentifierPath")
 		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
-	case gotemplate.NodeTypeText:
+	case gotemplate.NodeTypeText, gotemplate.NodeTypeTemplate:
 		return word, true
 	}
 	return word, false
