@@ -54,7 +54,6 @@ func GetFieldIdentifierPath(node *sitter.Node, doc *Document) (path string) {
 }
 
 func buildFieldIdentifierPath(node *sitter.Node, doc *Document) string {
-
 	prepend := node.PrevNamedSibling()
 
 	currentPath := node.Content([]byte(doc.Content))
@@ -64,6 +63,9 @@ func buildFieldIdentifierPath(node *sitter.Node, doc *Document) string {
 			nodeContent = ""
 		}
 		currentPath = prepend.Content([]byte(doc.Content)) + "." + nodeContent
+		logger.Println("Adding currentpath", currentPath)
+	} else {
+		logger.Println("Prepend is nil currentpath is ", currentPath)
 	}
 
 	if currentPath[0:1] == "$" {
