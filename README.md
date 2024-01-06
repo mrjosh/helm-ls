@@ -29,6 +29,7 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
     * [Neovim (using nvim-lspconfig)](#neovim-using-nvim-lspconfig)
         * [Vim Helm Plugin](#vim-helm-plugin)
         * [Setup laguage server](#setup-laguage-server)
+    * [VSCode](#vscode)
     * [Emacs eglot setup](#emacs-eglot-setup)
 * [Contributing](#contributing)
 * [License](#license)
@@ -157,6 +158,11 @@ settings = {
 
 See [examples/nvim/init.lua](https://github.com/mrjosh/helm-ls/blob/master/examples/nvim/init.lua) for an
 complete example, which also includes yaml-language-server.
+
+
+### VSCode
+
+Check out the [helm-ls-vscode extension](https://github.com/qvalentin/helm-ls-vscode) for more details.
 
 ### Emacs eglot setup
 
