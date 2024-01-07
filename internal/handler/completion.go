@@ -16,17 +16,21 @@ import (
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/mrjosh/helm-ls/internal/documentation/go_docs"
 )
 
 var (
 	emptyItems               = make([]lsp.CompletionItem, 0)
 	functionsCompletionItems = make([]lsp.CompletionItem, 0)
+	textCompletionsItems     = make([]lsp.CompletionItem, 0)
 )
 
 func init() {
 	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(helmFuncs)...)
 	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(builtinFuncs)...)
 	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(sprigFuncs)...)
+	textCompletionsItems = append(textCompletionsItems, getTextCompletionItems(go_docs.TextSnippets)...)
 }
 
 func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
@@ -48,7 +52,10 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	word, isTextNode := completionAstParsing(doc, params.Position)
 
 	if isTextNode {
-		return yamllsCompletions(ctx, err, h, params, reply)
+		var result = make([]lsp.CompletionItem, 0)
+		result = append(result, textCompletionsItems...)
+		result = append(result, yamllsCompletions(ctx, h, params)...)
+		return reply(ctx, result, err)
 	}
 
 	var (
@@ -97,10 +104,10 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	return reply(ctx, items, err)
 }
 
-func yamllsCompletions(ctx context.Context, err error, h *langHandler, params lsp.CompletionParams, reply jsonrpc2.Replier) error {
-	response := *h.yamllsConnector.CallCompletion(params)
+func yamllsCompletions(ctx context.Context, h *langHandler, params lsp.CompletionParams) []lsp.CompletionItem {
+	response := *h.yamllsConnector.CallCompletion(ctx, params)
 	logger.Debug("Got completions from yamlls", response)
-	return reply(ctx, response, err)
+	return response.Items
 }
 
 func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string, bool) {
@@ -126,7 +133,7 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string
 	case gotemplate.NodeTypeDotSymbol:
 		logger.Debug("GetFieldIdentifierPath")
 		word = lsplocal.GetFieldIdentifierPath(relevantChildNode, doc)
-	case gotemplate.NodeTypeText:
+	case gotemplate.NodeTypeText, gotemplate.NodeTypeTemplate:
 		return word, true
 	}
 	return word, false
@@ -248,5 +255,27 @@ func functionCompletionItem(helmDocumentation HelmDocumentation) lsp.CompletionI
 		Detail:        helmDocumentation.Detail,
 		Documentation: helmDocumentation.Doc,
 		Kind:          lsp.CompletionItemKindFunction,
+	}
+}
+
+func getTextCompletionItems(gotemplateSnippet []go_docs.GoTemplateSnippet) (result []lsp.CompletionItem) {
+	for _, item := range gotemplateSnippet {
+		result = append(result, textCompletionItem(item))
+	}
+	return result
+}
+
+func textCompletionItem(gotemplateSnippet go_docs.GoTemplateSnippet) lsp.CompletionItem {
+	return lsp.CompletionItem{
+		Label: gotemplateSnippet.Name,
+		TextEdit: &lsp.TextEdit{
+			Range:   lsp.Range{},
+			NewText: gotemplateSnippet.Snippet,
+		},
+		Detail:           gotemplateSnippet.Detail,
+		Documentation:    gotemplateSnippet.Doc,
+		Kind:             lsp.CompletionItemKindText,
+		InsertTextFormat: lsp.InsertTextFormatSnippet,
+		FilterText:       gotemplateSnippet.Filter,
 	}
 }

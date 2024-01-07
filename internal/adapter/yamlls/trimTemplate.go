@@ -1,6 +1,7 @@
 package yamlls
 
 import (
+	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
@@ -14,15 +15,15 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 	var childCount = node.ChildCount()
 
 	switch node.Type() {
-	case "if_action":
+	case gotemplate.NodeTypeIfAction:
 		trim_if_action(node, previous, result)
-	case "block_action", "with_action", "range_action":
+	case gotemplate.NodeTypeBlockAction, gotemplate.NodeTypeWithAction, gotemplate.NodeTypeRangeAction:
 		trim_action(childCount, node, previous, result)
-	case "define_action":
+	case gotemplate.NodeTypeDefineAction:
 		earaseTemplate(node, previous, result)
-	case "function_call":
+	case gotemplate.NodeTypeFunctionCall:
 		trimFunctionCall(node, previous, result)
-	case "comment", "variable_definition":
+	case gotemplate.NodeTypeComment, gotemplate.NodeTypeVariableDefinition:
 		earaseTemplateAndSiblings(node, previous, result)
 	default:
 		for i := 0; i < int(childCount); i++ {
@@ -36,22 +37,22 @@ func trim_action(childCount uint32, node *sitter.Node, previous []byte, result [
 		child := node.Child(i)
 		switch child.Type() {
 		case
-			"if",
-			"selector_expression",
-			"else",
-			"range",
-			"function_call",
-			"with",
-			"define",
-			"{{",
-			"{{-",
-			"}}",
-			"-}}",
-			"end",
-			"interpreted_string_literal",
-			"block",
-			"variable_definition",
-			"range_variable_definition":
+			gotemplate.NodeTypeIf,
+			gotemplate.NodeTypeSelectorExpression,
+			gotemplate.NodeTypeElse,
+			gotemplate.NodeTypeRange,
+			gotemplate.NodeTypeFunctionCall,
+			gotemplate.NodeTypeWith,
+			gotemplate.NodeTypeDefine,
+			gotemplate.NodeTypeOpenBraces,
+			gotemplate.NodeTypeOpenBracesDash,
+			gotemplate.NodeTypeCloseBraces,
+			gotemplate.NodeTypeCloseBracesDash,
+			gotemplate.NodeTypeEnd,
+			gotemplate.NodeTypeInterpretedStringLiteral,
+			gotemplate.NodeTypeBlock,
+			gotemplate.NodeTypeVariableDefinition,
+			gotemplate.NodeTypeRangeVariableDefinition:
 			earaseTemplate(child, previous, result)
 		default:
 			prettyPrintNode(child, previous, result)
@@ -63,16 +64,16 @@ func trim_if_action(node *sitter.Node, previous []byte, result []byte) {
 	curser := sitter.NewTreeCursor(node)
 	curser.GoToFirstChild()
 	for curser.GoToNextSibling() {
-		if curser.CurrentFieldName() == "condition" {
+		if curser.CurrentFieldName() == gotemplate.FieldNameCondition {
 			earaseTemplate(curser.CurrentNode(), previous, result)
 			earaseTemplate(curser.CurrentNode().NextSibling(), previous, result)
 			continue
 		}
 		switch curser.CurrentNode().Type() {
-		case "if", "else if":
+		case gotemplate.NodeTypeIf, gotemplate.NodeTypeElseIf:
 			earaseTemplate(curser.CurrentNode(), previous, result)
 			earaseTemplate(curser.CurrentNode().PrevSibling(), previous, result)
-		case "end", "else":
+		case gotemplate.NodeTypeEnd, gotemplate.NodeTypeElse:
 			earaseTemplateAndSiblings(curser.CurrentNode(), previous, result)
 		default:
 			prettyPrintNode(curser.CurrentNode(), previous, result)
@@ -82,10 +83,10 @@ func trim_if_action(node *sitter.Node, previous []byte, result []byte) {
 }
 
 func trimFunctionCall(node *sitter.Node, previous []byte, result []byte) {
-	functionName := node.ChildByFieldName("function")
+	functionName := node.ChildByFieldName(gotemplate.FieldNameFunction)
 	if functionName.Content(previous) == "include" {
 		parent := node.Parent()
-		if parent != nil && parent.Type() == "chained_pipeline" {
+		if parent != nil && parent.Type() == gotemplate.NodeTypeChainedPipeline {
 			earaseTemplateAndSiblings(parent, previous, result)
 		}
 	}
