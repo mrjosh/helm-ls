@@ -13,6 +13,7 @@ import (
 var (
 	BranchName string
 	Version    string
+	GitCommit  string
 	CompiledBy string
 	BuildTime  string
 )
@@ -36,6 +37,7 @@ func main() {
 	vi := &version.BuildInfo{
 		Version:    Version,
 		Branch:     BranchName,
+		GitCommit:  GitCommit,
 		CompiledBy: CompiledBy,
 		GoVersion:  runtime.Version(),
 		BuildTime:  BuildTime,

@@ -6,11 +6,11 @@ export PACKAGE_NAME=github.com/mrjosh/helm-ls
 export GOLANG_CROSS_VERSION=v1.20.6
 
 $(eval GIT_COMMIT=$(shell git rev-parse --short HEAD))
-$(eval BRANCH_NAME=$(shell git rev-parse --abbrev-ref HEAD))
+$(eval BRANCH_NAME=$(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match))
 $(eval COMPILED_BY=$(shell hostname))
 $(eval BUILD_TIME=$(shell date -u '+%Y-%m-%d_%I:%M:%S%p'))
 
-GO_LDFLAGS := -X "main.CompiledBy=${COMPILED_BY}" -X "main.Version=${GIT_COMMIT}" -X "main.BranchName=${BRANCH_NAME}" -X "main.BuildTime=${BUILD_TIME}"
+GO_LDFLAGS :=" -X main.Version=${BRANCH_NAME} -X main.CompiledBy=${COMPILED_BY} -X main.GitCommit=${GIT_COMMIT} -X main.Branch=${BRANCH_NAME} -X main.BuildTime=${BUILD_TIME}"
 
 export LINTER=$(GOBIN)/golangci-lint
 export LINTERCMD=run --no-config -v \
@@ -63,6 +63,7 @@ build-release:
 			--rm \
 			-e CGO_ENABLED=1 \
 			-e COMPILED_BY=$(COMPILED_BY) \
+			-e VERSION=$(BRANCH_NAME) \
 			-e BRANCH_NAME=$(BRANCH_NAME) \
 			-e BUILD_TIME=$(BUILD_TIME) \
 			-e GIT_COMMIT=$(GIT_COMMIT) \
