@@ -18,6 +18,7 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
 
 * [Demo](#demo)
 * [Getting Started](#getting-started)
+    * [Installation with a package manager](#installation-with-a-package-manager)
     * [Download](#download)
     * [Make it executable](#make-it-executable)
     * [Integration with yaml-language-server](#integration-with-yaml-language-server)
@@ -41,6 +42,12 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
 [![asciicast](https://asciinema.org/a/485522.svg)](https://asciinema.org/a/485522)
 
 ## Getting Started
+
+### Installation with a package manager
+
+Helm-ls is currently available as a package for some package managers.
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/helm-ls.svg)](https://repology.org/project/helm-ls/versions)
 
 ### Download
 
