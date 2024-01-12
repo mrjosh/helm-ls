@@ -5,6 +5,7 @@ import (
 
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/stretchr/testify/assert"
+	lsp "go.lsp.dev/protocol"
 )
 
 func TestGetFieldIdentifierPathSimple(t *testing.T) {
@@ -78,19 +79,49 @@ func TestGetFieldIdentifierPathFunction(t *testing.T) {
 	//         field: (field_identifier [0, 29] - [0, 34])))))
 	//
 	test1_start := sitter.Point{Row: 0, Column: 16}
-	test2_start := sitter.Point{Row: 0, Column: 23}
+	test2_start := sitter.Point{Row: 0, Column: 33}
 	test1Node := ast.RootNode().NamedDescendantForPointRange(test1_start, test1_start)
 	test2Node := ast.RootNode().NamedDescendantForPointRange(test2_start, test2_start)
 
-	if test1Node.Content([]byte(template)) != "test1" || test2Node.Content([]byte(template)) != "test2" {
-		t.Errorf("Nodes were not correctly selected")
-	}
+	test1NodeContent := test1Node.Content([]byte(template))
+	test2NodeContent := test2Node.Content([]byte(template))
+
+	assert.Equal(t, "test1", test1NodeContent, "Nodes were not correctly selected")
+	assert.Equal(t, "test2", test2NodeContent, "Nodes were not correctly selected")
 
 	doc := Document{
 		Content: template,
 		Ast:     ast,
 	}
 
-	// assert.Equal(t, ".Values.test1", GetFieldIdentifierPath(test1Node, &doc))
+	assert.Equal(t, ".Values.test1", GetFieldIdentifierPath(test1Node, &doc))
 	assert.Equal(t, ".Values.test2", GetFieldIdentifierPath(test2Node, &doc))
+}
+
+func TestGetFieldIdentifierPathFunctionForCompletion(t *testing.T) {
+	template := `{{ and .Values.image .Values.  }}`
+	//                                       | -> complete at dot
+
+	var ast = ParseAst(template)
+
+	var (
+		position      = lsp.Position{Line: 0, Character: 29}
+		currentNode   = NodeAtPosition(ast, position)
+		pointToLoopUp = sitter.Point{
+			Row:    position.Line,
+			Column: position.Character,
+		}
+		relevantChildNode = FindRelevantChildNode(currentNode, pointToLoopUp)
+	)
+
+	childNodeContent := relevantChildNode.Content([]byte(template))
+
+	assert.Equal(t, ".", childNodeContent, "Nodes were not correctly selected ")
+
+	doc := Document{
+		Content: template,
+		Ast:     ast,
+	}
+
+	assert.Equal(t, ".Values.", GetFieldIdentifierPath(relevantChildNode, &doc))
 }

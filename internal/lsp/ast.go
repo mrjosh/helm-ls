@@ -2,6 +2,7 @@ package lsp
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	sitter "github.com/smacker/go-tree-sitter"
@@ -49,7 +50,8 @@ func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
 
 func GetFieldIdentifierPath(node *sitter.Node, doc *Document) (path string) {
 	path = buildFieldIdentifierPath(node, doc)
-	logger.Debug("buildFieldIdentifierPath:", path)
+	logger.Debug(fmt.Sprintf("buildFieldIdentifierPath: %s for node %s with parent %s", path, node, node.Parent()))
+
 	return path
 }
 
@@ -64,8 +66,8 @@ func buildFieldIdentifierPath(node *sitter.Node, doc *Document) string {
 		}
 		currentPath = prepend.Content([]byte(doc.Content)) + "." + nodeContent
 		logger.Println("Adding currentpath", currentPath)
-	} else {
-		logger.Println("Prepend is nil currentpath is ", currentPath)
+	} else if node.Parent() != nil && node.Parent().Type() == gotemplate.NodeTypeError {
+		return buildFieldIdentifierPath(node.Parent(), doc)
 	}
 
 	if currentPath[0:1] == "$" {

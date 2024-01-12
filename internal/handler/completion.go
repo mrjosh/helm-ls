@@ -73,7 +73,7 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 		variableSplitted = append(variableSplitted, s)
 	}
 
-	logger.Println(fmt.Sprintf("Word < %s >", word))
+	logger.Println(fmt.Sprintf("Word found for completions is < %s >", word))
 
 	if len(variableSplitted) == 0 {
 		return reply(ctx, basicItems, err)
@@ -122,13 +122,13 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string
 	)
 
 	logger.Debug("currentNode", currentNode)
-	logger.Debug("relevantChildNode", relevantChildNode.Type())
+	logger.Debug("relevantChildNode", relevantChildNode)
 
 	switch relevantChildNode.Type() {
 	case gotemplate.NodeTypeIdentifier:
 		word = relevantChildNode.Content([]byte(doc.Content))
 	case gotemplate.NodeTypeDot:
-		logger.Debug("TraverseIdentifierPathUp")
+		logger.Debug("TraverseIdentifierPathUp for dot node")
 		word = lsplocal.TraverseIdentifierPathUp(relevantChildNode, doc)
 	case gotemplate.NodeTypeDotSymbol:
 		logger.Debug("GetFieldIdentifierPath")
