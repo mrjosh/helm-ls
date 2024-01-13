@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
+	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"github.com/sirupsen/logrus"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
@@ -33,30 +33,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	}
 	h.yamllsConnector.CallInitialize(workspaceURI)
 
-	h.projectFiles = NewProjectFiles(workspaceURI, "")
-
-	vals, err := chartutil.ReadValuesFile(h.projectFiles.ValuesFile)
-	if err != nil {
-		logger.Error("Error loading values.yaml file", err)
-	}
-	h.values = vals
-
-	chartMetadata, err := chartutil.LoadChartfile(h.projectFiles.ChartFile)
-	if err != nil {
-		logger.Error("Error loading Chart.yaml file", err)
-	}
-	h.chartMetadata = *chartMetadata
-	valueNodes, err := chartutil.ReadYamlFileToNode(h.projectFiles.ValuesFile)
-	if err != nil {
-		logger.Error("Error loading values.yaml file", err)
-	}
-	h.valueNode = valueNodes
-
-	chartNode, err := chartutil.ReadYamlFileToNode(h.projectFiles.ChartFile)
-	if err != nil {
-		logger.Error("Error loading Chart.yaml file", err)
-	}
-	h.chartNode = chartNode
+	h.chartStore = charts.NewChartStore(workspaceURI, charts.NewChart)
 
 	return reply(ctx, lsp.InitializeResult{
 		Capabilities: lsp.ServerCapabilities{
@@ -86,7 +63,7 @@ func configureYamlls(h *langHandler) {
 	config := h.helmlsConfig
 	if config.YamllsConfiguration.Enabled {
 		h.yamllsConnector = yamlls.NewConnector(config.YamllsConfiguration, h.connPool, h.documents)
-		h.yamllsConnector.CallInitialize(h.projectFiles.RootURI)
+		h.yamllsConnector.CallInitialize(h.chartStore.RootURI)
 		h.yamllsConnector.InitiallySyncOpenDocuments(h.documents.GetAllDocs())
 	}
 }

@@ -7,13 +7,11 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/fs"
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
+	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
-	"github.com/mrjosh/helm-ls/pkg/chart"
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
-	yamlv3 "gopkg.in/yaml.v3"
 
 	"github.com/mrjosh/helm-ls/internal/log"
 )
@@ -24,11 +22,7 @@ type langHandler struct {
 	connPool        jsonrpc2.Conn
 	linterName      string
 	documents       *lsplocal.DocumentStore
-	projectFiles    ProjectFiles
-	values          chartutil.Values
-	chartMetadata   chart.Metadata
-	valueNode       yamlv3.Node
-	chartNode       yamlv3.Node
+	chartStore      *charts.ChartStore
 	yamllsConnector *yamlls.Connector
 	helmlsConfig    util.HelmlsConfiguration
 }
@@ -39,10 +33,6 @@ func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
 	handler := &langHandler{
 		linterName:      "helm-lint",
 		connPool:        connPool,
-		projectFiles:    ProjectFiles{},
-		values:          make(map[string]interface{}),
-		valueNode:       yamlv3.Node{},
-		chartNode:       yamlv3.Node{},
 		documents:       documents,
 		helmlsConfig:    util.DefaultConfig,
 		yamllsConnector: &yamlls.Connector{},
@@ -103,6 +93,11 @@ func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonr
 	}
 
 	h.yamllsConnector.DocumentDidOpen(doc.Ast, params)
+
+	_, err = h.chartStore.GetChartForDoc(doc.URI)
+	if err != nil {
+		logger.Error("Error getting chart info for file", doc.URI, err)
+	}
 
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {

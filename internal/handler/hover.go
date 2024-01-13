@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	lspinternal "github.com/mrjosh/helm-ls/internal/lsp"
 
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -15,6 +18,7 @@ import (
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
 )
 
 func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
@@ -31,6 +35,10 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+	}
+	chart, err := h.chartStore.GetChartForDoc(params.TextDocument.URI)
+	if err != nil {
+		logger.Error("Error getting chart info for file", params.TextDocument.URI, err)
 	}
 
 	var (
@@ -91,9 +99,9 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	if len(variableSplitted) > 1 {
 		switch variableSplitted[0] {
 		case "Values":
-			value, err = h.getValueHover(variableSplitted[1:])
+			value, err = h.getValueHover(chart, variableSplitted[1:])
 		case "Chart":
-			value, err = h.getChartMetadataHover(variableSplitted[1])
+			value, err = h.getChartMetadataHover(&chart.ChartMetadata.Metadata, variableSplitted[1])
 		case "Release":
 			value, err = h.getBuiltInObjectsHover(releaseVals, variableSplitted[1])
 		case "Files":
@@ -131,13 +139,13 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	return reply(ctx, lsp.Hover{}, err)
 }
 
-func (h *langHandler) getChartMetadataHover(key string) (string, error) {
+func (h *langHandler) getChartMetadataHover(metadata *chart.Metadata, key string) (string, error) {
 	for _, completionItem := range chartVals {
 		if key == completionItem.Name {
 			logger.Println("Getting metadatafield of " + key)
 
 			documentation := completionItem.Doc
-			value := h.getMetadataField(&h.chartMetadata, key)
+			value := h.getMetadataField(metadata, key)
 
 			return fmt.Sprintf("%s\n\n%s\n", documentation, value), nil
 		}
@@ -145,25 +153,54 @@ func (h *langHandler) getChartMetadataHover(key string) (string, error) {
 	return "", fmt.Errorf("%s was no known Chart Metadata property", key)
 }
 
-func (h *langHandler) getValueHover(splittedVar []string) (string, error) {
+func (h *langHandler) getValueHover(chart *charts.Chart, splittedVar []string) (result string, err error) {
 	var (
-		values      = h.values
-		tableName   = strings.Join(splittedVar, ".")
-		err         error
-		localValues chartutil.Values
-		value       interface{}
+		valuesFiles = chart.ResolveValueFiles(splittedVar, h.chartStore)
+		selector    = strings.Join(splittedVar, ".")
+		results     = map[uri.URI]string{}
 	)
 
-	if len(splittedVar) > 0 {
-		localValues, err = values.Table(tableName)
+	for _, valuesFiles := range valuesFiles {
+		for _, valuesFile := range valuesFiles.AllValuesFiles() {
+			result, err := getTableOrValueForSelector(valuesFile.Values, selector)
+			if err == nil {
+				results[valuesFile.URI] = result
+			}
+		}
+	}
+
+	keys := make([]string, 0, len(results))
+	for u := range results {
+		keys = append(keys, string(u))
+	}
+
+	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
+
+	for _, key := range keys {
+		uriKey := uri.New(key)
+		value := results[uriKey]
+		if value == "" {
+			value = "\"\""
+		}
+		filepath, err := filepath.Rel(h.chartStore.RootURI.Filename(), uriKey.Filename())
 		if err != nil {
-			logger.Println(err)
-			logger.Println("values.PathValue(tableName)")
-			value, err = values.PathValue(tableName)
+			filepath = uriKey.Filename()
+		}
+		result += fmt.Sprintf("### %s\n%s\n\n", filepath, value)
+	}
+	return result, nil
+}
+
+func getTableOrValueForSelector(values chartutil.Values, selector string) (string, error) {
+	if len(selector) > 0 {
+		var localValues, err = values.Table(selector)
+		if err != nil {
+			logger.Debug("values.PathValue(tableName) because of error", err)
+			var value, err = values.PathValue(selector)
 			return fmt.Sprint(value), err
 		}
+		logger.Debug("converting to YAML", localValues)
 		return localValues.YAML()
-
 	}
 	return values.YAML()
 }

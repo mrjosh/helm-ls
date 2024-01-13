@@ -25,7 +25,7 @@ func TestGetPositionOfNode(t *testing.T) {
 		t.Errorf("error yml parsing")
 	}
 
-	result, err := GetPositionOfNode(node, []string{"replicaCount"})
+	result, err := GetPositionOfNode(&node, []string{"replicaCount"})
 	expected := lsp.Position{Line: 5, Character: 0}
 	if err != nil {
 		t.Errorf("Result had error: %s", err)
@@ -34,7 +34,7 @@ func TestGetPositionOfNode(t *testing.T) {
 		t.Errorf("Result was not expected Position %v but was %v", expected, result)
 	}
 
-	result, err = GetPositionOfNode(node, []string{"image", "repository"})
+	result, err = GetPositionOfNode(&node, []string{"image", "repository"})
 	expected = lsp.Position{Line: 8, Character: 2}
 	if err != nil {
 		t.Errorf("Result had error: %s", err)
@@ -43,7 +43,7 @@ func TestGetPositionOfNode(t *testing.T) {
 		t.Errorf("Result was not expected Position %v but was %v", expected, result)
 	}
 
-	result, err = GetPositionOfNode(node, []string{"service", "test", "nested", "value"})
+	result, err = GetPositionOfNode(&node, []string{"service", "test", "nested", "value"})
 	expected = lsp.Position{Line: 30, Character: 6}
 	if err != nil {
 		t.Errorf("Result had error: %s", err)

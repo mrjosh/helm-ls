@@ -3,8 +3,11 @@ package handler
 import (
 	"testing"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/protocol"
+	"gopkg.in/yaml.v3"
 )
 
 func TestEmptyValues(t *testing.T) {
@@ -12,7 +15,6 @@ func TestEmptyValues(t *testing.T) {
 		linterName: "helm-lint",
 		connPool:   nil,
 		documents:  nil,
-		values:     make(map[string]interface{}),
 	}
 
 	var result = handler.getValue(make(map[string]interface{}), []string{"global"})
@@ -32,7 +34,6 @@ func TestValues(t *testing.T) {
 		linterName: "helm-lint",
 		connPool:   nil,
 		documents:  nil,
-		values:     make(map[string]interface{}),
 	}
 	var nested = map[string]interface{}{"nested": "value"}
 	var values = map[string]interface{}{"global": nested}
@@ -60,7 +61,6 @@ func TestWrongValues(t *testing.T) {
 		linterName: "helm-lint",
 		connPool:   nil,
 		documents:  nil,
-		values:     make(map[string]interface{}),
 	}
 	var nested = map[string]interface{}{"nested": 1}
 	var values = map[string]interface{}{"global": nested}
@@ -103,4 +103,68 @@ func TestCompletionAstParsing(t *testing.T) {
 		t.Errorf("Expected word '%s', but got '%s'", expectedWord, word)
 	}
 
+}
+
+func TestGetValuesCompletions(t *testing.T) {
+	handler := &langHandler{
+		linterName: "helm-lint",
+		connPool:   nil,
+		documents:  nil,
+	}
+	var nested = map[string]interface{}{"nested": "value"}
+	var valuesMain = map[string]interface{}{"global": nested}
+	var valuesAdditional = map[string]interface{}{"glob": nested}
+	chart := &charts.Chart{
+		ValuesFiles: &charts.ValuesFiles{
+			MainValuesFile: &charts.ValuesFile{
+				Values:    valuesMain,
+				ValueNode: yaml.Node{},
+				URI:       "",
+			},
+			AdditionalValuesFiles: []*charts.ValuesFile{
+				{
+					Values:    valuesAdditional,
+					ValueNode: yaml.Node{},
+					URI:       "",
+				},
+			},
+		},
+		RootURI: "",
+	}
+
+	result := handler.getValuesCompletions(chart, []string{"g"})
+	assert.Equal(t, 2, len(result))
+
+	result = handler.getValuesCompletions(chart, []string{"something", "different"})
+	assert.Empty(t, result)
+}
+
+func TestGetValuesCompletionsContainsNoDupliactes(t *testing.T) {
+	handler := &langHandler{
+		linterName: "helm-lint",
+		connPool:   nil,
+		documents:  nil,
+	}
+	var nested = map[string]interface{}{"nested": "value"}
+	var valuesMain = map[string]interface{}{"global": nested}
+	var valuesAdditional = map[string]interface{}{"global": nested}
+	chart := &charts.Chart{
+		ValuesFiles: &charts.ValuesFiles{
+			MainValuesFile: &charts.ValuesFile{
+				Values:    valuesMain,
+				ValueNode: yaml.Node{},
+				URI:       "",
+			},
+			AdditionalValuesFiles: []*charts.ValuesFile{
+				{
+					Values: valuesAdditional,
+					URI:    "",
+				},
+			},
+		},
+		RootURI: "",
+	}
+
+	result := handler.getValuesCompletions(chart, []string{"g"})
+	assert.Equal(t, 1, len(result))
 }

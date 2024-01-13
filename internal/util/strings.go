@@ -11,6 +11,8 @@ import (
 	"go.lsp.dev/uri"
 )
 
+const FileURIScheme = "file://"
+
 var logger = log.GetLogger()
 var wordRegex = regexp.MustCompile(`[^ \t\n\f\r,;\[\]\"\']+`)
 

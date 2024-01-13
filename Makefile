@@ -57,6 +57,9 @@ install-metalinter:
 test:
 	@$(GO) test ./... -v -race
 
+coverage:
+	@$(GO) test -coverprofile=.coverage ./internal/... && go tool cover -html=.coverage
+
 .PHONY: build-release
 build-release:
 	@docker run \

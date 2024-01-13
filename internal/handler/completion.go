@@ -9,6 +9,7 @@ import (
 
 	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	gotemplate "github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
@@ -47,6 +48,10 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+	}
+	chart, err := h.chartStore.GetChartForDoc(params.TextDocument.URI)
+	if err != nil {
+		logger.Error("Error getting chart info for file", params.TextDocument.URI, err)
 	}
 
 	word, isTextNode := completionAstParsing(doc, params.Position)
@@ -89,7 +94,7 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	case "Chart":
 		items = getVariableCompletionItems(chartVals)
 	case "Values":
-		items = h.getValue(h.values, variableSplitted[1:])
+		items = h.getValuesCompletions(chart, variableSplitted[1:])
 	case "Release":
 		items = getVariableCompletionItems(releaseVals)
 	case "Files":
@@ -139,8 +144,22 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string
 	return word, false
 }
 
-func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
+func (h *langHandler) getValuesCompletions(chart *charts.Chart, splittedVar []string) (result []lsp.CompletionItem) {
+	m := make(map[string]lsp.CompletionItem)
+	for _, valuesFile := range chart.ValuesFiles.AllValuesFiles() {
+		for _, item := range h.getValue(valuesFile.Values, splittedVar) {
+			m[item.InsertText] = item
+		}
+	}
 
+	for _, item := range m {
+		result = append(result, item)
+	}
+
+	return result
+}
+
+func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
 	var (
 		err         error
 		tableName   = strings.Join(splittedVar, ".")
