@@ -17,7 +17,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/mrjosh/helm-ls/internal/documentation/go_docs"
+	"github.com/mrjosh/helm-ls/internal/documentation/godocs"
 )
 
 var (
@@ -30,7 +30,7 @@ func init() {
 	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(helmFuncs)...)
 	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(builtinFuncs)...)
 	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(sprigFuncs)...)
-	textCompletionsItems = append(textCompletionsItems, getTextCompletionItems(go_docs.TextSnippets)...)
+	textCompletionsItems = append(textCompletionsItems, getTextCompletionItems(godocs.TextSnippets)...)
 }
 
 func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
@@ -258,14 +258,14 @@ func functionCompletionItem(helmDocumentation HelmDocumentation) lsp.CompletionI
 	}
 }
 
-func getTextCompletionItems(gotemplateSnippet []go_docs.GoTemplateSnippet) (result []lsp.CompletionItem) {
+func getTextCompletionItems(gotemplateSnippet []godocs.GoTemplateSnippet) (result []lsp.CompletionItem) {
 	for _, item := range gotemplateSnippet {
 		result = append(result, textCompletionItem(item))
 	}
 	return result
 }
 
-func textCompletionItem(gotemplateSnippet go_docs.GoTemplateSnippet) lsp.CompletionItem {
+func textCompletionItem(gotemplateSnippet godocs.GoTemplateSnippet) lsp.CompletionItem {
 	return lsp.CompletionItem{
 		Label: gotemplateSnippet.Name,
 		TextEdit: &lsp.TextEdit{

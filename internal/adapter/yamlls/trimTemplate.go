@@ -16,9 +16,9 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 
 	switch node.Type() {
 	case gotemplate.NodeTypeIfAction:
-		trim_if_action(node, previous, result)
+		trimIfAction(node, previous, result)
 	case gotemplate.NodeTypeBlockAction, gotemplate.NodeTypeWithAction, gotemplate.NodeTypeRangeAction:
-		trim_action(childCount, node, previous, result)
+		trimAction(childCount, node, previous, result)
 	case gotemplate.NodeTypeDefineAction:
 		earaseTemplate(node, previous, result)
 	case gotemplate.NodeTypeFunctionCall:
@@ -32,7 +32,7 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 	}
 }
 
-func trim_action(childCount uint32, node *sitter.Node, previous []byte, result []byte) {
+func trimAction(childCount uint32, node *sitter.Node, previous []byte, result []byte) {
 	for i := 0; i < int(childCount); i++ {
 		child := node.Child(i)
 		switch child.Type() {
@@ -60,7 +60,7 @@ func trim_action(childCount uint32, node *sitter.Node, previous []byte, result [
 	}
 }
 
-func trim_if_action(node *sitter.Node, previous []byte, result []byte) {
+func trimIfAction(node *sitter.Node, previous []byte, result []byte) {
 	curser := sitter.NewTreeCursor(node)
 	curser.GoToFirstChild()
 	for curser.GoToNextSibling() {
