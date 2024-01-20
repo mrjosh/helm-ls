@@ -55,6 +55,10 @@ func (s *ChartStore) getChartFromFilesystemForTemplates(path string) *Chart {
 		return nil
 	}
 
+	if directory == path {
+		return nil
+	}
+
 	return s.getChartFromFilesystemForTemplates(directory)
 }
 

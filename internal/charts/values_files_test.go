@@ -17,10 +17,10 @@ func TestNewValuesFiles(t *testing.T) {
 	valuesContent := `foo: bar`
 	additionalValuesContent := `bar: baz`
 
-	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0644)
-	_ = os.WriteFile(filepath.Join(tempDir, "values-additional.yaml"), []byte(additionalValuesContent), 0644)
+	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0o644)
+	_ = os.WriteFile(filepath.Join(tempDir, "values-additional.yaml"), []byte(additionalValuesContent), 0o644)
 
-	valuesFiles := charts.NewValuesFiles(uri.New("file://"+tempDir), "values.yaml", "values*.yaml")
+	valuesFiles := charts.NewValuesFiles(uri.New("file://"+tempDir), "values.yaml", "", "values*.yaml")
 
 	assert.Equal(t, "bar", valuesFiles.MainValuesFile.Values["foo"])
 	assert.Equal(t, "baz", valuesFiles.AdditionalValuesFiles[0].Values["bar"])
@@ -35,10 +35,10 @@ func TestGetPositionsForValue(t *testing.T) {
 other: value
 foo: baz`
 
-	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0644)
-	_ = os.WriteFile(filepath.Join(tempDir, "values-additional.yaml"), []byte(additionalValuesContent), 0644)
+	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0o644)
+	_ = os.WriteFile(filepath.Join(tempDir, "values-additional.yaml"), []byte(additionalValuesContent), 0o644)
 
-	valuesFiles := charts.NewValuesFiles(uri.New("file://"+tempDir), "values.yaml", "values*.yaml")
+	valuesFiles := charts.NewValuesFiles(uri.New("file://"+tempDir), "values.yaml", "", "values*.yaml")
 
 	assert.Equal(t, []lsp.Location{
 		{
@@ -48,5 +48,48 @@ foo: baz`
 		{
 			URI:   uri.New("file://" + filepath.Join(tempDir, "values-additional.yaml")),
 			Range: lsp.Range{Start: lsp.Position{Line: 2, Character: 0}, End: lsp.Position{Line: 2, Character: 0}},
-		}}, valuesFiles.GetPositionsForValue([]string{"foo"}))
+		},
+	}, valuesFiles.GetPositionsForValue([]string{"foo"}))
+}
+
+func TestNewValuesFileForLintOverlay(t *testing.T) {
+	tempDir := t.TempDir()
+
+	valuesContent := `foo: bar`
+	additionalValuesContent := `bar: baz`
+
+	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0o644)
+	_ = os.WriteFile(filepath.Join(tempDir, "values-additional.yaml"), []byte(additionalValuesContent), 0o644)
+
+	valuesFiles := charts.NewValuesFiles(uri.New("file://"+tempDir), "values.yaml", "values-additional.yaml", "values*.yaml")
+
+	assert.Equal(t, "baz", valuesFiles.OverlayValuesFile.Values["bar"])
+}
+
+func TestNewValuesFileForLintOverlayNewFile(t *testing.T) {
+	tempDir := t.TempDir()
+
+	valuesContent := `foo: bar`
+	additionalValuesContent := `bar: baz`
+
+	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0o644)
+	_ = os.WriteFile(filepath.Join(tempDir, "values-additional.yaml"), []byte(additionalValuesContent), 0o644)
+
+	valuesFiles := charts.NewValuesFiles(uri.New("file://"+tempDir), "values.yaml", "values-additional.yaml", "")
+
+	assert.Equal(t, "baz", valuesFiles.OverlayValuesFile.Values["bar"])
+}
+
+func TestNewValuesFileForLintOverlayPicksFirst(t *testing.T) {
+	tempDir := t.TempDir()
+
+	valuesContent := `foo: bar`
+	additionalValuesContent := `bar: baz`
+
+	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0o644)
+	_ = os.WriteFile(filepath.Join(tempDir, "values-additional.yaml"), []byte(additionalValuesContent), 0o644)
+
+	valuesFiles := charts.NewValuesFiles(uri.New("file://"+tempDir), "values.yaml", "", "values*.yaml")
+
+	assert.Equal(t, "baz", valuesFiles.OverlayValuesFile.Values["bar"])
 }

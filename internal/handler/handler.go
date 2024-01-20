@@ -103,7 +103,11 @@ func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonr
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
-	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, doc)
+	chart, err := h.chartStore.GetChartForDoc(doc.URI)
+	if err != nil {
+		logger.Error("Error getting chart info for file", doc.URI, err)
+	}
+	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, chart, doc)
 	return reply(ctx, notification, err)
 }
 
@@ -129,8 +133,12 @@ func (h *langHandler) handleTextDocumentDidSave(ctx context.Context, reply jsonr
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
+	chart, err := h.chartStore.GetChartForDoc(doc.URI)
+	if err != nil {
+		logger.Error("Error getting chart info for file", doc.URI, err)
+	}
 
 	h.yamllsConnector.DocumentDidSave(doc, params)
-	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, doc)
+	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, chart, doc)
 	return reply(ctx, notification, err)
 }

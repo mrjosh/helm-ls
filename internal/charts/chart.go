@@ -16,10 +16,10 @@ type Chart struct {
 
 func NewChart(rootURI uri.URI) *Chart {
 	return &Chart{
-		ValuesFiles:   NewValuesFiles(rootURI, "values.yaml", "values*.yaml"),
+		ValuesFiles:   NewValuesFiles(rootURI, "values.yaml", "", "values*.yaml"),
 		ChartMetadata: NewChartMetadata(rootURI),
 		RootURI:       rootURI,
-		ParentChart:   getParentChart(rootURI),
+		ParentChart:   newParentChart(rootURI),
 	}
 }
 
