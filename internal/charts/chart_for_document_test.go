@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
+	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
 )
 
 func TestGetChartForDocumentWorksForAlreadyAddedCharts(t *testing.T) {
-	var chartStore = charts.NewChartStore("file:///tmp", func(_ uri.URI) *charts.Chart {
+	chartStore := charts.NewChartStore("file:///tmp", func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart {
 		return &charts.Chart{}
 	})
 
@@ -50,9 +51,9 @@ func TestGetChartForDocumentWorksForNewToAddChart(t *testing.T) {
 		expectedChart          = &charts.Chart{
 			RootURI: uri.New("file://" + expectedChartDirectory),
 		}
-		newChartFunc = func(_ uri.URI) *charts.Chart { return expectedChart }
+		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
 		chartStore   = charts.NewChartStore(uri.New("file://"+rootDir), newChartFunc)
-		err          = os.MkdirAll(expectedChartDirectory, 0755)
+		err          = os.MkdirAll(expectedChartDirectory, 0o755)
 	)
 	assert.NoError(t, err)
 	_, _ = os.Create(filepath.Join(expectedChartDirectory, "Chart.yaml"))
@@ -71,9 +72,9 @@ func TestGetChartForDocumentWorksForNewToAddChartWithNestedFile(t *testing.T) {
 		expectedChart          = &charts.Chart{
 			RootURI: uri.New("file://" + expectedChartDirectory),
 		}
-		newChartFunc = func(_ uri.URI) *charts.Chart { return expectedChart }
+		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
 		chartStore   = charts.NewChartStore(uri.New("file://"+rootDir), newChartFunc)
-		err          = os.MkdirAll(expectedChartDirectory, 0755)
+		err          = os.MkdirAll(expectedChartDirectory, 0o755)
 	)
 	assert.NoError(t, err)
 	_, _ = os.Create(filepath.Join(expectedChartDirectory, "Chart.yaml"))

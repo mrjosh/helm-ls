@@ -22,7 +22,6 @@ import (
 )
 
 func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-
 	if req.Params() == nil {
 		return &jsonrpc2.Error{Code: jsonrpc2.InvalidParams}
 	}
@@ -56,11 +55,11 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	pt := parent.Type()
 	ct := currentNode.Type()
 	if ct == "text" {
-		var word = doc.WordAt(params.Position)
+		word := doc.WordAt(params.Position)
 		if len(word) > 2 && string(word[len(word)-1]) == ":" {
 			word = word[0 : len(word)-1]
 		}
-		var response, err = h.yamllsConnector.CallHover(ctx, params, word)
+		response, err := h.yamllsConnector.CallHover(ctx, params, word)
 		return reply(ctx, response, err)
 	}
 	if pt == "function_call" && ct == "identifier" {
@@ -156,13 +155,12 @@ func (h *langHandler) getChartMetadataHover(metadata *chart.Metadata, key string
 func (h *langHandler) getValueHover(chart *charts.Chart, splittedVar []string) (result string, err error) {
 	var (
 		valuesFiles = chart.ResolveValueFiles(splittedVar, h.chartStore)
-		selector    = strings.Join(splittedVar, ".")
 		results     = map[uri.URI]string{}
 	)
 
 	for _, valuesFiles := range valuesFiles {
-		for _, valuesFile := range valuesFiles.AllValuesFiles() {
-			result, err := getTableOrValueForSelector(valuesFile.Values, selector)
+		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
+			result, err := getTableOrValueForSelector(valuesFile.Values, strings.Join(valuesFiles.Selector, "."))
 			if err == nil {
 				results[valuesFile.URI] = result
 			}
@@ -193,10 +191,10 @@ func (h *langHandler) getValueHover(chart *charts.Chart, splittedVar []string) (
 
 func getTableOrValueForSelector(values chartutil.Values, selector string) (string, error) {
 	if len(selector) > 0 {
-		var localValues, err = values.Table(selector)
+		localValues, err := values.Table(selector)
 		if err != nil {
 			logger.Debug("values.PathValue(tableName) because of error", err)
-			var value, err = values.PathValue(selector)
+			value, err := values.PathValue(selector)
 			return fmt.Sprint(value), err
 		}
 		logger.Debug("converting to YAML", localValues)

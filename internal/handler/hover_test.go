@@ -4,15 +4,16 @@ import (
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
+	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
 )
 
 func Test_langHandler_getValueHover(t *testing.T) {
 	type args struct {
-		chart       *charts.Chart
-		parentChart *charts.Chart
-		splittedVar []string
+		chart        *charts.Chart
+		parentCharts map[uri.URI]*charts.Chart
+		splittedVar  []string
 	}
 	tests := []struct {
 		name    string
@@ -24,12 +25,14 @@ func Test_langHandler_getValueHover(t *testing.T) {
 			name: "single values file",
 			args: args{
 				chart: &charts.Chart{
+					ChartMetadata: &charts.ChartMetadata{},
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile: &charts.ValuesFile{
 							Values: map[string]interface{}{
 								"key": "value",
 							},
-							URI: "file://tmp/values.yaml"},
+							URI: "file://tmp/values.yaml",
+						},
 					},
 				},
 				splittedVar: []string{"key"},
@@ -44,6 +47,7 @@ value
 			name: "multiple values files",
 			args: args{
 				chart: &charts.Chart{
+					ChartMetadata: &charts.ChartMetadata{},
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile:        &charts.ValuesFile{Values: map[string]interface{}{"key": "value"}, URI: "file://tmp/values.yaml"},
 						AdditionalValuesFiles: []*charts.ValuesFile{{Values: map[string]interface{}{"key": ""}, URI: "file://tmp/values.other.yaml"}},
@@ -64,6 +68,7 @@ value
 			name: "yaml result",
 			args: args{
 				chart: &charts.Chart{
+					ChartMetadata: &charts.ChartMetadata{},
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"key": map[string]interface{}{"nested": "value"}}, URI: "file://tmp/values.yaml"},
 					},
@@ -81,6 +86,7 @@ nested: value
 			name: "yaml result as list",
 			args: args{
 				chart: &charts.Chart{
+					ChartMetadata: &charts.ChartMetadata{},
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"key": []map[string]interface{}{{"nested": "value"}}}, URI: "file://tmp/values.yaml"},
 					},
@@ -94,9 +100,10 @@ nested: value
 			wantErr: false,
 		},
 		{
-			name: "subchart includes parent values",
+			name: "subchart includes parent values global",
 			args: args{
 				chart: &charts.Chart{
+					ChartMetadata: &charts.ChartMetadata{},
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"global": map[string]interface{}{"key": "value"}}, URI: "file://tmp/charts/subchart/values.yaml"},
 					},
@@ -105,9 +112,12 @@ nested: value
 						HasParent:      true,
 					},
 				},
-				parentChart: &charts.Chart{
-					ValuesFiles: &charts.ValuesFiles{
-						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"global": map[string]interface{}{"key": "parentValue"}}, URI: "file://tmp/values.yaml"},
+				parentCharts: map[uri.URI]*charts.Chart{
+					uri.New("file://tmp/"): {
+						ChartMetadata: &charts.ChartMetadata{},
+						ValuesFiles: &charts.ValuesFiles{
+							MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"global": map[string]interface{}{"key": "parentValue"}}, URI: "file://tmp/values.yaml"},
+						},
 					},
 				},
 				splittedVar: []string{"global", "key"},
@@ -121,15 +131,94 @@ value
 `,
 			wantErr: false,
 		},
+		{
+			name: "subchart includes parent values by chart name",
+			args: args{
+				chart: &charts.Chart{
+					ChartMetadata: &charts.ChartMetadata{
+						Metadata: chart.Metadata{Name: "subchart"},
+					},
+					ValuesFiles: &charts.ValuesFiles{
+						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"key": "value"}, URI: "file://tmp/charts/subchart/values.yaml"},
+					},
+					ParentChart: charts.ParentChart{
+						ParentChartURI: uri.New("file://tmp/"),
+						HasParent:      true,
+					},
+				},
+				parentCharts: map[uri.URI]*charts.Chart{
+					uri.New("file://tmp/"): {
+						ChartMetadata: &charts.ChartMetadata{},
+						ValuesFiles: &charts.ValuesFiles{
+							MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"subchart": map[string]interface{}{"key": "parentValue"}}, URI: "file://tmp/values.yaml"},
+						},
+					},
+				},
+				splittedVar: []string{"key"},
+			},
+			want: `### values.yaml
+parentValue
+
+### charts/subchart/values.yaml
+value
+
+`,
+			wantErr: false,
+		},
+		{
+			name: "subsubchart includes parent values by chart name",
+			args: args{
+				chart: &charts.Chart{
+					ChartMetadata: &charts.ChartMetadata{Metadata: chart.Metadata{Name: "subsubchart"}},
+					ValuesFiles: &charts.ValuesFiles{
+						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"key": "value"}, URI: "file://tmp/charts/subchart/charts/subsubchart/values.yaml"},
+					},
+					ParentChart: charts.ParentChart{
+						ParentChartURI: uri.New("file://tmp/charts/subchart"),
+						HasParent:      true,
+					},
+				},
+				parentCharts: map[uri.URI]*charts.Chart{
+					uri.New("file://tmp/charts/subchart"): {
+						ChartMetadata: &charts.ChartMetadata{Metadata: chart.Metadata{Name: "subchart"}},
+						ValuesFiles: &charts.ValuesFiles{
+							MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"subsubchart": map[string]interface{}{"key": "middleValue"}}, URI: "file://tmp/charts/subchart/values.yaml"},
+						},
+						ParentChart: charts.ParentChart{
+							ParentChartURI: uri.New("file://tmp/"),
+							HasParent:      true,
+						},
+					},
+					uri.New("file://tmp/"): {
+						ChartMetadata: &charts.ChartMetadata{
+							Metadata: chart.Metadata{Name: "parent"},
+						},
+						ValuesFiles: &charts.ValuesFiles{
+							MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"subchart": map[string]interface{}{"subsubchart": map[string]interface{}{"key": "parentValue"}}}, URI: "file://tmp/values.yaml"},
+						},
+					},
+				},
+				splittedVar: []string{"key"},
+			},
+			want: `### values.yaml
+parentValue
+
+### charts/subchart/values.yaml
+middleValue
+
+### charts/subchart/charts/subsubchart/values.yaml
+value
+
+`,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &langHandler{
 				chartStore: &charts.ChartStore{
 					RootURI: uri.New("file://tmp/"),
-					Charts: map[uri.URI]*charts.Chart{
-						uri.New("file://tmp/"): tt.args.parentChart,
-					},
+					Charts:  tt.args.parentCharts,
 				},
 			}
 			got, err := h.getValueHover(tt.args.chart, tt.args.splittedVar)

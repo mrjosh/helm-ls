@@ -2,7 +2,14 @@ package util
 
 type HelmlsConfiguration struct {
 	YamllsConfiguration YamllsConfiguration `json:"yamlls,omitempty"`
+	ValuesFilesConfig   ValuesFilesConfig   `json:"valuesFiles,omitempty"`
 	LogLevel            string              `json:"logLevel,omitempty"`
+}
+
+type ValuesFilesConfig struct {
+	MainValuesFileName               string `json:"mainValuesFile,omitempty"`
+	LintOverlayValuesFileName        string `json:"lintOverlayValuesFile,omitempty"`
+	AdditionalValuesFilesGlobPattern string `json:"additionalValuesFilesGlobPattern,omitempty"`
 }
 
 type YamllsConfiguration struct {
@@ -19,6 +26,11 @@ type YamllsConfiguration struct {
 
 var DefaultConfig = HelmlsConfiguration{
 	LogLevel: "info",
+	ValuesFilesConfig: ValuesFilesConfig{
+		MainValuesFileName:               "values.yaml",
+		LintOverlayValuesFileName:        "values.lint.yaml",
+		AdditionalValuesFilesGlobPattern: "values*.yaml",
+	},
 	YamllsConfiguration: YamllsConfiguration{
 		Enabled:                 true,
 		Path:                    "yaml-language-server",

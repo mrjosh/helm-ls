@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
@@ -35,7 +34,6 @@ func init() {
 }
 
 func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-
 	if req.Params() == nil {
 		return &jsonrpc2.Error{Code: jsonrpc2.InvalidParams}
 	}
@@ -57,7 +55,7 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 	word, isTextNode := completionAstParsing(doc, params.Position)
 
 	if isTextNode {
-		var result = make([]lsp.CompletionItem, 0)
+		result := make([]lsp.CompletionItem, 0)
 		result = append(result, textCompletionsItems...)
 		result = append(result, yamllsCompletions(ctx, h, params)...)
 		return reply(ctx, result, err)
@@ -146,9 +144,11 @@ func completionAstParsing(doc *lsplocal.Document, position lsp.Position) (string
 
 func (h *langHandler) getValuesCompletions(chart *charts.Chart, splittedVar []string) (result []lsp.CompletionItem) {
 	m := make(map[string]lsp.CompletionItem)
-	for _, valuesFile := range chart.ValuesFiles.AllValuesFiles() {
-		for _, item := range h.getValue(valuesFile.Values, splittedVar) {
-			m[item.InsertText] = item
+	for _, queriedValuesFiles := range chart.ResolveValueFiles(splittedVar, h.chartStore) {
+		for _, valuesFile := range queriedValuesFiles.ValuesFiles.AllValuesFiles() {
+			for _, item := range h.getValue(valuesFile.Values, queriedValuesFiles.Selector) {
+				m[item.InsertText] = item
+			}
 		}
 	}
 
@@ -197,7 +197,6 @@ func (h *langHandler) getValue(values chartutil.Values, splittedVar []string) []
 }
 
 func (h *langHandler) setItem(items []lsp.CompletionItem, value interface{}, variable string) []lsp.CompletionItem {
-
 	var (
 		itemKind      = lsp.CompletionItemKindVariable
 		valueOf       = reflect.ValueOf(value)

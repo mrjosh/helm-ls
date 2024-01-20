@@ -46,7 +46,7 @@ func (s *ChartStore) getChartFromFilesystemForTemplates(path string) *Chart {
 
 		// check if Chart.yaml exists
 		if isChartDirectory(expectedChartDir) {
-			return s.newChart(uri.New("file://" + expectedChartDir))
+			return s.newChart(uri.New("file://"+expectedChartDir), s.valuesFilesConfig)
 		}
 	}
 

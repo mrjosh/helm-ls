@@ -27,18 +27,20 @@ var testFileContent = `
 {{ .Values.something.nested }} # line 9
 `
 
-var testDocumentTemplateURI = uri.URI("file:///test.yaml")
-var testValuesURI = uri.URI("file:///values.yaml")
-var testOtherValuesURI = uri.URI("file:///values.other.yaml")
-var valuesContent = `
+var (
+	testDocumentTemplateURI = uri.URI("file:///test.yaml")
+	testValuesURI           = uri.URI("file:///values.yaml")
+	testOtherValuesURI      = uri.URI("file:///values.other.yaml")
+	valuesContent           = `
 foo: bar
 something: 
   nested: false
 `
+)
 
 func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocations []lsp.Location, expectedError error) {
 	var node yamlv3.Node
-	var err = yamlv3.Unmarshal([]byte(valuesContent), &node)
+	err := yamlv3.Unmarshal([]byte(valuesContent), &node)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,6 +60,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 	}
 
 	location, err := handler.definitionAstParsing(&charts.Chart{
+		ChartMetadata: &charts.ChartMetadata{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
 				Values:    make(map[string]interface{}),
@@ -107,15 +110,16 @@ func TestDefinitionNotImplemented(t *testing.T) {
 // {{ range $index, $element := pipeline }}{{ $index }}{{ $element }}{{ end }} # line 7
 // -----------------|
 func TestDefinitionRange(t *testing.T) {
-	genericDefinitionTest(t, lsp.Position{Line: 7, Character: 60}, []lsp.Location{{
-		URI: testDocumentTemplateURI,
-		Range: lsp.Range{
-			Start: lsp.Position{
-				Line:      7,
-				Character: 17,
+	genericDefinitionTest(t, lsp.Position{Line: 7, Character: 60}, []lsp.Location{
+		{
+			URI: testDocumentTemplateURI,
+			Range: lsp.Range{
+				Start: lsp.Position{
+					Line:      7,
+					Character: 17,
+				},
 			},
 		},
-	},
 	}, nil)
 }
 
@@ -123,19 +127,20 @@ func TestDefinitionRange(t *testing.T) {
 // {{ .Values.foo }} # line 8
 // ------------|
 func TestDefinitionValue(t *testing.T) {
-	genericDefinitionTest(t, lsp.Position{Line: 8, Character: 13}, []lsp.Location{{
-		URI: testValuesURI,
-		Range: lsp.Range{
-			Start: lsp.Position{
-				Line:      1,
-				Character: 0,
-			},
-			End: lsp.Position{
-				Line:      1,
-				Character: 0,
+	genericDefinitionTest(t, lsp.Position{Line: 8, Character: 13}, []lsp.Location{
+		{
+			URI: testValuesURI,
+			Range: lsp.Range{
+				Start: lsp.Position{
+					Line:      1,
+					Character: 0,
+				},
+				End: lsp.Position{
+					Line:      1,
+					Character: 0,
+				},
 			},
 		},
-	},
 	}, nil)
 }
 
@@ -143,40 +148,42 @@ func TestDefinitionValue(t *testing.T) {
 // {{ .Values.something.nested }} # line 9
 // ----------------------|
 func TestDefinitionValueNested(t *testing.T) {
-	genericDefinitionTest(t, lsp.Position{Line: 9, Character: 26}, []lsp.Location{{
-		URI: testValuesURI,
-		Range: lsp.Range{
-			Start: lsp.Position{
-				Line:      3,
-				Character: 2,
-			},
-			End: lsp.Position{
-				Line:      3,
-				Character: 2,
+	genericDefinitionTest(t, lsp.Position{Line: 9, Character: 26}, []lsp.Location{
+		{
+			URI: testValuesURI,
+			Range: lsp.Range{
+				Start: lsp.Position{
+					Line:      3,
+					Character: 2,
+				},
+				End: lsp.Position{
+					Line:      3,
+					Character: 2,
+				},
 			},
 		},
-	},
 	}, nil)
 }
 
 // {{ .Values.foo }} # line 8
 // ------|
 func TestDefinitionValueFile(t *testing.T) {
-	genericDefinitionTest(t, lsp.Position{Line: 8, Character: 7}, []lsp.Location{{
-		URI: testValuesURI,
-		Range: lsp.Range{
-			Start: lsp.Position{
-				Line:      0,
-				Character: 0,
+	genericDefinitionTest(t, lsp.Position{Line: 8, Character: 7}, []lsp.Location{
+		{
+			URI: testValuesURI,
+			Range: lsp.Range{
+				Start: lsp.Position{
+					Line:      0,
+					Character: 0,
+				},
 			},
 		},
-	},
 	}, nil)
 }
 
 func genericDefinitionTestMultipleValuesFiles(t *testing.T, position lsp.Position, expectedLocations []lsp.Location, expectedError error) {
 	var node yamlv3.Node
-	var err = yamlv3.Unmarshal([]byte(valuesContent), &node)
+	err := yamlv3.Unmarshal([]byte(valuesContent), &node)
 	if err != nil {
 		t.Fatal(err)
 	}

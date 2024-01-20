@@ -37,7 +37,6 @@ func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Repli
 	}
 
 	result, err := h.definitionAstParsing(chart, doc, params.Position)
-
 	if err != nil {
 		// suppress errors for clients
 		// otherwise using go-to-definition on words that have no definition
@@ -73,7 +72,7 @@ func (h *langHandler) definitionAstParsing(chart *charts.Chart, doc *lsplocal.Do
 
 func (h *langHandler) getDefinitionForVariable(node *sitter.Node, doc *lsplocal.Document) ([]lsp.Location, error) {
 	variableName := node.Content([]byte(doc.Content))
-	var defintionNode = lsplocal.GetVariableDefinition(variableName, node.Parent(), doc.Content)
+	defintionNode := lsplocal.GetVariableDefinition(variableName, node.Parent(), doc.Content)
 	if defintionNode == nil {
 		return []lsp.Location{}, fmt.Errorf("Could not find definition for %s", variableName)
 	}
@@ -82,7 +81,7 @@ func (h *langHandler) getDefinitionForVariable(node *sitter.Node, doc *lsplocal.
 
 // getDefinitionForFixedIdentifier checks if the current identifier has a constant definition and returns it
 func (h *langHandler) getDefinitionForFixedIdentifier(chart *charts.Chart, node *sitter.Node, doc *lsplocal.Document) ([]lsp.Location, error) {
-	var name = node.Content([]byte(doc.Content))
+	name := node.Content([]byte(doc.Content))
 	switch name {
 	case "Values":
 		result := []lsp.Location{}
@@ -94,7 +93,8 @@ func (h *langHandler) getDefinitionForFixedIdentifier(chart *charts.Chart, node 
 
 	case "Chart":
 		return []lsp.Location{
-				{URI: chart.ChartMetadata.URI}},
+				{URI: chart.ChartMetadata.URI},
+			},
 			nil
 	}
 
@@ -150,7 +150,7 @@ func getYamlPath(node *sitter.Node, doc *lsplocal.Document) string {
 func (h *langHandler) getValueDefinition(chart *charts.Chart, splittedVar []string) []lsp.Location {
 	locations := []lsp.Location{}
 	for _, value := range chart.ResolveValueFiles(splittedVar, h.chartStore) {
-		locations = append(locations, value.GetPositionsForValue(splittedVar)...)
+		locations = append(locations, value.ValuesFiles.GetPositionsForValue(value.Selector)...)
 	}
 	return locations
 }

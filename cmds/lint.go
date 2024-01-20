@@ -16,7 +16,6 @@ func newLintCmd() *cobra.Command {
 		Use:   "lint",
 		Short: "Lint a helm project",
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			if len(args) == 0 {
 				args = append(args, os.Getenv("PWD"))
 			}

@@ -16,7 +16,6 @@ import (
 )
 
 func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
-
 	var params lsp.InitializeParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		return err
@@ -56,6 +55,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 
 func (h *langHandler) initializationWithConfig() {
 	configureLogLevel(h.helmlsConfig)
+	h.chartStore.SetValuesFilesConfig(h.helmlsConfig.ValuesFilesConfig)
 	configureYamlls(h)
 }
 
