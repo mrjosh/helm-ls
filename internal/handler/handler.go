@@ -68,6 +68,8 @@ func (h *langHandler) handle(ctx context.Context, reply jsonrpc2.Replier, req js
 		return h.handleHover(ctx, reply, req)
 	case lsp.MethodWorkspaceDidChangeConfiguration:
 		return h.handleWorkspaceDidChangeConfiguration(ctx, reply, req)
+	case lsp.MethodWorkspaceDidChangeWatchedFiles:
+		return h.handleDidChangeWatchedFiles(ctx, reply, req)
 	default:
 		logger.Debug("Unsupported method", req.Method())
 	}
@@ -80,7 +82,6 @@ func (h *langHandler) handleShutdown(_ context.Context, _ jsonrpc2.Replier, _ js
 }
 
 func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-
 	var params lsp.DidOpenTextDocumentParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		return reply(ctx, nil, err)

@@ -32,7 +32,7 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 	}
 	h.yamllsConnector.CallInitialize(workspaceURI)
 
-	h.chartStore = charts.NewChartStore(workspaceURI, charts.NewChart)
+	h.chartStore = charts.NewChartStore(workspaceURI, h.NewChartWithWatchedFiles)
 
 	return reply(ctx, lsp.InitializeResult{
 		Capabilities: lsp.ServerCapabilities{

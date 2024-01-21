@@ -1,6 +1,8 @@
 package charts
 
 import (
+	"path/filepath"
+
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
 )
@@ -29,8 +31,8 @@ func (s *ChartStore) SetValuesFilesConfig(valuesFilesConfig util.ValuesFilesConf
 		return
 	}
 	s.valuesFilesConfig = valuesFilesConfig
-	for _, chart := range s.Charts {
-		chart.ValuesFiles = NewValuesFiles(chart.RootURI, valuesFilesConfig.MainValuesFileName, valuesFilesConfig.LintOverlayValuesFileName, valuesFilesConfig.AdditionalValuesFilesGlobPattern)
+	for uri := range s.Charts {
+		s.Charts[uri] = s.newChart(uri, valuesFilesConfig)
 	}
 }
 
@@ -52,5 +54,19 @@ func (s *ChartStore) GetChartForURI(fileURI uri.URI) (*Chart, error) {
 
 	return nil, ErrChartNotFound{
 		URI: fileURI,
+	}
+}
+
+func (s *ChartStore) ReloadValuesFile(file uri.URI) {
+	logger.Println("Reloading values file", file)
+	chart, err := s.GetChartForURI(uri.URI(util.FileURIScheme + filepath.Dir(file.Filename())))
+	if err != nil {
+		logger.Error("Error reloading values file", file, err)
+		return
+	}
+	for _, valuesFile := range chart.ValuesFiles.AllValuesFiles() {
+		if valuesFile.URI == file {
+			valuesFile.Reload()
+		}
 	}
 }

@@ -17,9 +17,8 @@ type ValuesFiles struct {
 
 func NewValuesFiles(rootURI uri.URI, mainValuesFileName string, lintOverlayValuesFile string, additionalValuesFilesGlob string) *ValuesFiles {
 	additionalValuesFiles := getAdditionalValuesFiles(additionalValuesFilesGlob, rootURI, mainValuesFileName)
-	var overlayValuesFile *ValuesFile
 
-	overlayValuesFile = getLintOverlayValuesFile(lintOverlayValuesFile, additionalValuesFiles, overlayValuesFile, rootURI)
+	overlayValuesFile := getLintOverlayValuesFile(lintOverlayValuesFile, additionalValuesFiles, rootURI)
 
 	return &ValuesFiles{
 		MainValuesFile:        NewValuesFile(filepath.Join(rootURI.Filename(), mainValuesFileName)),
@@ -28,7 +27,7 @@ func NewValuesFiles(rootURI uri.URI, mainValuesFileName string, lintOverlayValue
 	}
 }
 
-func getLintOverlayValuesFile(lintOverlayValuesFile string, additionalValuesFiles []*ValuesFile, overlayValuesFile *ValuesFile, rootURI uri.URI) *ValuesFile {
+func getLintOverlayValuesFile(lintOverlayValuesFile string, additionalValuesFiles []*ValuesFile, rootURI uri.URI) (overlayValuesFile *ValuesFile) {
 	if lintOverlayValuesFile == "" && len(additionalValuesFiles) == 1 {
 		overlayValuesFile = additionalValuesFiles[0]
 	}
