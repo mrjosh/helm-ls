@@ -3,6 +3,7 @@ package charts_test
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
@@ -12,8 +13,8 @@ import (
 )
 
 func TestGetChartForDocumentWorksForAlreadyAddedCharts(t *testing.T) {
-	chartStore := charts.NewChartStore("file:///tmp", func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart {
-		return &charts.Chart{}
+	chartStore := charts.NewChartStore("file:///tmp", func(uri uri.URI, _ util.ValuesFilesConfig) *charts.Chart {
+		return &charts.Chart{RootURI: uri}
 	})
 
 	chart := &charts.Chart{}
@@ -41,47 +42,55 @@ func TestGetChartForDocumentWorksForAlreadyAddedCharts(t *testing.T) {
 
 	result5, error := chartStore.GetChartForDoc("file:///tmp/directory/deployment.yaml")
 	assert.Error(t, error)
-	assert.Nil(t, result5)
+	assert.Equal(t, &charts.Chart{RootURI: uri.File("/tmp")}, result5)
 }
 
 func TestGetChartForDocumentWorksForNewToAddChart(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping test on windows because of https://github.com/golang/go/issues/51442")
+	}
 	var (
 		rootDir                = t.TempDir()
 		expectedChartDirectory = filepath.Join(rootDir, "chart")
 		expectedChart          = &charts.Chart{
-			RootURI: uri.New("file://" + expectedChartDirectory),
+			RootURI: uri.File(expectedChartDirectory),
 		}
 		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-		chartStore   = charts.NewChartStore(uri.New("file://"+rootDir), newChartFunc)
+		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc)
 		err          = os.MkdirAll(expectedChartDirectory, 0o755)
 	)
 	assert.NoError(t, err)
-	_, _ = os.Create(filepath.Join(expectedChartDirectory, "Chart.yaml"))
+	chartFile := filepath.Join(expectedChartDirectory, "Chart.yaml")
+	_, _ = os.Create(chartFile)
 
-	result1, error := chartStore.GetChartForDoc(uri.New("file://" + filepath.Join(expectedChartDirectory, "templates", "deployment.yaml")))
+	result1, error := chartStore.GetChartForDoc(uri.File(filepath.Join(expectedChartDirectory, "templates", "deployment.yaml")))
 	assert.NoError(t, error)
 	assert.Same(t, expectedChart, result1)
 
-	assert.Same(t, expectedChart, chartStore.Charts[uri.New("file://"+expectedChartDirectory)])
+	assert.Same(t, expectedChart, chartStore.Charts[uri.File(expectedChartDirectory)])
 }
 
 func TestGetChartForDocumentWorksForNewToAddChartWithNestedFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping test on windows because of https://github.com/golang/go/issues/51442")
+	}
 	var (
 		rootDir                = t.TempDir()
 		expectedChartDirectory = filepath.Join(rootDir, "chart")
 		expectedChart          = &charts.Chart{
-			RootURI: uri.New("file://" + expectedChartDirectory),
+			RootURI: uri.File(expectedChartDirectory),
 		}
 		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-		chartStore   = charts.NewChartStore(uri.New("file://"+rootDir), newChartFunc)
+		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc)
 		err          = os.MkdirAll(expectedChartDirectory, 0o755)
 	)
 	assert.NoError(t, err)
-	_, _ = os.Create(filepath.Join(expectedChartDirectory, "Chart.yaml"))
+	chartFile := filepath.Join(expectedChartDirectory, "Chart.yaml")
+	_, _ = os.Create(chartFile)
 
-	result1, error := chartStore.GetChartForDoc(uri.New("file://" + filepath.Join(expectedChartDirectory, "templates", "nested", "deployment.yaml")))
+	result1, error := chartStore.GetChartForDoc(uri.File(filepath.Join(expectedChartDirectory, "templates", "nested", "deployment.yaml")))
 	assert.NoError(t, error)
 	assert.Same(t, expectedChart, result1)
 
-	assert.Same(t, expectedChart, chartStore.Charts[uri.New("file://"+expectedChartDirectory)])
+	assert.Same(t, expectedChart, chartStore.Charts[uri.File(expectedChartDirectory)])
 }

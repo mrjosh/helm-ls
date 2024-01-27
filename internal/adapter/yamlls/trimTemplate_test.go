@@ -307,12 +307,12 @@ func TestTrimTemplate(t *testing.T) {
 func testTrimTemplateWithTestData(t *testing.T, testData TrimTemplateTestData) {
 	doc := &lsplocal.Document{
 		Content: testData.documentText,
-		Ast:     lsplocal.ParseAst(testData.documentText),
+		Ast:     lsplocal.ParseAst(nil, testData.documentText),
 	}
 
-	var trimmed = trimTemplateForYamllsFromAst(doc.Ast, testData.documentText)
+	trimmed := trimTemplateForYamllsFromAst(doc.Ast, testData.documentText)
 
-	var result = trimmed == testData.trimmedText
+	result := trimmed == testData.trimmedText
 
 	if !result {
 		t.Errorf("Trimmed templated was not as expected but was %s ", trimmed)

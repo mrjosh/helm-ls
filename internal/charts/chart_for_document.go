@@ -17,16 +17,14 @@ func (s *ChartStore) GetChartForDoc(uri lsp.DocumentURI) (*Chart, error) {
 		return chart, nil
 	}
 
-	chart = s.getChartFromFilesystemForTemplates(uri.Filename())
-
-	if chart != nil {
-		s.Charts[chart.RootURI] = chart
-		return chart, nil
+	chart, err := s.getChartFromFilesystemForTemplates(uri.Filename())
+	s.Charts[chart.RootURI] = chart
+	if err != nil {
+		return chart, ErrChartNotFound{
+			URI: uri,
+		}
 	}
-
-	return nil, ErrChartNotFound{
-		URI: uri,
-	}
+	return chart, nil
 }
 
 func (s *ChartStore) getChartFromCache(uri lsp.DocumentURI) *Chart {
@@ -38,7 +36,7 @@ func (s *ChartStore) getChartFromCache(uri lsp.DocumentURI) *Chart {
 	return nil
 }
 
-func (s *ChartStore) getChartFromFilesystemForTemplates(path string) *Chart {
+func (s *ChartStore) getChartFromFilesystemForTemplates(path string) (*Chart, error) {
 	directory := filepath.Dir(path)
 	if filepath.Base(directory) == "templates" {
 		templatesDir := directory
@@ -46,17 +44,13 @@ func (s *ChartStore) getChartFromFilesystemForTemplates(path string) *Chart {
 
 		// check if Chart.yaml exists
 		if isChartDirectory(expectedChartDir) {
-			return s.newChart(uri.New("file://"+expectedChartDir), s.valuesFilesConfig)
+			return s.newChart(uri.File(expectedChartDir), s.valuesFilesConfig), nil
 		}
 	}
 
 	rootDirectory := s.RootURI.Filename()
-	if directory == rootDirectory {
-		return nil
-	}
-
-	if directory == path {
-		return nil
+	if directory == rootDirectory || directory == path {
+		return s.newChart(uri.File(directory), s.valuesFilesConfig), ErrChartNotFound{}
 	}
 
 	return s.getChartFromFilesystemForTemplates(directory)
@@ -72,5 +66,5 @@ type ErrChartNotFound struct {
 }
 
 func (e ErrChartNotFound) Error() string {
-	return fmt.Sprintf("Chart not found for file: %s", e.URI)
+	return fmt.Sprintf("Chart not found for file: %s. Using fallback", e.URI)
 }

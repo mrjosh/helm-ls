@@ -44,7 +44,7 @@ func (s *ChartStore) GetChartForURI(fileURI uri.URI) (*Chart, error) {
 	var chart *Chart
 	expectedChartDir := fileURI.Filename()
 	if isChartDirectory(expectedChartDir) {
-		chart = s.newChart(uri.New("file://"+expectedChartDir), s.valuesFilesConfig)
+		chart = s.newChart(uri.File(expectedChartDir), s.valuesFilesConfig)
 	}
 
 	if chart != nil {
@@ -59,7 +59,7 @@ func (s *ChartStore) GetChartForURI(fileURI uri.URI) (*Chart, error) {
 
 func (s *ChartStore) ReloadValuesFile(file uri.URI) {
 	logger.Println("Reloading values file", file)
-	chart, err := s.GetChartForURI(uri.URI(util.FileURIScheme + filepath.Dir(file.Filename())))
+	chart, err := s.GetChartForURI(uri.File(filepath.Dir(file.Filename())))
 	if err != nil {
 		logger.Error("Error reloading values file", file, err)
 		return

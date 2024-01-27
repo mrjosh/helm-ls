@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/mrjosh/helm-ls/internal/adapter/fs"
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
@@ -28,8 +27,7 @@ type langHandler struct {
 }
 
 func NewHandler(connPool jsonrpc2.Conn) jsonrpc2.Handler {
-	fileStorage, _ := fs.NewFileStorage("")
-	documents := lsplocal.NewDocumentStore(fileStorage)
+	documents := lsplocal.NewDocumentStore()
 	handler := &langHandler{
 		linterName:      "helm-lint",
 		connPool:        connPool,
@@ -108,7 +106,7 @@ func (h *langHandler) handleTextDocumentDidOpen(ctx context.Context, reply jsonr
 	if err != nil {
 		logger.Error("Error getting chart info for file", doc.URI, err)
 	}
-	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, chart, doc)
+	notification, err := lsplocal.NotificationFromLint(ctx, h.connPool, chart, doc)
 	return reply(ctx, notification, err)
 }
 
@@ -140,6 +138,6 @@ func (h *langHandler) handleTextDocumentDidSave(ctx context.Context, reply jsonr
 	}
 
 	h.yamllsConnector.DocumentDidSave(doc, params)
-	notification, err := lsplocal.NotifcationFromLint(ctx, h.connPool, chart, doc)
+	notification, err := lsplocal.NotificationFromLint(ctx, h.connPool, chart, doc)
 	return reply(ctx, notification, err)
 }

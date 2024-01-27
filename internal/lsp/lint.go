@@ -23,7 +23,7 @@ import (
 
 var logger = log.GetLogger()
 
-func NotifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, chart *charts.Chart, doc *Document) (*jsonrpc2.Notification, error) {
+func NotificationFromLint(ctx context.Context, conn jsonrpc2.Conn, chart *charts.Chart, doc *Document) (*jsonrpc2.Notification, error) {
 	vals := chart.ValuesFiles.MainValuesFile.Values
 	if chart.ValuesFiles.OverlayValuesFile != nil {
 		vals = chartutil.CoalesceTables(chart.ValuesFiles.OverlayValuesFile.Values, chart.ValuesFiles.MainValuesFile.Values)

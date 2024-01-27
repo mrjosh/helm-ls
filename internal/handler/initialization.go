@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"os"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
@@ -16,24 +15,34 @@ import (
 )
 
 func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
-	var params lsp.InitializeParams
+	var (
+		params       lsp.InitializeParams
+		workspaceURI uri.URI
+		err          error
+	)
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
 		return err
 	}
 
-	if len(params.WorkspaceFolders) == 0 {
-		return errors.New("length WorkspaceFolders is 0")
+	logger.Debug("handleInitialize with params ", req.Params())
+	if len(params.WorkspaceFolders) != 0 {
+		workspaceURI, err = uri.Parse(params.WorkspaceFolders[0].URI)
+		if err != nil {
+			logger.Error("Error parsing workspace URI", err)
+			return err
+		}
+	} else {
+		logger.Error("length WorkspaceFolders is 0, falling back to current working directory")
+		workspaceURI = uri.File(".")
 	}
 
-	workspaceURI, err := uri.Parse(params.WorkspaceFolders[0].URI)
-	if err != nil {
-		logger.Error("Error parsing workspace URI", err)
-		return err
-	}
+	logger.Debug("Initializing yamllsConnector")
 	h.yamllsConnector.CallInitialize(workspaceURI)
 
+	logger.Debug("Initializing chartStore")
 	h.chartStore = charts.NewChartStore(workspaceURI, h.NewChartWithWatchedFiles)
 
+	logger.Debug("Initializing done")
 	return reply(ctx, lsp.InitializeResult{
 		Capabilities: lsp.ServerCapabilities{
 			TextDocumentSync: lsp.TextDocumentSyncOptions{

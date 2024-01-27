@@ -3,7 +3,6 @@ package charts
 import (
 	"path/filepath"
 
-	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
 )
 
@@ -15,7 +14,7 @@ type ParentChart struct {
 func newParentChart(rootURI uri.URI) ParentChart {
 	directory := filepath.Dir(rootURI.Filename())
 	if filepath.Base(directory) == "charts" && isChartDirectory(filepath.Dir(directory)) {
-		return ParentChart{uri.New(util.FileURIScheme + filepath.Dir(directory)), true}
+		return ParentChart{uri.File(filepath.Dir(directory)), true}
 	}
 	return ParentChart{}
 }

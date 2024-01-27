@@ -92,7 +92,7 @@ func TestCompletionAstParsing(t *testing.T) {
 	expectedWord := ".Values.global."
 	doc := &lsplocal.Document{
 		Content: documentText,
-		Ast:     lsplocal.ParseAst(documentText),
+		Ast:     lsplocal.ParseAst(nil, documentText),
 	}
 	position := protocol.Position{
 		Line:      0,

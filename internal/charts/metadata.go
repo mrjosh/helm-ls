@@ -3,7 +3,6 @@ package charts
 import (
 	"path/filepath"
 
-	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"go.lsp.dev/uri"
@@ -26,7 +25,7 @@ func NewChartMetadata(rootURI uri.URI) *ChartMetadata {
 	return &ChartMetadata{
 		Metadata: loadChartMetadata(filePath),
 		YamlNode: chartNode,
-		URI:      uri.New(util.FileURIScheme + filePath),
+		URI:      uri.File(filePath),
 	}
 }
 

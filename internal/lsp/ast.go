@@ -9,10 +9,10 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func ParseAst(content string) *sitter.Tree {
+func ParseAst(oldTree *sitter.Tree, content string) *sitter.Tree {
 	parser := sitter.NewParser()
 	parser.SetLanguage(gotemplate.GetLanguage())
-	tree, _ := parser.ParseCtx(context.Background(), nil, []byte(content))
+	tree, _ := parser.ParseCtx(context.Background(), oldTree, []byte(content))
 	return tree
 }
 
@@ -106,7 +106,7 @@ func TraverseIdentifierPathUp(node *sitter.Node, doc *Document) string {
 }
 
 func (d *Document) ApplyChangesToAst(newContent string) {
-	d.Ast = ParseAst(newContent)
+	d.Ast = ParseAst(nil, newContent)
 }
 
 func GetLspRangeForNode(node *sitter.Node) lsp.Range {

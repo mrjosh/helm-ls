@@ -1,7 +1,6 @@
 package charts
 
 import (
-	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"go.lsp.dev/uri"
 
@@ -20,7 +19,7 @@ func NewValuesFile(filePath string) *ValuesFile {
 	return &ValuesFile{
 		ValueNode: valueNodes,
 		Values:    vals,
-		URI:       uri.New(util.FileURIScheme + filePath),
+		URI:       uri.File(filePath),
 	}
 }
 

@@ -24,7 +24,7 @@ type: application`
 	chartFile := filepath.Join(tempDir, "Chart.yaml")
 	_ = os.WriteFile(chartFile, []byte(chartYaml), 0o644)
 
-	chart := charts.NewChart(uri.New("file://"+tempDir), util.ValuesFilesConfig{})
+	chart := charts.NewChart(uri.File(tempDir), util.ValuesFilesConfig{})
 	assert.Equal(t, "hello-world", chart.ChartMetadata.Metadata.Name)
 }
 
@@ -35,7 +35,7 @@ func TestNewChartsLoadsDefaultMetadataOnError(t *testing.T) {
 	chartFile := filepath.Join(tempDir, "Chart.yaml")
 	_ = os.WriteFile(chartFile, []byte(chartYaml), 0o644)
 
-	chart := charts.NewChart(uri.New("file://"+tempDir), util.ValuesFilesConfig{})
+	chart := charts.NewChart(uri.File(tempDir), util.ValuesFilesConfig{})
 	assert.Equal(t, "", chart.ChartMetadata.Metadata.Name)
 }
 
@@ -45,7 +45,7 @@ func TestNewChartsSetsParentChartURI(t *testing.T) {
 	chartFile := filepath.Join(tempDir, "Chart.yaml")
 	_ = os.WriteFile(chartFile, []byte{}, 0o644)
 
-	chart := charts.NewChart(uri.New("file://"+filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
+	chart := charts.NewChart(uri.File(filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
 	assert.Equal(t, tempDir, chart.ParentChart.ParentChartURI.Filename())
 }
 
@@ -55,7 +55,7 @@ func TestNewChartsSetsParentChartURIToDefault(t *testing.T) {
 	chartFile := filepath.Join(tempDir, "Chart.yaml")
 	_ = os.WriteFile(chartFile, []byte{}, 0o644)
 
-	chart := charts.NewChart(uri.New("file://"+tempDir), util.ValuesFilesConfig{})
+	chart := charts.NewChart(uri.File(tempDir), util.ValuesFilesConfig{})
 	assert.False(t, chart.ParentChart.HasParent)
 }
 
@@ -76,14 +76,14 @@ func TestResolvesValuesFileOfParent(t *testing.T) {
 	err = os.WriteFile(subChartChartFile, []byte{}, 0o644)
 	assert.NoError(t, err)
 
-	chart := charts.NewChart(uri.New("file://"+filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
+	chart := charts.NewChart(uri.File(filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
 
 	expectedChart := &charts.Chart{
-		RootURI:       uri.New("file://" + tempDir),
+		RootURI:       uri.File(tempDir),
 		ChartMetadata: &charts.ChartMetadata{},
 	}
 	newChartFunc := func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-	chartStore := charts.NewChartStore(uri.New("file://"+tempDir), newChartFunc)
+	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc)
 
 	valueFiles := chart.ResolveValueFiles([]string{"global", "foo"}, chartStore)
 
@@ -107,11 +107,11 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 	err = os.WriteFile(subChartChartFile, []byte{}, 0o644)
 	assert.NoError(t, err)
 
-	subchart := charts.NewChart(uri.New("file://"+filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
+	subchart := charts.NewChart(uri.File(filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
 	subchart.ChartMetadata.Metadata.Name = "subchart"
 
 	expectedChart := &charts.Chart{
-		RootURI: uri.New("file://" + tempDir),
+		RootURI: uri.File(tempDir),
 		ChartMetadata: &charts.ChartMetadata{
 			Metadata: chart.Metadata{
 				Name: "parent",
@@ -119,11 +119,11 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 		},
 	}
 	newChartFunc := func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-	chartStore := charts.NewChartStore(uri.New("file://"+tempDir), newChartFunc)
+	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc)
 
 	valueFiles := subchart.ResolveValueFiles([]string{"foo"}, chartStore)
 
-	parentChart, err := chartStore.GetChartForURI(uri.New("file://" + tempDir))
+	parentChart, err := chartStore.GetChartForURI(uri.File(tempDir))
 	assert.NoError(t, err)
 
 	assert.Equal(t, 2, len(valueFiles))

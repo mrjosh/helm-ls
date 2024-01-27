@@ -6,7 +6,6 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	locallsp "github.com/mrjosh/helm-ls/internal/lsp"
-	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/spf13/cobra"
 	"go.lsp.dev/uri"
 )
@@ -20,14 +19,14 @@ func newLintCmd() *cobra.Command {
 				args = append(args, os.Getenv("PWD"))
 			}
 
-			rootPath := uri.New(util.FileURIScheme + args[0])
+			rootPath := uri.File(args[0])
 			chartStore := charts.NewChartStore(rootPath, charts.NewChart)
 			chart, err := chartStore.GetChartForURI(rootPath)
 			if err != nil {
 				return err
 			}
 
-			msgs, err := locallsp.GetDiagnostics(uri.New(args[0]), chart.ValuesFiles.MainValuesFile.Values)
+			msgs, err := locallsp.GetDiagnostics(rootPath, chart.ValuesFiles.MainValuesFile.Values)
 			if err != nil {
 				return err
 			}

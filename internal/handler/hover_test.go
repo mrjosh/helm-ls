@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
@@ -125,7 +126,7 @@ nested: value
 			want: `### values.yaml
 parentValue
 
-### charts/subchart/values.yaml
+### ` + filepath.Join("charts", "subchart", "values.yaml") + `
 value
 
 `,
@@ -159,7 +160,7 @@ value
 			want: `### values.yaml
 parentValue
 
-### charts/subchart/values.yaml
+### ` + filepath.Join("charts", "subchart", "values.yaml") + `
 value
 
 `,
@@ -203,10 +204,10 @@ value
 			want: `### values.yaml
 parentValue
 
-### charts/subchart/values.yaml
+### ` + filepath.Join("charts", "subchart", "values.yaml") + `
 middleValue
 
-### charts/subchart/charts/subsubchart/values.yaml
+### ` + filepath.Join("charts", "subchart", "charts", "subsubchart", "values.yaml") + `
 value
 
 `,
