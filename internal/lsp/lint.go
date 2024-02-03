@@ -3,17 +3,16 @@ package lsp
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/action"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"github.com/mrjosh/helm-ls/pkg/lint/support"
 	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v3"
 
 	// nolint
 	"github.com/mrjosh/helm-ls/pkg/lint/rules"
@@ -24,9 +23,13 @@ import (
 
 var logger = log.GetLogger()
 
-func NotifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, doc *Document) (*jsonrpc2.Notification, error) {
-	diagnostics, err := GetDiagnostics(doc.URI)
+func NotificationFromLint(ctx context.Context, conn jsonrpc2.Conn, chart *charts.Chart, doc *Document) (*jsonrpc2.Notification, error) {
+	vals := chart.ValuesFiles.MainValuesFile.Values
+	if chart.ValuesFiles.OverlayValuesFile != nil {
+		vals = chartutil.CoalesceTables(chart.ValuesFiles.OverlayValuesFile.Values, chart.ValuesFiles.MainValuesFile.Values)
+	}
 
+	diagnostics, err := GetDiagnostics(doc.URI, vals)
 	if err != nil {
 		return nil, err
 	}
@@ -42,38 +45,9 @@ func NotifcationFromLint(ctx context.Context, conn jsonrpc2.Conn, doc *Document)
 	)
 }
 
-// loadValues will load the values files into a map[string]interface{}
-// the filename arg default is values.yaml
-func loadValues(dir string, filename ...string) (map[string]interface{}, error) {
-
-	vals := make(map[string]interface{})
-	if len(filename) == 0 {
-		filename = append(filename, chartutil.ValuesfileName)
-	}
-
-	if len(filename) > 1 {
-		return vals, errors.New("filename should be a single string")
-	}
-
-	file, err := os.Open(fmt.Sprintf("%s/%s", dir, filename[0]))
-	if err != nil {
-		return vals, err
-	}
-
-	if err := yaml.NewDecoder(file).Decode(&vals); err != nil {
-		return vals, err
-	}
-
-	logger.Println(fmt.Sprintf("%s file loaded successfully", file.Name()))
-	logger.Debug(vals)
-
-	return vals, nil
-}
-
-// GetDiagnostics will run helm linter against the currect document URI
+// GetDiagnostics will run helm linter against the currect document URI using the given values
 // and converts the helm.support.Message to lsp.Diagnostics
-func GetDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
-
+func GetDiagnostics(uri uri.URI, vals chartutil.Values) ([]lsp.Diagnostic, error) {
 	var (
 		filename    = uri.Filename()
 		paths       = strings.Split(filename, "/")
@@ -93,20 +67,8 @@ func GetDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
 	logger.Println(dir)
 	client := action.NewLint()
 
-	vals, err := loadValues(dir)
-	if err != nil {
-
-		logger.Println(errors.Wrap(err, "could not load values.yaml, trying to load values.yml instead"))
-
-		vals, err = loadValues(dir, "values.yml")
-		if err != nil {
-			logger.Println(errors.Wrap(err, "could not load values.yml, ignoring values"))
-		}
-
-	}
-
 	result := client.Run([]string{dir}, vals)
-	logger.Println("helm lint: result:", result.Messages)
+	logger.Println(fmt.Sprintf("helm lint: result for file %s : %s", uri, result.Messages))
 
 	for _, msg := range result.Messages {
 		d, filename, err := GetDiagnosticFromLinterErr(msg)
@@ -123,7 +85,6 @@ func GetDiagnostics(uri uri.URI) ([]lsp.Diagnostic, error) {
 }
 
 func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string, error) {
-
 	var (
 		err      error
 		msg      string
@@ -185,7 +146,6 @@ func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string
 }
 
 func getFilePathFromLinterErr(msg support.Message) string {
-
 	var (
 		filename       string
 		fileLine       = util.BetweenStrings(msg.Error(), "(", ")")

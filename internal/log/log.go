@@ -14,8 +14,10 @@ type logger interface {
 	SetLevel(level logrus.Level)
 }
 
-var l logger
-var once sync.Once
+var (
+	l    logger
+	once sync.Once
+)
 
 // start a new logger
 func GetLogger() logger {
@@ -28,5 +30,6 @@ func GetLogger() logger {
 func createLogger() logger {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetLevel(logrus.DebugLevel)
 	return logger
 }

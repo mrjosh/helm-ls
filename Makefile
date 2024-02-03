@@ -4,6 +4,7 @@ export GOBIN?=$(BIN)
 export GO=$(shell which go)
 export PACKAGE_NAME=github.com/mrjosh/helm-ls
 export GOLANG_CROSS_VERSION=v1.20.6
+export CGO_ENABLED=1
 
 $(eval GIT_COMMIT=$(shell git rev-parse --short HEAD))
 $(eval BRANCH_NAME=$(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match))
@@ -56,6 +57,9 @@ install-metalinter:
 
 test:
 	@$(GO) test ./... -v -race
+
+coverage:
+	@$(GO) test -coverprofile=.coverage ./internal/... && go tool cover -html=.coverage
 
 .PHONY: build-release
 build-release:

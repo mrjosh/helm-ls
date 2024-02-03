@@ -3,8 +3,12 @@ package handler
 import (
 	"testing"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/pkg/chart"
+	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/protocol"
+	"gopkg.in/yaml.v3"
 )
 
 func TestEmptyValues(t *testing.T) {
@@ -12,10 +16,9 @@ func TestEmptyValues(t *testing.T) {
 		linterName: "helm-lint",
 		connPool:   nil,
 		documents:  nil,
-		values:     make(map[string]interface{}),
 	}
 
-	var result = handler.getValue(make(map[string]interface{}), []string{"global"})
+	result := handler.getValue(make(map[string]interface{}), []string{"global"})
 
 	if len(result) != 0 {
 		t.Errorf("Length of result was not zero.")
@@ -32,10 +35,9 @@ func TestValues(t *testing.T) {
 		linterName: "helm-lint",
 		connPool:   nil,
 		documents:  nil,
-		values:     make(map[string]interface{}),
 	}
-	var nested = map[string]interface{}{"nested": "value"}
-	var values = map[string]interface{}{"global": nested}
+	nested := map[string]interface{}{"nested": "value"}
+	values := map[string]interface{}{"global": nested}
 
 	result := handler.getValue(values, []string{"g"})
 
@@ -60,10 +62,9 @@ func TestWrongValues(t *testing.T) {
 		linterName: "helm-lint",
 		connPool:   nil,
 		documents:  nil,
-		values:     make(map[string]interface{}),
 	}
-	var nested = map[string]interface{}{"nested": 1}
-	var values = map[string]interface{}{"global": nested}
+	nested := map[string]interface{}{"nested": 1}
+	values := map[string]interface{}{"global": nested}
 
 	result := handler.getValue(values, []string{"some", "wrong", "values"})
 	if len(result) != 0 {
@@ -87,12 +88,11 @@ func TestWrongValues(t *testing.T) {
 }
 
 func TestCompletionAstParsing(t *testing.T) {
-
 	documentText := `{{ .Values.global. }}`
 	expectedWord := ".Values.global."
 	doc := &lsplocal.Document{
 		Content: documentText,
-		Ast:     lsplocal.ParseAst(documentText),
+		Ast:     lsplocal.ParseAst(nil, documentText),
 	}
 	position := protocol.Position{
 		Line:      0,
@@ -102,5 +102,70 @@ func TestCompletionAstParsing(t *testing.T) {
 	if expectedWord != word {
 		t.Errorf("Expected word '%s', but got '%s'", expectedWord, word)
 	}
+}
 
+func TestGetValuesCompletions(t *testing.T) {
+	handler := &langHandler{
+		linterName: "helm-lint",
+		connPool:   nil,
+		documents:  nil,
+	}
+	nested := map[string]interface{}{"nested": "value"}
+	valuesMain := map[string]interface{}{"global": nested}
+	valuesAdditional := map[string]interface{}{"glob": nested}
+	chart := &charts.Chart{
+		ChartMetadata: &charts.ChartMetadata{Metadata: chart.Metadata{Name: "test"}},
+		ValuesFiles: &charts.ValuesFiles{
+			MainValuesFile: &charts.ValuesFile{
+				Values:    valuesMain,
+				ValueNode: yaml.Node{},
+				URI:       "",
+			},
+			AdditionalValuesFiles: []*charts.ValuesFile{
+				{
+					Values:    valuesAdditional,
+					ValueNode: yaml.Node{},
+					URI:       "",
+				},
+			},
+		},
+		RootURI: "",
+	}
+
+	result := handler.getValuesCompletions(chart, []string{"g"})
+	assert.Equal(t, 2, len(result))
+
+	result = handler.getValuesCompletions(chart, []string{"something", "different"})
+	assert.Empty(t, result)
+}
+
+func TestGetValuesCompletionsContainsNoDupliactes(t *testing.T) {
+	handler := &langHandler{
+		linterName: "helm-lint",
+		connPool:   nil,
+		documents:  nil,
+	}
+	nested := map[string]interface{}{"nested": "value"}
+	valuesMain := map[string]interface{}{"global": nested}
+	valuesAdditional := map[string]interface{}{"global": nested}
+	testChart := &charts.Chart{
+		ChartMetadata: &charts.ChartMetadata{Metadata: chart.Metadata{Name: "test"}},
+		ValuesFiles: &charts.ValuesFiles{
+			MainValuesFile: &charts.ValuesFile{
+				Values:    valuesMain,
+				ValueNode: yaml.Node{},
+				URI:       "",
+			},
+			AdditionalValuesFiles: []*charts.ValuesFile{
+				{
+					Values: valuesAdditional,
+					URI:    "",
+				},
+			},
+		},
+		RootURI: "",
+	}
+
+	result := handler.getValuesCompletions(testChart, []string{"g"})
+	assert.Equal(t, 1, len(result))
 }

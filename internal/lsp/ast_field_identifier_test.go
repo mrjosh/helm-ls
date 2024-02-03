@@ -11,7 +11,7 @@ import (
 func TestGetFieldIdentifierPathSimple(t *testing.T) {
 	template := `{{ .Values.test }}`
 
-	var ast = ParseAst(template)
+	ast := ParseAst(nil, template)
 	// (template [0, 0] - [1, 0]
 	//  (selector_expression [0, 3] - [0, 15]
 	//    operand: (field [0, 3] - [0, 10]
@@ -37,7 +37,7 @@ func TestGetFieldIdentifierPathSimple(t *testing.T) {
 func TestGetFieldIdentifierPathWith(t *testing.T) {
 	template := `{{ with .Values }}{{ .test }} {{ end }}`
 
-	var ast = ParseAst(template)
+	ast := ParseAst(nil, template)
 	// (template [0, 0] - [1, 0]
 	//  (with_action [0, 0] - [0, 39]
 	//    condition: (field [0, 8] - [0, 15]
@@ -64,7 +64,7 @@ func TestGetFieldIdentifierPathWith(t *testing.T) {
 func TestGetFieldIdentifierPathFunction(t *testing.T) {
 	template := `{{ and .Values.test1 .Values.test2 }}`
 
-	var ast = ParseAst(template)
+	ast := ParseAst(nil, template)
 	// (template [0, 0] - [1, 0]
 	//   (function_call [0, 3] - [0, 35]
 	//     function: (identifier [0, 3] - [0, 6])
@@ -102,7 +102,7 @@ func TestGetFieldIdentifierPathFunctionForCompletion(t *testing.T) {
 	template := `{{ and .Values.image .Values.  }}`
 	//                                       | -> complete at dot
 
-	var ast = ParseAst(template)
+	ast := ParseAst(nil, template)
 
 	var (
 		position      = lsp.Position{Line: 0, Character: 29}

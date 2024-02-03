@@ -23,7 +23,8 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
     * [Make it executable](#make-it-executable)
     * [Integration with yaml-language-server](#integration-with-yaml-language-server)
 * [Configuration options](#configuration-options)
-    * [LSP Server](#lsp-server)
+    * [General](#general)
+    * [Values Files](#values-files)
     * [yaml-language-server config](#yaml-language-server-config)
     * [Default Configuration](#default-configuration)
 * [Editor Config examples](#editor-config-examples)
@@ -93,9 +94,15 @@ kind: ScaledObject
 
 You can configure helm-ls with lsp workspace configurations.
 
-### LSP Server
+### General
 
 - **Log Level**: Adjust log verbosity.
+
+### Values Files
+
+- **Main Values File**: Path to the main values file (values.yaml per default)
+- **Lint Overlay Values File**: Path to the lint overlay values file, which will be merged with the main values file for linting
+- **Additional Values Files Glob Pattern**: Pattern for additional values files, which will be shown for completion and hover
 
 ### yaml-language-server config
 
@@ -116,7 +123,12 @@ You can configure helm-ls with lsp workspace configurations.
 ```lua
 settings = {
   ['helm-ls'] = {
-    logLevel = "debug",
+    logLevel = "info",
+    valuesFiles = {
+      mainValuesFile = "values.yaml",
+      lintOverlayValuesFile = "values.lint.yaml",
+      additionalValuesFilesGlobPattern = "values*.yaml"
+    },
     yamlls = {
       enabled = true,
       diagnosticsLimit = 50,
@@ -124,11 +136,11 @@ settings = {
       path = "yaml-language-server",
       config = {
         schemas = {
-          kubernetes = "**",
+          kubernetes = "templates/**",
         },
         completion = true,
         hover = true,
-        -- any other config: https://github.com/redhat-developer/yaml-language-server#language-server-settings
+        -- any other config from https://github.com/redhat-developer/yaml-language-server#language-server-settings
       }
     }
   }

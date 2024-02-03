@@ -7,14 +7,14 @@ import (
 	yamlv3 "gopkg.in/yaml.v3"
 )
 
-func GetPositionOfNode(node yamlv3.Node, query []string) (lsp.Position, error) {
+func GetPositionOfNode(node *yamlv3.Node, query []string) (lsp.Position, error) {
 	if node.IsZero() {
 		return lsp.Position{}, fmt.Errorf("could not find Position of %s in values.yaml. Node was zero", query)
 	}
 
 	for index, value := range node.Content {
 		if value.Value == "" {
-			result, err := GetPositionOfNode(*value, query)
+			result, err := GetPositionOfNode(value, query)
 			if err == nil {
 				return result, nil
 			}
@@ -24,7 +24,7 @@ func GetPositionOfNode(node yamlv3.Node, query []string) (lsp.Position, error) {
 				if len(node.Content) < index+1 {
 					return lsp.Position{}, fmt.Errorf("could not find Position of %s in values.yaml", query)
 				}
-				return GetPositionOfNode(*node.Content[index+1], query[1:])
+				return GetPositionOfNode(node.Content[index+1], query[1:])
 			}
 			return lsp.Position{Line: uint32(value.Line) - 1, Character: uint32(value.Column) - 1}, nil
 		}

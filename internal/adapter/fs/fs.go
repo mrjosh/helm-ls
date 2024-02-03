@@ -66,7 +66,6 @@ func (fs *FileStorage) Canonical(path string) string {
 }
 
 func (fs *FileStorage) FileExists(path string) (bool, error) {
-
 	fi, err := fs.fileInfo(path)
 	if err != nil {
 		return false, err
