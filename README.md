@@ -18,21 +18,21 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
 
 * [Demo](#demo)
 * [Getting Started](#getting-started)
-  * [Installation with a package manager](#installation-with-a-package-manager)
-  * [Download](#download)
-  * [Make it executable](#make-it-executable)
-  * [Integration with yaml-language-server](#integration-with-yaml-language-server)
+    * [Installation with a package manager](#installation-with-a-package-manager)
+    * [Download](#download)
+    * [Make it executable](#make-it-executable)
+    * [Integration with yaml-language-server](#integration-with-yaml-language-server)
 * [Configuration options](#configuration-options)
-  * [General](#general)
-  * [Values Files](#values-files)
-  * [yaml-language-server config](#yaml-language-server-config)
-  * [Default Configuration](#default-configuration)
+    * [General](#general)
+    * [Values Files](#values-files)
+    * [yaml-language-server config](#yaml-language-server-config)
+    * [Default Configuration](#default-configuration)
 * [Editor Config examples](#editor-config-examples)
-  * [Neovim (using nvim-lspconfig)](#neovim-using-nvim-lspconfig)
-    * [Vim Helm Plugin](#vim-helm-plugin)
-    * [Setup laguage server](#setup-laguage-server)
-  * [VSCode](#vscode)
-  * [Emacs eglot setup](#emacs-eglot-setup)
+    * [Neovim (using nvim-lspconfig)](#neovim-using-nvim-lspconfig)
+        * [Vim Helm Plugin](#vim-helm-plugin)
+        * [Setup laguage server](#setup-laguage-server)
+    * [VSCode](#vscode)
+    * [Emacs eglot setup](#emacs-eglot-setup)
 * [Contributing](#contributing)
 * [License](#license)
 
@@ -136,7 +136,7 @@ settings = {
       path = "yaml-language-server",
       config = {
         schemas = {
-          kubernetes = "**",
+          kubernetes = "templates/**",
         },
         completion = true,
         hover = true,

@@ -47,7 +47,7 @@ type YamllsSettings struct {
 }
 
 var DefaultYamllsSettings = YamllsSettings{
-	Schemas:    map[string]string{"kubernetes": "**"},
+	Schemas:    map[string]string{"kubernetes": "templates/**"},
 	Completion: true,
 	Hover:      true,
 }
