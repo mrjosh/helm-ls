@@ -30,6 +30,5 @@ func GetLogger() logger {
 func createLogger() logger {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
-	logger.SetLevel(logrus.DebugLevel)
 	return logger
 }
