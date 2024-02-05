@@ -1,9 +1,11 @@
 package yamlls
 
 import (
+	"fmt"
 	"testing"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/stretchr/testify/assert"
 )
 
 type TrimTemplateTestData struct {
@@ -296,6 +298,40 @@ data:
            
 `,
 	},
+	{
+		documentText: `
+{{- /*
+Copyright Some Company, Inc.
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+`,
+		trimmedText: `
+      
+                            
+                                   
+    
+`,
+	},
+	{
+		documentText: `
+{{- $namespaces := list .Release.Namespace }}
+{{- $namespaces = .Values.controller.workflowNamespaces }}
+`,
+		trimmedText: `
+                                             
+                                                          
+`,
+	},
+	{
+		documentText: `
+{{- range $namespaces }}
+{{- end }}
+`,
+		trimmedText: `
+                       
+          
+`,
+	},
 }
 
 func TestTrimTemplate(t *testing.T) {
@@ -312,11 +348,5 @@ func testTrimTemplateWithTestData(t *testing.T, testData TrimTemplateTestData) {
 
 	trimmed := trimTemplateForYamllsFromAst(doc.Ast, testData.documentText)
 
-	result := trimmed == testData.trimmedText
-
-	if !result {
-		t.Errorf("Trimmed templated was not as expected but was %s ", trimmed)
-	} else {
-		t.Log("Trimmed templated was as expected")
-	}
+	assert.Equal(t, testData.trimmedText, trimmed, fmt.Sprintf("AST was: %v", doc.Ast.RootNode().String()))
 }
