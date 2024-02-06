@@ -328,8 +328,38 @@ SPDX-License-Identifier: APACHE-2.0
 {{- end }}
 `,
 		trimmedText: `
-                       
+                        
           
+`,
+	},
+	{
+		documentText: `
+list:
+  - value: {{ join "," .Values.initialCluster | quote }}
+  - name: some
+`,
+		trimmedText: `
+list:
+  - value: {{ join "," .Values.initialCluster | quote }}
+  - name: some
+`,
+	},
+	{
+		documentText: `
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: {{ join "," $roles | quote }}
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: {{ .Values.containerPorts.transport | quote }}
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: {{ .Values.containerPorts.restAPI | quote }}
+`,
+		trimmedText: `
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: {{ join "," $roles | quote }}
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: {{ .Values.containerPorts.transport | quote }}
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: {{ .Values.containerPorts.restAPI | quote }}
 `,
 	},
 }
