@@ -21,7 +21,7 @@ func (yamllsConnector *Connector) handleDiagnostics(req jsonrpc2.Request, client
 		logger.Println("Error handling diagnostic. Could not get document: " + params.URI.Filename())
 	}
 
-	doc.DiagnosticsCache.SetYamlDiagnostics(filterDiagnostics(params.Diagnostics, doc.Ast, doc.Content))
+	doc.DiagnosticsCache.SetYamlDiagnostics(filterDiagnostics(params.Diagnostics, doc.Ast.Copy(), doc.Content))
 	if doc.DiagnosticsCache.ShouldShowDiagnosticsOnNewYamlDiagnostics() {
 		logger.Debug("Publishing yamlls diagnostics")
 		params.Diagnostics = doc.DiagnosticsCache.GetMergedDiagnostics()
@@ -64,5 +64,4 @@ func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
 	default:
 		return true
 	}
-
 }
