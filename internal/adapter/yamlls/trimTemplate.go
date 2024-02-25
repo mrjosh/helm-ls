@@ -63,6 +63,11 @@ func trimAction(childCount uint32, node *sitter.Node, previous []byte, result []
 }
 
 func trimIfAction(node *sitter.Node, previous []byte, result []byte) {
+	if node.StartPoint().Row == node.EndPoint().Row {
+		earaseTemplate(node, previous, result)
+		return
+	}
+
 	curser := sitter.NewTreeCursor(node)
 	curser.GoToFirstChild()
 	for curser.GoToNextSibling() {

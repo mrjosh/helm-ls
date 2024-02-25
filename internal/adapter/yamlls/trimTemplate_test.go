@@ -242,9 +242,19 @@ metadata:
       `,
 	},
 	{
-		// todo: Handle this case better
 		documentText: `{{ if }}{{- end -}}`,
-		trimmedText:  `      }}           `,
+		trimmedText:  `                   `,
+	},
+	{
+		// todo: Handle this case better
+		documentText: `
+{{ if }}
+
+{{- end -}}`,
+		trimmedText: `
+      }}
+
+           `,
 	},
 	{
 		documentText: `{{- $shards := $.Values.shards | int }}`,
@@ -361,6 +371,14 @@ list:
             - name: ELASTICSEARCH_HTTP_PORT_NUMBER
               value: {{ .Values.containerPorts.restAPI | quote }}
 `,
+	},
+	{
+		documentText: `
+apiVersion: {{ if .Values.useStatefulSet }}{{ include "common.capabilities.statefulset.apiVersion" . }}{{- else }}{{ include "common.capabilities.deployment.apiVersion" . }}{{- end }}
+    `,
+		trimmedText: `
+apiVersion:                                                                                                                                                                            
+    `,
 	},
 }
 

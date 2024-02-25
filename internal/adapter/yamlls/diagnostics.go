@@ -50,7 +50,7 @@ func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content s
 }
 
 func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
-	logger.Debug("Diagnostic", diagnostic.Message)
+	logger.Debug("Checking if diagnostic is relevant", diagnostic.Message)
 	switch diagnostic.Message {
 	case "Map keys must be unique":
 		return !lsplocal.IsInElseBranch(node)
