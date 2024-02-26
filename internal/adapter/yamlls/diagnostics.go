@@ -60,6 +60,13 @@ func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
 		"A block sequence may not be used as an implicit map key":
 		// TODO: could add a check if is is caused by includes
 		return false
+	case "Block scalars with more-indented leading empty lines must use an explicit indentation indicator":
+		return false
+		// TODO: check if this is a false positive, probably requires parsing the yaml with tree-sitter injections
+		// smtp-password: |
+		//   {{- if not .Values.existingSecret }}
+		//   test: dsa
+		//   {{- end }}
 
 	default:
 		return true
