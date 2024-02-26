@@ -21,7 +21,7 @@ func (yamllsConnector *Connector) handleDiagnostics(req jsonrpc2.Request, client
 		logger.Println("Error handling diagnostic. Could not get document: " + params.URI.Filename())
 	}
 
-	doc.DiagnosticsCache.SetYamlDiagnostics(filterDiagnostics(params.Diagnostics, doc.Ast, doc.Content))
+	doc.DiagnosticsCache.SetYamlDiagnostics(filterDiagnostics(params.Diagnostics, doc.Ast.Copy(), doc.Content))
 	if doc.DiagnosticsCache.ShouldShowDiagnosticsOnNewYamlDiagnostics() {
 		logger.Debug("Publishing yamlls diagnostics")
 		params.Diagnostics = doc.DiagnosticsCache.GetMergedDiagnostics()
@@ -50,7 +50,7 @@ func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content s
 }
 
 func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
-	logger.Debug("Diagnostic", diagnostic.Message)
+	logger.Debug("Checking if diagnostic is relevant", diagnostic.Message)
 	switch diagnostic.Message {
 	case "Map keys must be unique":
 		return !lsplocal.IsInElseBranch(node)
@@ -60,9 +60,15 @@ func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
 		"A block sequence may not be used as an implicit map key":
 		// TODO: could add a check if is is caused by includes
 		return false
+	case "Block scalars with more-indented leading empty lines must use an explicit indentation indicator":
+		return false
+		// TODO: check if this is a false positive, probably requires parsing the yaml with tree-sitter injections
+		// smtp-password: |
+		//   {{- if not .Values.existingSecret }}
+		//   test: dsa
+		//   {{- end }}
 
 	default:
 		return true
 	}
-
 }

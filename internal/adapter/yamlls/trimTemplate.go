@@ -6,13 +6,13 @@ import (
 )
 
 func trimTemplateForYamllsFromAst(ast *sitter.Tree, text string) string {
-	var result = []byte(text)
+	result := []byte(text)
 	prettyPrintNode(ast.RootNode(), []byte(text), result)
 	return string(result)
 }
 
 func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
-	var childCount = node.ChildCount()
+	childCount := node.ChildCount()
 
 	switch node.Type() {
 	case gotemplate.NodeTypeIfAction:
@@ -23,7 +23,7 @@ func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {
 		earaseTemplate(node, previous, result)
 	case gotemplate.NodeTypeFunctionCall:
 		trimFunctionCall(node, previous, result)
-	case gotemplate.NodeTypeComment, gotemplate.NodeTypeVariableDefinition:
+	case gotemplate.NodeTypeComment, gotemplate.NodeTypeVariableDefinition, gotemplate.NodeTypeAssignment:
 		earaseTemplateAndSiblings(node, previous, result)
 	default:
 		for i := 0; i < int(childCount); i++ {
@@ -37,6 +37,7 @@ func trimAction(childCount uint32, node *sitter.Node, previous []byte, result []
 		child := node.Child(i)
 		switch child.Type() {
 		case
+			gotemplate.NodeTypeAssignment,
 			gotemplate.NodeTypeIf,
 			gotemplate.NodeTypeSelectorExpression,
 			gotemplate.NodeTypeElse,
@@ -52,6 +53,7 @@ func trimAction(childCount uint32, node *sitter.Node, previous []byte, result []
 			gotemplate.NodeTypeInterpretedStringLiteral,
 			gotemplate.NodeTypeBlock,
 			gotemplate.NodeTypeVariableDefinition,
+			gotemplate.NodeTypeVariable,
 			gotemplate.NodeTypeRangeVariableDefinition:
 			earaseTemplate(child, previous, result)
 		default:
@@ -61,6 +63,11 @@ func trimAction(childCount uint32, node *sitter.Node, previous []byte, result []
 }
 
 func trimIfAction(node *sitter.Node, previous []byte, result []byte) {
+	if node.StartPoint().Row == node.EndPoint().Row {
+		earaseTemplate(node, previous, result)
+		return
+	}
+
 	curser := sitter.NewTreeCursor(node)
 	curser.GoToFirstChild()
 	for curser.GoToNextSibling() {
@@ -94,7 +101,7 @@ func trimFunctionCall(node *sitter.Node, previous []byte, result []byte) {
 
 func earaseTemplateAndSiblings(node *sitter.Node, previous []byte, result []byte) {
 	earaseTemplate(node, previous, result)
-	var prevSibling, nextSibling = node.PrevSibling(), node.NextSibling()
+	prevSibling, nextSibling := node.PrevSibling(), node.NextSibling()
 	if prevSibling != nil {
 		earaseTemplate(prevSibling, previous, result)
 	}
@@ -107,8 +114,11 @@ func earaseTemplate(node *sitter.Node, previous []byte, result []byte) {
 	if node == nil {
 		return
 	}
-	logger.Println("Content that is earased", node.Content(previous))
+	logger.Debug("Content that is erased", node.Content(previous))
 	for i := range []byte(node.Content(previous)) {
-		result[int(node.StartByte())+i] = byte(' ')
+		index := int(node.StartByte()) + i
+		if result[index] != '\n' && result[index] != '\r' {
+			result[index] = byte(' ')
+		}
 	}
 }

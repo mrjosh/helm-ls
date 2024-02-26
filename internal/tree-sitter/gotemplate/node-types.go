@@ -1,6 +1,7 @@
 package gotemplate
 
 const (
+	NodeTypeAssignment               = "assignment"
 	NodeTypeBlock                    = "block"
 	NodeTypeBlockAction              = "block_action"
 	NodeTypeChainedPipeline          = "chained_pipeline"
