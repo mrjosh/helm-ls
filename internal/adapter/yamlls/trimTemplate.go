@@ -1,14 +1,13 @@
 package yamlls
 
 import (
+	"github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
 func trimTemplateForYamllsFromAst(ast *sitter.Tree, text string) string {
-	result := []byte(text)
-	prettyPrintNode(ast.RootNode(), []byte(text), result)
-	return string(result)
+	return lsp.TrimTemplate(ast, text)
 }
 
 func prettyPrintNode(node *sitter.Node, previous []byte, result []byte) {

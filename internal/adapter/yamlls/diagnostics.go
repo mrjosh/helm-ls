@@ -54,20 +54,20 @@ func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
 	switch diagnostic.Message {
 	case "Map keys must be unique":
 		return !lsplocal.IsInElseBranch(node)
-	case "All mapping items must start at the same column",
-		"Implicit map keys need to be followed by map values",
-		"Implicit keys need to be on a single line",
-		"A block sequence may not be used as an implicit map key":
-		// TODO: could add a check if is is caused by includes
-		return false
-	case "Block scalars with more-indented leading empty lines must use an explicit indentation indicator":
-		return false
-		// TODO: check if this is a false positive, probably requires parsing the yaml with tree-sitter injections
-		// smtp-password: |
-		//   {{- if not .Values.existingSecret }}
-		//   test: dsa
-		//   {{- end }}
-
+	// case "All mapping items must start at the same column",
+	// 	"Implicit map keys need to be followed by map values",
+	// 	"Implicit keys need to be on a single line",
+	// 	"A block sequence may not be used as an implicit map key":
+	// 	// TODO: could add a check if is is caused by includes
+	// 	return false
+	// case "Block scalars with more-indented leading empty lines must use an explicit indentation indicator":
+	// 	return false
+	// 	// TODO: check if this is a false positive, probably requires parsing the yaml with tree-sitter injections
+	// 	// smtp-password: |
+	// 	//   {{- if not .Values.existingSecret }}
+	// 	//   test: dsa
+	// 	//   {{- end }}
+	//
 	default:
 		return true
 	}
