@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.21.5]
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-2022]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -27,30 +27,3 @@ jobs:
 
     - name: Run tests
       run: make test
-        
-  tests-windows:
-    name: tests
-    strategy:
-      matrix:
-        go-version: [1.21.5]
-        os: [windows-2019]
-    runs-on: ${{ matrix.os }}
-    steps:
-
-    - name: Install Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ matrix.go-version }}
-
-    - name: Set up MinGW
-      uses: egor-tensin/setup-mingw@v2
-      with:
-        version: 12.2.0
-
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Run tests
-      run: make test
-      env:
-        CC: "cc"

@@ -40,14 +40,22 @@ var DefaultConfig = HelmlsConfiguration{
 	},
 }
 
+type YamllsSchemaStoreSettings struct {
+	Enable bool `json:"enable"`
+}
+
 type YamllsSettings struct {
-	Schemas    map[string]string `json:"schemas"`
-	Completion bool              `json:"completion"`
-	Hover      bool              `json:"hover"`
+	Schemas                   map[string]string         `json:"schemas"`
+	Completion                bool                      `json:"completion"`
+	Hover                     bool                      `json:"hover"`
+	YamllsSchemaStoreSettings YamllsSchemaStoreSettings `json:"schemaStore"`
 }
 
 var DefaultYamllsSettings = YamllsSettings{
 	Schemas:    map[string]string{"kubernetes": "templates/**"},
 	Completion: true,
 	Hover:      true,
+	YamllsSchemaStoreSettings: YamllsSchemaStoreSettings{
+		Enable: true,
+	},
 }

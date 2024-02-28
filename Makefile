@@ -55,7 +55,16 @@ install-metalinter:
 	@$(GO) get -v github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.2
 	@$(GO) install -v github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.2
 
+install-yamlls:
+	npm install --global yaml-language-server
+
+integration-test-deps:
+	@YAMLLS_BIN=$$(command -v yaml-language-server) || { echo "yaml-language-server command not found! Installing..." && $(MAKE) install-yamlls; };
+	git submodule init
+	git submodule update --depth 1
+
 test:
+	$(MAKE) integration-test-deps
 	@$(GO) test ./... -v -race
 
 coverage:
