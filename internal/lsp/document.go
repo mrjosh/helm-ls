@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
@@ -13,20 +14,21 @@ import (
 
 // documentStore holds opened documents.
 type DocumentStore struct {
-	documents map[string]*Document
+	documents sync.Map
 }
 
 func NewDocumentStore() *DocumentStore {
 	return &DocumentStore{
-		documents: map[string]*Document{},
+		documents: sync.Map{},
 	}
 }
 
 func (s *DocumentStore) GetAllDocs() []*Document {
 	var docs []*Document
-	for _, doc := range s.documents {
-		docs = append(docs, doc)
-	}
+	s.documents.Range(func(_, v interface{}) bool {
+		docs = append(docs, v.(*Document))
+		return true
+	})
 	return docs
 }
 
@@ -42,14 +44,17 @@ func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams, helmlsConf
 		Ast:              ParseAst(nil, params.TextDocument.Text),
 		DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
 	}
-	s.documents[path] = doc
+	s.documents.Store(path, doc)
 	return doc, nil
 }
 
 func (s *DocumentStore) Get(docuri uri.URI) (*Document, bool) {
 	path := docuri.Filename()
-	d, ok := s.documents[path]
-	return d, ok
+	d, ok := s.documents.Load(path)
+	if !ok {
+		return nil, false
+	}
+	return d.(*Document), ok
 }
 
 // Document represents an opened file.
