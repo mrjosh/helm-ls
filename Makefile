@@ -3,7 +3,7 @@ export BIN=$(ROOT)/bin
 export GOBIN?=$(BIN)
 export GO=$(shell which go)
 export PACKAGE_NAME=github.com/mrjosh/helm-ls
-export GOLANG_CROSS_VERSION=v1.20.6
+export GOLANG_CROSS_VERSION=v1.21.5
 export CGO_ENABLED=1
 
 $(eval GIT_COMMIT=$(shell git rev-parse --short HEAD))
