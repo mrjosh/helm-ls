@@ -24,11 +24,11 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Doc
 }
 
 func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.DidOpenTextDocumentParams) {
-	logger.Println("YamllsConnector DocumentDidOpen", params.TextDocument.URI)
+	logger.Debug("YamllsConnector DocumentDidOpen", params.TextDocument.URI)
 	if yamllsConnector.Conn == nil {
 		return
 	}
-	params.TextDocument.Text = trimTemplateForYamllsFromAst(ast, params.TextDocument.Text)
+	params.TextDocument.Text = lsplocal.TrimTemplate(ast, params.TextDocument.Text)
 
 	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidOpen, params)
 	if err != nil {
@@ -40,16 +40,17 @@ func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params 
 	if yamllsConnector.Conn == nil {
 		return
 	}
-	params.Text = trimTemplateForYamllsFromAst(doc.Ast, doc.Content)
+	params.Text = lsplocal.TrimTemplate(doc.Ast, doc.Content)
 
 	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidSave, params)
 	if err != nil {
 		logger.Error("Error calling yamlls for didSave", err)
 	}
 
-	yamllsConnector.DocumentDidChangeFullSync(doc, lsp.DidChangeTextDocumentParams{TextDocument: lsp.VersionedTextDocumentIdentifier{
-		TextDocumentIdentifier: params.TextDocument,
-	},
+	yamllsConnector.DocumentDidChangeFullSync(doc, lsp.DidChangeTextDocumentParams{
+		TextDocument: lsp.VersionedTextDocumentIdentifier{
+			TextDocumentIdentifier: params.TextDocument,
+		},
 	})
 }
 
@@ -57,7 +58,7 @@ func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, param
 	if yamllsConnector.Conn == nil {
 		return
 	}
-	var trimmedText = trimTemplateForYamllsFromAst(doc.Ast, doc.Content)
+	trimmedText := lsplocal.TrimTemplate(doc.Ast, doc.Content)
 
 	logger.Debug("Sending DocumentDidChange previous", params)
 	for i, change := range params.ContentChanges {
@@ -88,7 +89,7 @@ func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Documen
 	}
 
 	logger.Println("Sending DocumentDidChange with full sync, current content:", doc.Content)
-	var trimmedText = trimTemplateForYamllsFromAst(doc.Ast.Copy(), doc.Content)
+	trimmedText := lsplocal.TrimTemplate(doc.Ast.Copy(), doc.Content)
 
 	params.ContentChanges = []lsp.TextDocumentContentChangeEvent{
 		{
