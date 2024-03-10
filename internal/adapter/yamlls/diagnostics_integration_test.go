@@ -15,8 +15,10 @@ import (
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
+	"go.uber.org/zap"
 )
 
 // must be relative to this file
@@ -90,7 +92,7 @@ func sendTestFilesToYamlls(documents *lsplocal.DocumentStore, yamllsConnector *C
 	for {
 		select {
 		case d := <-filesChan:
-			documents.DidOpen(d, util.DefaultConfig)
+			documents.DidOpen(&d, util.DefaultConfig)
 			tree := lsplocal.ParseAst(nil, d.TextDocument.Text)
 			yamllsConnector.DocumentDidOpen(tree, d)
 			ownCount++
@@ -112,6 +114,8 @@ func TestYamllsDiagnosticsIntegration(t *testing.T) {
 	dir := t.TempDir()
 	documents := lsplocal.NewDocumentStore()
 	con := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloseMock{diagnosticsChan}))
+	zapLogger, _ := zap.NewProduction()
+	client := protocol.ClientDispatcher(con, zapLogger)
 	config := util.DefaultConfig.YamllsConfiguration
 
 	yamllsSettings := util.DefaultYamllsSettings
@@ -122,7 +126,7 @@ func TestYamllsDiagnosticsIntegration(t *testing.T) {
 		Enable: false,
 	}
 	config.YamllsSettings = yamllsSettings
-	yamllsConnector := NewConnector(config, con, documents)
+	yamllsConnector := NewConnector(config, client, documents)
 
 	if yamllsConnector.Conn == nil {
 		t.Fatal("Could not connect to yaml-language-server")

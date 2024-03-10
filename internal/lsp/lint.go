@@ -23,7 +23,7 @@ import (
 
 var logger = log.GetLogger()
 
-func NotificationFromLint(ctx context.Context, conn jsonrpc2.Conn, chart *charts.Chart, doc *Document) (*jsonrpc2.Notification, error) {
+func NotificationFromLint(ctx context.Context, conn jsonrpc2.Conn, chart *charts.Chart, doc *Document) (*lsp.PublishDiagnosticsParams, error) {
 	vals := chart.ValuesFiles.MainValuesFile.Values
 	if chart.ValuesFiles.OverlayValuesFile != nil {
 		vals = chartutil.CoalesceTables(chart.ValuesFiles.OverlayValuesFile.Values, chart.ValuesFiles.MainValuesFile.Values)
@@ -35,14 +35,10 @@ func NotificationFromLint(ctx context.Context, conn jsonrpc2.Conn, chart *charts
 	}
 	doc.DiagnosticsCache.HelmDiagnostics = diagnostics
 
-	return nil, conn.Notify(
-		ctx,
-		lsp.MethodTextDocumentPublishDiagnostics,
-		&lsp.PublishDiagnosticsParams{
-			URI:         doc.URI,
-			Diagnostics: doc.DiagnosticsCache.GetMergedDiagnostics(),
-		},
-	)
+	return &lsp.PublishDiagnosticsParams{
+		URI:         doc.URI,
+		Diagnostics: doc.DiagnosticsCache.GetMergedDiagnostics(),
+	}, nil
 }
 
 // GetDiagnostics will run helm linter against the currect document URI using the given values

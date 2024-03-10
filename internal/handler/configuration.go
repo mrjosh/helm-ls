@@ -5,28 +5,29 @@ import (
 	// "reflect"
 
 	"github.com/mrjosh/helm-ls/internal/util"
-	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *langHandler) handleWorkspaceDidChangeConfiguration(ctx context.Context, reply jsonrpc2.Replier, _ jsonrpc2.Request) (err error) {
+func (h *langHandler) DidChangeConfiguration(ctx context.Context, params *lsp.DidChangeConfigurationParams) (err error) {
 	// go h.retrieveWorkspaceConfiguration(ctx)
 	logger.Println("Changing workspace config is not implemented")
-	return reply(ctx, nil, nil)
+	return nil
 }
 
-func (h *langHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
+func (h *langHandler) RetrieveWorkspaceConfiguration(ctx context.Context) {
 	logger.Println("Calling workspace/configuration")
 	result := []util.HelmlsConfiguration{util.DefaultConfig}
 
-	_, err := h.connPool.Call(ctx, lsp.MethodWorkspaceConfiguration, lsp.ConfigurationParams{
+	configurationParams := lsp.ConfigurationParams{
 		Items: []lsp.ConfigurationItem{{Section: "helm-ls"}},
-	}, &result)
+	}
+
+	rawResult, err := h.client.Configuration(ctx, &configurationParams)
 
 	if err != nil {
 		logger.Println("Error calling workspace/configuration", err)
 	} else {
-		logger.Println("Workspace configuration:", result)
+		logger.Println("Workspace configuration:", rawResult)
 	}
 
 	if len(result) == 0 {
@@ -34,6 +35,9 @@ func (h *langHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
 		return
 	}
 
-	h.helmlsConfig = result[0]
+	// TODO: use retrieved config
+	h.helmlsConfig = util.DefaultConfig
+
+	logger.Println("Workspace configuration:", h.helmlsConfig)
 	h.initializationWithConfig()
 }

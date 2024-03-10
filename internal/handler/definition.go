@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,39 +11,29 @@ import (
 	gotemplate "github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
-	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 	"gopkg.in/yaml.v3"
 )
 
-func (h *langHandler) handleDefinition(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-	if req.Params() == nil {
-		return &jsonrpc2.Error{Code: jsonrpc2.InvalidParams}
-	}
-
-	var params lsp.DefinitionParams
-	if err := json.Unmarshal(req.Params(), &params); err != nil {
-		return err
-	}
-
+func (h *langHandler) Definition(ctx context.Context, params *lsp.DefinitionParams) (result []lsp.Location, err error) {
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
-		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+		return nil, errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 	chart, err := h.chartStore.GetChartForDoc(params.TextDocument.URI)
 	if err != nil {
 		logger.Error("Error getting chart info for file", params.TextDocument.URI, err)
 	}
 
-	result, err := h.definitionAstParsing(chart, doc, params.Position)
+	result, err = h.definitionAstParsing(chart, doc, params.Position)
 	if err != nil {
 		// suppress errors for clients
 		// otherwise using go-to-definition on words that have no definition
 		// will result in an error
 		logger.Println("Error getting definitions", err)
-		return reply(ctx, nil, nil)
+		return nil, nil
 	}
-	return reply(ctx, result, err)
+	return result, nil
 }
 
 func (h *langHandler) definitionAstParsing(chart *charts.Chart, doc *lsplocal.Document, position lsp.Position) ([]lsp.Location, error) {

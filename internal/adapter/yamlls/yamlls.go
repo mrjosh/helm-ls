@@ -8,17 +8,22 @@ import (
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
+	"go.uber.org/zap"
 )
 
 var logger = log.GetLogger()
 
 type Connector struct {
-	Conn   *jsonrpc2.Conn
-	config util.YamllsConfiguration
+	Conn      *jsonrpc2.Conn
+	config    util.YamllsConfiguration
+	server    protocol.Server
+	documents *lsplocal.DocumentStore
+	client    protocol.Client
 }
 
-func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) *Connector {
-	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
+func NewConnector(yamllsConfiguration util.YamllsConfiguration, client protocol.Client, documents *lsplocal.DocumentStore) *Connector {
+	yamllsCmd := exec.Command("yamlls-debug.sh", "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()
 	if err != nil {
@@ -50,10 +55,14 @@ func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonr
 			return &Connector{}
 		}
 	}
-	var yamllsConnector = Connector{}
-	conn := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloser))
-	yamllsConnector.config = yamllsConfiguration
-	conn.Go(context.Background(), yamllsConnector.yamllsHandler(clientConn, documents))
+	yamllsConnector := Connector{documents: documents, config: yamllsConfiguration, client: client}
+
+	ctx := context.Background()
+	zapLogger, _ := zap.NewProduction()
+	ctx, conn, server := protocol.NewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)
+
+	// conn.Go(context.Background(), yamllsConnector.yamllsHandler(clientConn, documents))
 	yamllsConnector.Conn = &conn
+	yamllsConnector.server = server
 	return &yamllsConnector
 }

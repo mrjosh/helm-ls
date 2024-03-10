@@ -1,25 +1,18 @@
 package cmds
 
 import (
-	"context"
 	"os"
 
 	"github.com/mrjosh/helm-ls/internal/handler"
 	"github.com/spf13/cobra"
-	"go.lsp.dev/jsonrpc2"
 )
 
 func newServeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Start helm lint language server",
-		RunE: func(cmd *cobra.Command, args []string) error {
-
-			conn := jsonrpc2.NewConn(jsonrpc2.NewStream(stdrwc{}))
-			handler := handler.NewHandler(conn)
-			handlerSrv := jsonrpc2.HandlerServer(handler)
-
-			return handlerSrv.ServeStream(context.Background(), conn)
+		Run: func(cmd *cobra.Command, args []string) {
+			handler.StartHandler(stdrwc{})
 		},
 	}
 
