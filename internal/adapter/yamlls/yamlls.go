@@ -2,22 +2,28 @@ package yamlls
 
 import (
 	"context"
+	"io"
+	"os"
 	"os/exec"
 
 	"github.com/mrjosh/helm-ls/internal/log"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
+	"go.uber.org/zap"
 )
 
 var logger = log.GetLogger()
 
 type Connector struct {
-	Conn   *jsonrpc2.Conn
-	config util.YamllsConfiguration
+	config    util.YamllsConfiguration
+	server    protocol.Server
+	documents *lsplocal.DocumentStore
+	client    protocol.Client
 }
 
-func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) *Connector {
+func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfiguration, client protocol.Client, documents *lsplocal.DocumentStore) *Connector {
 	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()
@@ -28,6 +34,12 @@ func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonr
 	stout, err := yamllsCmd.StdoutPipe()
 	if err != nil {
 		logger.Error("Could not connect to stdout of yaml-language-server, some features may be missing.")
+		return &Connector{}
+	}
+
+	strderr, err := yamllsCmd.StderrPipe()
+	if err != nil {
+		logger.Error("Could not connect to stderr of yaml-language-server, some features may be missing.")
 		return &Connector{}
 	}
 
@@ -50,10 +62,16 @@ func NewConnector(yamllsConfiguration util.YamllsConfiguration, clientConn jsonr
 			return &Connector{}
 		}
 	}
-	var yamllsConnector = Connector{}
-	conn := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloser))
-	yamllsConnector.config = yamllsConfiguration
-	conn.Go(context.Background(), yamllsConnector.yamllsHandler(clientConn, documents))
-	yamllsConnector.Conn = &conn
+
+	go func() {
+		io.Copy(os.Stderr, strderr)
+	}()
+
+	yamllsConnector := Connector{documents: documents, config: yamllsConfiguration, client: client}
+
+	zapLogger, _ := zap.NewProduction()
+	_, _, server := protocol.NewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)
+
+	yamllsConnector.server = server
 	return &yamllsConnector
 }

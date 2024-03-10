@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -16,24 +15,14 @@ import (
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
-	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
 
-func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-	if req.Params() == nil {
-		return &jsonrpc2.Error{Code: jsonrpc2.InvalidParams}
-	}
-
-	var params lsp.HoverParams
-	if err := json.Unmarshal(req.Params(), &params); err != nil {
-		return err
-	}
-
+func (h *langHandler) Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error) {
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
-		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+		return nil, errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 	chart, err := h.chartStore.GetChartForDoc(params.TextDocument.URI)
 	if err != nil {
@@ -49,7 +38,7 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 
 	if parent == nil {
 		err = errors.New("Could not parse ast correctly")
-		return reply(ctx, nil, err)
+		return nil, err
 	}
 
 	pt := parent.Type()
@@ -59,8 +48,8 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 		if len(word) > 2 && string(word[len(word)-1]) == ":" {
 			word = word[0 : len(word)-1]
 		}
-		response, err := h.yamllsConnector.CallHover(ctx, params, word)
-		return reply(ctx, response, err)
+		response, err := h.yamllsConnector.CallHover(ctx, *params, word)
+		return response, err
 	}
 	if pt == "function_call" && ct == "identifier" {
 		word = currentNode.Content([]byte(doc.Content))
@@ -79,7 +68,7 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	)
 
 	if word == "" {
-		return reply(ctx, nil, err)
+		return nil, err
 	}
 
 	for _, s := range splitted {
@@ -114,9 +103,9 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 				value = "\"\""
 			}
 			result := util.BuildHoverResponse(value, wordRange)
-			return reply(ctx, result, err)
+			return result, err
 		}
-		return reply(ctx, nil, err)
+		return nil, err
 	}
 
 	searchWord := variableSplitted[0]
@@ -132,10 +121,10 @@ func (h *langHandler) handleHover(ctx context.Context, reply jsonrpc2.Replier, r
 	for _, completionItem := range toSearch {
 		if searchWord == completionItem.Name {
 			result := util.BuildHoverResponse(fmt.Sprint(completionItem.Doc), wordRange)
-			return reply(ctx, result, err)
+			return result, err
 		}
 	}
-	return reply(ctx, lsp.Hover{}, err)
+	return nil, err
 }
 
 func (h *langHandler) getChartMetadataHover(metadata *chart.Metadata, key string) (string, error) {

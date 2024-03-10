@@ -42,7 +42,7 @@ var DefaultConfig = HelmlsConfiguration{
 
 type YamllsSchemaStoreSettings struct {
 	Enable bool   `json:"enable"`
-	Url    string `json:"url"`
+	URL    string `json:"url"`
 }
 
 type YamllsSettings struct {
@@ -58,6 +58,6 @@ var DefaultYamllsSettings = YamllsSettings{
 	Hover:      true,
 	YamllsSchemaStoreSettings: YamllsSchemaStoreSettings{
 		Enable: true,
-		Url:    "https://www.schemastore.org/api/json/catalog.json",
+		URL:    "https://www.schemastore.org/api/json/catalog.json",
 	},
 }

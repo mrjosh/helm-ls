@@ -65,10 +65,10 @@ integration-test-deps:
 
 test:
 	$(MAKE) integration-test-deps
-	@$(GO) test ./... -v -race
+	@$(GO) test ./... -v -race -tags=integration
 
 coverage:
-	@$(GO) test -coverprofile=.coverage ./internal/... && go tool cover -html=.coverage
+	@$(GO) test -coverprofile=.coverage -tags=integration ./internal/... && go tool cover -html=.coverage
 
 .PHONY: build-release
 build-release:

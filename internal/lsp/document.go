@@ -32,7 +32,7 @@ func (s *DocumentStore) GetAllDocs() []*Document {
 	return docs
 }
 
-func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (*Document, error) {
+func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (*Document, error) {
 	logger.Debug(fmt.Sprintf("Opening document %s with langID %s", params.TextDocument.URI, params.TextDocument.LanguageID))
 
 	uri := params.TextDocument.URI
@@ -44,6 +44,7 @@ func (s *DocumentStore) DidOpen(params lsp.DidOpenTextDocumentParams, helmlsConf
 		Ast:              ParseAst(nil, params.TextDocument.Text),
 		DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
 	}
+	// logger.Println("Storing doc ", path, s.documents)
 	s.documents.Store(path, doc)
 	return doc, nil
 }
