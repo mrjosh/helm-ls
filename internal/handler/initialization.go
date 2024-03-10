@@ -26,9 +26,6 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 		workspaceURI = uri.File(".")
 	}
 
-	logger.Debug("Initializing yamllsConnector")
-	h.yamllsConnector.CallInitialize(workspaceURI)
-
 	logger.Debug("Initializing chartStore")
 	h.chartStore = charts.NewChartStore(workspaceURI, h.NewChartWithWatchedFiles)
 
@@ -52,13 +49,12 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 	}, nil
 }
 
-func (h *langHandler) Initialized(ctx context.Context, params *lsp.InitializedParams) (err error) {
+func (h *langHandler) Initialized(ctx context.Context, _ *lsp.InitializedParams) (err error) {
 	go h.RetrieveWorkspaceConfiguration(ctx)
 	return nil
 }
 
 func (h *langHandler) initializationWithConfig() {
-	logger.Println("initializationWithConfig")
 	configureLogLevel(h.helmlsConfig)
 	h.chartStore.SetValuesFilesConfig(h.helmlsConfig.ValuesFilesConfig)
 	configureYamlls(h)
@@ -68,8 +64,10 @@ func configureYamlls(h *langHandler) {
 	config := h.helmlsConfig
 	if config.YamllsConfiguration.Enabled {
 		h.yamllsConnector = yamlls.NewConnector(config.YamllsConfiguration, h.client, h.documents)
-		h.yamllsConnector.CallInitialize(h.chartStore.RootURI)
-		h.yamllsConnector.DidChangeConfiguration()
+		err := h.yamllsConnector.CallInitialize(h.chartStore.RootURI)
+		if err != nil {
+			logger.Error("Error initializing yamlls", err)
+		}
 		h.yamllsConnector.InitiallySyncOpenDocuments(h.documents.GetAllDocs())
 	}
 }

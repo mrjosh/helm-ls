@@ -128,7 +128,7 @@ func TestYamllsDiagnosticsIntegration(t *testing.T) {
 	config.YamllsSettings = yamllsSettings
 	yamllsConnector := NewConnector(config, client, documents)
 
-	if yamllsConnector.Conn == nil {
+	if yamllsConnector.server == nil {
 		t.Fatal("Could not connect to yaml-language-server")
 	}
 

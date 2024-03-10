@@ -10,7 +10,7 @@ import (
 // Calls the Hover method of yamlls to get a fitting hover response
 // If hover returns nothing appropriate, calls yamlls for completions
 func (yamllsConnector Connector) CallHover(ctx context.Context, params lsp.HoverParams, word string) (*lsp.Hover, error) {
-	if yamllsConnector.Conn == nil {
+	if yamllsConnector.server == nil {
 		return &lsp.Hover{}, nil
 	}
 

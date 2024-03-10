@@ -15,7 +15,6 @@ import (
 var logger = log.GetLogger()
 
 type Connector struct {
-	Conn      *jsonrpc2.Conn
 	config    util.YamllsConfiguration
 	server    protocol.Server
 	documents *lsplocal.DocumentStore
@@ -23,7 +22,7 @@ type Connector struct {
 }
 
 func NewConnector(yamllsConfiguration util.YamllsConfiguration, client protocol.Client, documents *lsplocal.DocumentStore) *Connector {
-	yamllsCmd := exec.Command("yamlls-debug.sh", "--stdio")
+	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()
 	if err != nil {
@@ -59,10 +58,8 @@ func NewConnector(yamllsConfiguration util.YamllsConfiguration, client protocol.
 
 	ctx := context.Background()
 	zapLogger, _ := zap.NewProduction()
-	ctx, conn, server := protocol.NewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)
+	ctx, _, server := protocol.NewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)
 
-	// conn.Go(context.Background(), yamllsConnector.yamllsHandler(clientConn, documents))
-	yamllsConnector.Conn = &conn
 	yamllsConnector.server = server
 	return &yamllsConnector
 }
