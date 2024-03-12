@@ -2,6 +2,8 @@ package yamlls
 
 import (
 	"context"
+	"io"
+	"os"
 	"os/exec"
 
 	"github.com/mrjosh/helm-ls/internal/log"
@@ -34,6 +36,18 @@ func NewConnector(yamllsConfiguration util.YamllsConfiguration, client protocol.
 		logger.Error("Could not connect to stdout of yaml-language-server, some features may be missing.")
 		return &Connector{}
 	}
+
+	strderr, err := yamllsCmd.StderrPipe()
+	if err != nil {
+		logger.Error("Could not connect to stderr of yaml-language-server, some features may be missing.")
+		return &Connector{}
+	}
+
+	go func() {
+		for {
+			io.Copy(os.Stderr, strderr)
+		}
+	}()
 
 	readWriteCloser := readWriteCloseSubprocess{
 		stout,
