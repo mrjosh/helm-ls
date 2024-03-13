@@ -12,11 +12,9 @@ import (
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
-	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
-	"go.uber.org/zap"
 )
 
 // must be relative to this file
@@ -116,40 +114,15 @@ func TestYamllsDiagnosticsIntegration(t *testing.T) {
 
 func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams)
-	dir := t.TempDir()
-	documents := lsplocal.NewDocumentStore()
-	con := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloseMock{diagnosticsChan}))
-	zapLogger, _ := zap.NewProduction()
-	client := protocol.ClientDispatcher(con, zapLogger)
 
 	config := util.DefaultConfig.YamllsConfiguration
+	yamllsConnector, documents, diagnosticsChan := getYamlLsConnector(t, config)
 
-	content, err := os.ReadFile("../../../testdata/example/templates/service.yaml")
-	if err != nil {
-		t.Fatal("Could not read test file", err)
-	}
-
-	yamllsConnector := NewConnector(config, client, documents)
-
-	if yamllsConnector.server == nil {
-		t.Fatal("Could not connect to yaml-language-server")
-	}
-
-	yamllsConnector.CallInitialize(uri.File(dir))
-	d := lsp.DidOpenTextDocumentParams{
-		TextDocument: lsp.TextDocumentItem{
-			URI:        uri.File("tmp/templates/test.yaml"),
-			LanguageID: "",
-			Version:    0,
-			Text:       string(content),
-		},
-	}
-	documents.DidOpen(&d, util.DefaultConfig)
-	tree := lsplocal.ParseAst(nil, d.TextDocument.Text)
-	yamllsConnector.DocumentDidOpen(tree, d)
+	file := "../../../testdata/example/templates/service.yaml"
+	openFile(t, documents, file, yamllsConnector)
 
 	expected := lsp.PublishDiagnosticsParams{
-		URI: uri.File("tmp/templates/test.yaml"),
+		URI: uri.File(file),
 		Diagnostics: []lsp.Diagnostic{
 			{
 				Range: protocol.Range{
@@ -197,7 +170,7 @@ func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 
 	assert.Contains(t, diagnostic, expected)
 	assert.Contains(t, diagnostic, lsp.PublishDiagnosticsParams{
-		URI:         uri.File("tmp/templates/test.yaml"),
+		URI:         uri.File(file),
 		Version:     0,
 		Diagnostics: []lsp.Diagnostic{},
 	},
