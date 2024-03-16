@@ -119,8 +119,7 @@ func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 
 	config := util.DefaultConfig.YamllsConfiguration
 	yamllsConnector, documents, diagnosticsChan := getYamlLsConnector(t, config)
-
-	file := "../../../testdata/example/templates/service.yaml"
+	file := filepath.Join("..", "..", "..", "testdata", "example", "templates", "service.yaml")
 	openFile(t, documents, file, yamllsConnector)
 
 	expected := lsp.PublishDiagnosticsParams{
