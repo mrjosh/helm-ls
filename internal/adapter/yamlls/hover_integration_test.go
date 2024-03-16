@@ -1,3 +1,5 @@
+//go:build integration
+
 package yamlls
 
 import (
@@ -48,7 +50,7 @@ func TestYamllsHoverIntegration(t *testing.T) {
 			file: "../../../testdata/example/templates/deployment.yaml",
 			position: lsp.Position{
 				Line:      1,
-				Character: 13,
+				Character: 12,
 			},
 			word:     "kind",
 			expected: "Kind is a string value representing the REST resource this object represents",
