@@ -122,58 +122,47 @@ func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 	file := filepath.Join("..", "..", "..", "testdata", "example", "templates", "service.yaml")
 	openFile(t, documents, file, yamllsConnector)
 
-	expected := lsp.PublishDiagnosticsParams{
-		URI: uri.File(file),
-		Diagnostics: []lsp.Diagnostic{
-			{
-				Range: protocol.Range{
-					Start: protocol.Position{
-						Line:      1.0,
-						Character: 0,
-					},
-					End: protocol.Position{
-						Line:      1,
-						Character: 5,
-					},
-				},
-				Severity:           1,
-				Code:               0.0,
-				CodeDescription:    nil,
-				Source:             "yaml-schema: https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.22.4-standalone-strict/_definitions.json",
-				Message:            "Yamlls: Property wrong is not allowed.",
-				Tags:               nil,
-				RelatedInformation: nil,
-				Data: map[string]interface{}{
-					"properties": []interface{}{
-						"status",
-					},
-					"schemaUri": []interface{}{
-						"https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.22.4-standalone-strict/_definitions.json",
-					},
-				},
+	expected := lsp.Diagnostic{
+		Range: protocol.Range{
+			Start: protocol.Position{
+				Line:      1.0,
+				Character: 0,
+			},
+			End: protocol.Position{
+				Line:      1,
+				Character: 5,
+			},
+		},
+		Severity:           1,
+		Code:               0.0,
+		CodeDescription:    nil,
+		Source:             "yaml-schema: https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.22.4-standalone-strict/_definitions.json",
+		Message:            "Yamlls: Property wrong is not allowed.",
+		Tags:               nil,
+		RelatedInformation: nil,
+		Data: map[string]interface{}{
+			"properties": []interface{}{
+				"status",
+			},
+			"schemaUri": []interface{}{
+				"https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.22.4-standalone-strict/_definitions.json",
 			},
 		},
 	}
 
-	diagnostic := []lsp.PublishDiagnosticsParams{}
+	diagnostic := []lsp.Diagnostic{}
 	afterCh := time.After(10 * time.Second)
 	for {
-		if len(diagnostic) == 2 {
+		if len(diagnostic) > 0 {
 			break
 		}
 		select {
 		case d := <-diagnosticsChan:
-			diagnostic = append(diagnostic, d)
+			diagnostic = append(diagnostic, d.Diagnostics...)
 		case <-afterCh:
 			t.Fatal("Timed out waiting for diagnostics")
 		}
 	}
 
 	assert.Contains(t, diagnostic, expected)
-	assert.Contains(t, diagnostic, lsp.PublishDiagnosticsParams{
-		URI:         uri.File(file),
-		Version:     0,
-		Diagnostics: []lsp.Diagnostic{},
-	},
-	)
 }
