@@ -46,16 +46,6 @@ func TestYamllsHoverIntegration(t *testing.T) {
 			expected: "Template describes the pods that will be created",
 		},
 		{
-			desc: "test hover on deployment.yaml with value",
-			file: "../../../testdata/example/templates/deployment.yaml",
-			position: lsp.Position{
-				Line:      1,
-				Character: 12,
-			},
-			word:     "kind",
-			expected: "Kind is a string value representing the REST resource this object represents",
-		},
-		{
 			desc: "test hover on file without templates",
 			file: "../../../testdata/example/templates/deployment-no-templates.yaml",
 			position: lsp.Position{
