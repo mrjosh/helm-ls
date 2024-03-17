@@ -115,6 +115,7 @@ func TestYamllsDiagnosticsIntegration(t *testing.T) {
 }
 
 func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
+	t.Parallel()
 	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams)
 
 	config := util.DefaultConfig.YamllsConfiguration

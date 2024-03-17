@@ -81,7 +81,6 @@ func openFile(t *testing.T, documents *lsplocal.DocumentStore, path string, yaml
 			Text:       string(content),
 		},
 	}
-	documents.DidOpen(&d, util.DefaultConfig)
-	tree := lsplocal.ParseAst(nil, d.TextDocument.Text)
-	yamllsConnector.DocumentDidOpen(tree, d)
+	doc, err := documents.DidOpen(&d, util.DefaultConfig)
+	yamllsConnector.DocumentDidOpen(doc.Ast, d)
 }
