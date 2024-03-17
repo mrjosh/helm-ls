@@ -6,6 +6,7 @@ import (
 
 	// "reflect"
 
+	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 )
 
@@ -20,7 +21,6 @@ func (h *langHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
 	configurationParams := lsp.ConfigurationParams{
 		Items: []lsp.ConfigurationItem{{Section: "helm-ls"}},
 	}
-	result := h.helmlsConfig
 
 	rawResult, err := h.client.Configuration(ctx, &configurationParams)
 	if err != nil {
@@ -29,29 +29,30 @@ func (h *langHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
 		return
 	}
 
+	h.helmlsConfig = parseWorkspaceConfiguration(rawResult, h.helmlsConfig)
+	logger.Println("Workspace configuration:", h.helmlsConfig)
+	h.initializationWithConfig(ctx)
+}
+
+func parseWorkspaceConfiguration(rawResult []interface{}, currentConfig util.HelmlsConfiguration) (result util.HelmlsConfiguration) {
 	logger.Debug("Raw Workspace configuration:", rawResult)
 
 	if len(rawResult) == 0 {
 		logger.Println("Workspace configuration is empty")
-		h.initializationWithConfig(ctx)
-		return
+		return currentConfig
 	}
 
 	jsonResult, err := json.Marshal(rawResult[0])
 	if err != nil {
 		logger.Println("Error marshalling workspace/configuration", err)
-		h.initializationWithConfig(ctx)
-		return
+		return currentConfig
 	}
+
+	result = currentConfig
 	err = json.Unmarshal(jsonResult, &result)
 	if err != nil {
 		logger.Println("Error unmarshalling workspace/configuration", err)
-		h.initializationWithConfig(ctx)
-		return
+		return currentConfig
 	}
-
-	h.helmlsConfig = result
-
-	logger.Println("Workspace configuration:", h.helmlsConfig)
-	h.initializationWithConfig(ctx)
+	return result
 }
