@@ -1,18 +1,17 @@
 package yamlls
 
 import (
-	"encoding/json"
+	"context"
 
-	"go.lsp.dev/jsonrpc2"
-	lsp "go.lsp.dev/protocol"
+	"go.lsp.dev/protocol"
 )
 
-func (yamllsConnector Connector) handleConfiguration(req jsonrpc2.Request) []interface{} {
-	var params lsp.ConfigurationParams
-	if err := json.Unmarshal(req.Params(), &params); err != nil {
-		logger.Error("Error parsing configuration request from yamlls", err)
-	}
-	logger.Debug("Yamlls ConfigurationParams", params)
-	settings := []interface{}{yamllsConnector.config.YamllsSettings}
-	return settings
+// Configuration implements protocol.Client.
+func (y Connector) Configuration(_ context.Context, _ *protocol.ConfigurationParams) (result []interface{}, err error) {
+	settings := []interface{}{y.config.YamllsSettings}
+	return settings, nil
+}
+
+func (y Connector) DidChangeConfiguration(ctx context.Context) (err error) {
+	return y.server.DidChangeConfiguration(ctx, &protocol.DidChangeConfigurationParams{})
 }

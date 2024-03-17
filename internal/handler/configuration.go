@@ -2,38 +2,57 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
+
 	// "reflect"
 
 	"github.com/mrjosh/helm-ls/internal/util"
-	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *langHandler) handleWorkspaceDidChangeConfiguration(ctx context.Context, reply jsonrpc2.Replier, _ jsonrpc2.Request) (err error) {
+func (h *langHandler) DidChangeConfiguration(ctx context.Context, params *lsp.DidChangeConfigurationParams) (err error) {
 	// go h.retrieveWorkspaceConfiguration(ctx)
 	logger.Println("Changing workspace config is not implemented")
-	return reply(ctx, nil, nil)
+	return nil
 }
 
 func (h *langHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
-	logger.Println("Calling workspace/configuration")
-	result := []util.HelmlsConfiguration{util.DefaultConfig}
-
-	_, err := h.connPool.Call(ctx, lsp.MethodWorkspaceConfiguration, lsp.ConfigurationParams{
+	logger.Debug("Calling workspace/configuration")
+	configurationParams := lsp.ConfigurationParams{
 		Items: []lsp.ConfigurationItem{{Section: "helm-ls"}},
-	}, &result)
-
-	if err != nil {
-		logger.Println("Error calling workspace/configuration", err)
-	} else {
-		logger.Println("Workspace configuration:", result)
 	}
 
-	if len(result) == 0 {
-		logger.Println("Workspace configuration is empty")
+	rawResult, err := h.client.Configuration(ctx, &configurationParams)
+	if err != nil {
+		logger.Println("Error calling workspace/configuration", err)
+		h.initializationWithConfig(ctx)
 		return
 	}
 
-	h.helmlsConfig = result[0]
-	h.initializationWithConfig()
+	h.helmlsConfig = parseWorkspaceConfiguration(rawResult, h.helmlsConfig)
+	logger.Println("Workspace configuration:", h.helmlsConfig)
+	h.initializationWithConfig(ctx)
+}
+
+func parseWorkspaceConfiguration(rawResult []interface{}, currentConfig util.HelmlsConfiguration) (result util.HelmlsConfiguration) {
+	logger.Debug("Raw Workspace configuration:", rawResult)
+
+	if len(rawResult) == 0 {
+		logger.Println("Workspace configuration is empty")
+		return currentConfig
+	}
+
+	jsonResult, err := json.Marshal(rawResult[0])
+	if err != nil {
+		logger.Println("Error marshalling workspace/configuration", err)
+		return currentConfig
+	}
+
+	result = currentConfig
+	err = json.Unmarshal(jsonResult, &result)
+	if err != nil {
+		logger.Println("Error unmarshalling workspace/configuration", err)
+		return currentConfig
+	}
+	return result
 }

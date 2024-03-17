@@ -2,24 +2,14 @@ package yamlls
 
 import (
 	"context"
-	"reflect"
 
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector Connector) CallCompletion(ctx context.Context, params lsp.CompletionParams) *lsp.CompletionList {
-	if yamllsConnector.Conn == nil {
-		return &lsp.CompletionList{}
+func (yamllsConnector Connector) CallCompletion(ctx context.Context, params *lsp.CompletionParams) (*lsp.CompletionList, error) {
+	if yamllsConnector.server == nil {
+		return &lsp.CompletionList{}, nil
 	}
 
-	logger.Println("Calling yamlls for completions")
-	var response = reflect.New(reflect.TypeOf(lsp.CompletionList{})).Interface()
-	_, err := (*yamllsConnector.Conn).Call(ctx, lsp.MethodTextDocumentCompletion, params, response)
-	if err != nil {
-		logger.Error("Error Calling yamlls for completions", err)
-		return &lsp.CompletionList{}
-	}
-
-	logger.Debug("Got completions from yamlls", response)
-	return response.(*lsp.CompletionList)
+	return yamllsConnector.server.Completion(ctx, params)
 }

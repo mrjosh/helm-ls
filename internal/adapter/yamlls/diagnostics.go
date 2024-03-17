@@ -2,21 +2,15 @@ package yamlls
 
 import (
 	"context"
-	"encoding/json"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	sitter "github.com/smacker/go-tree-sitter"
-	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector *Connector) handleDiagnostics(req jsonrpc2.Request, clientConn jsonrpc2.Conn, documents *lsplocal.DocumentStore) {
-	var params lsp.PublishDiagnosticsParams
-	if err := json.Unmarshal(req.Params(), &params); err != nil {
-		logger.Println("Error handling diagnostic", err)
-	}
-
-	doc, ok := documents.Get(params.URI)
+func (c Connector) PublishDiagnostics(ctx context.Context, params *protocol.PublishDiagnosticsParams) (err error) {
+	doc, ok := c.documents.Get(params.URI)
 	if !ok {
 		logger.Println("Error handling diagnostic. Could not get document: " + params.URI.Filename())
 	}
@@ -25,11 +19,13 @@ func (yamllsConnector *Connector) handleDiagnostics(req jsonrpc2.Request, client
 	if doc.DiagnosticsCache.ShouldShowDiagnosticsOnNewYamlDiagnostics() {
 		logger.Debug("Publishing yamlls diagnostics")
 		params.Diagnostics = doc.DiagnosticsCache.GetMergedDiagnostics()
-		err := clientConn.Notify(context.Background(), lsp.MethodTextDocumentPublishDiagnostics, &params)
+		err := c.client.PublishDiagnostics(ctx, params)
 		if err != nil {
 			logger.Println("Error calling yamlls for diagnostics", err)
 		}
 	}
+
+	return nil
 }
 
 func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content string) (filtered []lsp.Diagnostic) {
