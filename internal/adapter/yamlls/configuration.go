@@ -7,12 +7,11 @@ import (
 )
 
 // Configuration implements protocol.Client.
-func (y Connector) Configuration(ctx context.Context, params *protocol.ConfigurationParams) (result []interface{}, err error) {
+func (y Connector) Configuration(_ context.Context, _ *protocol.ConfigurationParams) (result []interface{}, err error) {
 	settings := []interface{}{y.config.YamllsSettings}
 	return settings, nil
 }
 
-func (y Connector) DidChangeConfiguration() (err error) {
-	ctx := context.Background()
+func (y Connector) DidChangeConfiguration(ctx context.Context) (err error) {
 	return y.server.DidChangeConfiguration(ctx, &protocol.DidChangeConfigurationParams{})
 }

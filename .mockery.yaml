@@ -1,0 +1,10 @@
+with-expecter: true
+packages:
+    go.lsp.dev/protocol:
+        # place your package-specific config here
+        config:
+        interfaces:
+            # select the interfaces you want mocked
+            Client:
+                # Modify package-level config for this specific interface (if applicable)
+                config:

@@ -8,7 +8,7 @@ import (
 	"go.lsp.dev/uri"
 )
 
-func (yamllsConnector Connector) CallInitialize(workspaceURI uri.URI) error {
+func (yamllsConnector Connector) CallInitialize(ctx context.Context, workspaceURI uri.URI) error {
 	if yamllsConnector.server == nil {
 		return nil
 	}
@@ -21,13 +21,13 @@ func (yamllsConnector Connector) CallInitialize(workspaceURI uri.URI) error {
 		},
 	}
 
-	_, err := yamllsConnector.server.Initialize(context.Background(), &params)
+	_, err := yamllsConnector.server.Initialize(ctx, &params)
 	if err != nil {
 		return err
 	}
-	err = yamllsConnector.server.DidChangeConfiguration(context.Background(), &lsp.DidChangeConfigurationParams{})
+	err = yamllsConnector.server.DidChangeConfiguration(ctx, &lsp.DidChangeConfigurationParams{})
 	if err != nil {
 		return err
 	}
-	return yamllsConnector.server.Initialized(context.Background(), &lsp.InitializedParams{})
+	return yamllsConnector.server.Initialized(ctx, &lsp.InitializedParams{})
 }

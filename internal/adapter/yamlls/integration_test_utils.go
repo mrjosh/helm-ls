@@ -3,6 +3,7 @@
 package yamlls
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"strings"
@@ -60,7 +61,7 @@ func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration) (*Connect
 		t.Fatal("Could not connect to yaml-language-server")
 	}
 
-	yamllsConnector.CallInitialize(uri.File(dir))
+	yamllsConnector.CallInitialize(context.Background(), uri.File(dir))
 
 	return yamllsConnector, documents, diagnosticsChan
 }

@@ -50,21 +50,21 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 }
 
 func (h *langHandler) Initialized(ctx context.Context, _ *lsp.InitializedParams) (err error) {
-	go h.RetrieveWorkspaceConfiguration(ctx)
+	go h.retrieveWorkspaceConfiguration(ctx)
 	return nil
 }
 
-func (h *langHandler) initializationWithConfig() {
+func (h *langHandler) initializationWithConfig(ctx context.Context) {
 	configureLogLevel(h.helmlsConfig)
 	h.chartStore.SetValuesFilesConfig(h.helmlsConfig.ValuesFilesConfig)
-	configureYamlls(h)
+	configureYamlls(ctx, h)
 }
 
-func configureYamlls(h *langHandler) {
+func configureYamlls(ctx context.Context, h *langHandler) {
 	config := h.helmlsConfig
 	if config.YamllsConfiguration.Enabled {
 		h.yamllsConnector = yamlls.NewConnector(config.YamllsConfiguration, h.client, h.documents)
-		err := h.yamllsConnector.CallInitialize(h.chartStore.RootURI)
+		err := h.yamllsConnector.CallInitialize(ctx, h.chartStore.RootURI)
 		if err != nil {
 			logger.Error("Error initializing yamlls", err)
 		}
