@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mrjosh/helm-ls/internal/log"
 	"go.lsp.dev/protocol"
 )
 

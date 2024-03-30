@@ -44,7 +44,7 @@ func (h *langHandler) Hover(ctx context.Context, params *lsp.HoverParams) (resul
 
 	pt := parent.Type()
 	ct := currentNode.Type()
-	if ct == "text" {
+	if ct == gotemplate.NodeTypeText {
 		word := doc.WordAt(params.Position)
 		if len(word) > 2 && string(word[len(word)-1]) == ":" {
 			word = word[0 : len(word)-1]
@@ -52,10 +52,11 @@ func (h *langHandler) Hover(ctx context.Context, params *lsp.HoverParams) (resul
 		response, err := h.yamllsConnector.CallHover(ctx, *params, word)
 		return response, err
 	}
-	if pt == "function_call" && ct == "identifier" {
+	if pt == gotemplate.NodeTypeFunctionCall && ct == gotemplate.NodeTypeIdentifier {
 		word = currentNode.Content([]byte(doc.Content))
 	}
-	if (pt == "selector_expression" || pt == "field") && (ct == "identifier" || ct == "field_identifier") {
+	if (pt == gotemplate.NodeTypeSelectorExpression || pt == gotemplate.NodeTypeField) &&
+		(ct == gotemplate.NodeTypeIdentifier || ct == gotemplate.NodeTypeFieldIdentifier) {
 		word = lspinternal.GetFieldIdentifierPath(currentNode, doc)
 	}
 	if ct == gotemplate.NodeTypeDot {
@@ -150,7 +151,7 @@ func (h *langHandler) getValueHover(chart *charts.Chart, splittedVar []string) (
 
 	for _, valuesFiles := range valuesFiles {
 		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
-			result, err := getTableOrValueForSelector(valuesFile.Values, strings.Join(valuesFiles.Selector, "."))
+			result, err := h.getTableOrValueForSelector(valuesFile.Values, strings.Join(valuesFiles.Selector, "."))
 			if err == nil {
 				results[valuesFile.URI] = result
 			}
@@ -179,13 +180,13 @@ func (h *langHandler) getValueHover(chart *charts.Chart, splittedVar []string) (
 	return result, nil
 }
 
-func getTableOrValueForSelector(values chartutil.Values, selector string) (string, error) {
+func (h *langHandler) getTableOrValueForSelector(values chartutil.Values, selector string) (string, error) {
 	if len(selector) > 0 {
 		localValues, err := values.Table(selector)
 		if err != nil {
 			logger.Debug("values.PathValue(tableName) because of error", err)
 			value, err := values.PathValue(selector)
-			return fmt.Sprint(value), err
+			return h.formatToYAML(reflect.Indirect(reflect.ValueOf(value)), selector), err
 		}
 		logger.Debug("converting to YAML", localValues)
 		return localValues.YAML()
@@ -206,11 +207,17 @@ func (h *langHandler) getBuiltInObjectsHover(items []HelmDocumentation, key stri
 func (h *langHandler) getMetadataField(v *chart.Metadata, fieldName string) string {
 	r := reflect.ValueOf(v)
 	field := reflect.Indirect(r).FieldByName(fieldName)
+	return h.formatToYAML(field, fieldName)
+}
+
+func (h *langHandler) formatToYAML(field reflect.Value, fieldName string) string {
 	switch field.Kind() {
 	case reflect.String:
 		return field.String()
-	case reflect.Slice, reflect.Map:
+	case reflect.Map:
 		return h.toYAML(field.Interface())
+	case reflect.Slice:
+		return h.toYAML(map[string]interface{}{fieldName: field.Interface()})
 	case reflect.Bool:
 		return fmt.Sprint(h.getBoolType(field))
 	default:

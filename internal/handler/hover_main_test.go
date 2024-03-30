@@ -47,7 +47,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      25,
 				Character: 28,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "[]"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "imagePullSecrets: []\n"),
 			expectedError: nil,
 		},
 		{

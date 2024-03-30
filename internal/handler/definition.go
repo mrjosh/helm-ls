@@ -49,8 +49,14 @@ func (h *langHandler) definitionAstParsing(chart *charts.Chart, doc *lsplocal.Do
 	nodeType := relevantChildNode.Type()
 	switch nodeType {
 	case gotemplate.NodeTypeIdentifier:
-		if relevantChildNode.Parent().Type() == gotemplate.NodeTypeVariable {
+		logger.Println("Parent type", relevantChildNode.Parent().Type())
+		parentType := relevantChildNode.Parent().Type()
+		if parentType == gotemplate.NodeTypeVariable {
 			return h.getDefinitionForVariable(relevantChildNode, doc)
+		}
+
+		if parentType == gotemplate.NodeTypeSelectorExpression || parentType == gotemplate.NodeTypeField {
+			return h.getDefinitionForValue(chart, relevantChildNode, doc)
 		}
 		return h.getDefinitionForFixedIdentifier(chart, relevantChildNode, doc)
 	case gotemplate.NodeTypeDot, gotemplate.NodeTypeDotSymbol, gotemplate.NodeTypeFieldIdentifier:
@@ -130,9 +136,10 @@ func getYamlPath(node *sitter.Node, doc *lsplocal.Document) string {
 	switch node.Type() {
 	case gotemplate.NodeTypeDot:
 		return lsplocal.TraverseIdentifierPathUp(node, doc)
-	case gotemplate.NodeTypeDotSymbol, gotemplate.NodeTypeFieldIdentifier:
+	case gotemplate.NodeTypeDotSymbol, gotemplate.NodeTypeFieldIdentifier, gotemplate.NodeTypeIdentifier:
 		return lsplocal.GetFieldIdentifierPath(node, doc)
 	default:
+		logger.Error("Could not get yaml path for node type ", node.Type())
 		return ""
 	}
 }
