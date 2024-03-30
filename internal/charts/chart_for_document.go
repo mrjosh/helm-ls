@@ -27,6 +27,22 @@ func (s *ChartStore) GetChartForDoc(uri lsp.DocumentURI) (*Chart, error) {
 	return chart, nil
 }
 
+func (s *ChartStore) GetChartOrParentForDoc(uri lsp.DocumentURI) (*Chart, error) {
+	chart, err := s.GetChartForDoc(uri)
+	if err != nil {
+		return chart, err
+	}
+
+	if chart.ParentChart.HasParent {
+		parentChart := chart.ParentChart.GetParentChartRecursive(s)
+		if parentChart == nil {
+			return chart, err
+		}
+		return parentChart, nil
+	}
+	return chart, nil
+}
+
 func (s *ChartStore) getChartFromCache(uri lsp.DocumentURI) *Chart {
 	for chartURI, chart := range s.Charts {
 		if strings.HasPrefix(uri.Filename(), filepath.Join(chartURI.Filename(), "template")) {

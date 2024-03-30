@@ -94,3 +94,44 @@ func TestGetChartForDocumentWorksForNewToAddChartWithNestedFile(t *testing.T) {
 
 	assert.Same(t, expectedChart, chartStore.Charts[uri.File(expectedChartDirectory)])
 }
+
+func TestGetChartOrParentForDocWorks(t *testing.T) {
+	chartStore := charts.NewChartStore("file:///tmp", func(uri uri.URI, _ util.ValuesFilesConfig) *charts.Chart {
+		return &charts.Chart{RootURI: uri}
+	})
+
+	chart := &charts.Chart{}
+	chartStore.Charts["file:///tmp/chart"] = chart
+	subchart := &charts.Chart{
+		ValuesFiles:   &charts.ValuesFiles{},
+		ChartMetadata: &charts.ChartMetadata{},
+		RootURI:       "file:///tmp/chart/charts/subchart",
+		ParentChart: charts.ParentChart{
+			ParentChartURI: "file:///tmp/chart",
+			HasParent:      true,
+		},
+	}
+	chartStore.Charts["file:///tmp/chart/charts/subchart"] = subchart
+	otherchart := &charts.Chart{}
+	chartStore.Charts["file:///tmp/otherChart"] = otherchart
+
+	result1, error := chartStore.GetChartOrParentForDoc("file:///tmp/chart/templates/deployment.yaml")
+	assert.NoError(t, error)
+	assert.Same(t, chart, result1)
+
+	result2, error := chartStore.GetChartOrParentForDoc("file:///tmp/chart/templates/directory/deployment.yaml")
+	assert.NoError(t, error)
+	assert.Same(t, chart, result2)
+
+	result3, error := chartStore.GetChartOrParentForDoc("file:///tmp/chart/charts/subchart/templates/directory/deployment.yaml")
+	assert.NoError(t, error)
+	assert.Same(t, chart, result3)
+
+	result4, error := chartStore.GetChartOrParentForDoc("file:///tmp/otherChart/templates/directory/deployment.yaml")
+	assert.NoError(t, error)
+	assert.Same(t, otherchart, result4)
+
+	result5, error := chartStore.GetChartOrParentForDoc("file:///tmp/directory/deployment.yaml")
+	assert.Error(t, error)
+	assert.Equal(t, &charts.Chart{RootURI: uri.File("/tmp")}, result5)
+}
