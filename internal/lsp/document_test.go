@@ -20,7 +20,7 @@ func TestDocumentStore(t *testing.T) {
 	assert.Nil(doc)
 	assert.False(ok)
 
-	sut.DidOpen(protocol.DidOpenTextDocumentParams{
+	sut.DidOpen(&protocol.DidOpenTextDocumentParams{
 		TextDocument: protocol.TextDocumentItem{
 			URI:        uri.File("test.yaml"),
 			LanguageID: "helm",

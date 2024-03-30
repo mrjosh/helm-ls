@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -50,19 +49,10 @@ func (h *langHandler) RegisterWatchedFiles(ctx context.Context, conn jsonrpc2.Co
 	}
 }
 
-func (h *langHandler) handleDidChangeWatchedFiles(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-	if req.Params() == nil {
-		return &jsonrpc2.Error{Code: jsonrpc2.InvalidParams}
-	}
-
-	var params lsp.DidChangeWatchedFilesParams
-	if err := json.Unmarshal(req.Params(), &params); err != nil {
-		return err
-	}
-
+func (h *langHandler) DidChangeWatchedFiles(ctx context.Context, params *lsp.DidChangeWatchedFilesParams) (err error) {
 	for _, change := range params.Changes {
 		h.chartStore.ReloadValuesFile(change.URI)
 	}
 
-	return reply(ctx, nil, nil)
+	return nil
 }

@@ -26,10 +26,7 @@ func newLintCmd() *cobra.Command {
 				return err
 			}
 
-			msgs, err := locallsp.GetDiagnostics(rootPath, chart.ValuesFiles.MainValuesFile.Values)
-			if err != nil {
-				return err
-			}
+			msgs := locallsp.GetDiagnostics(rootPath, chart.ValuesFiles.MainValuesFile.Values)
 
 			for _, msg := range msgs {
 				fmt.Println(msg)

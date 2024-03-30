@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -13,7 +12,7 @@ import (
 	gotemplate "github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	sitter "github.com/smacker/go-tree-sitter"
-	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 	yaml "gopkg.in/yaml.v2"
 
@@ -33,19 +32,10 @@ func init() {
 	textCompletionsItems = append(textCompletionsItems, getTextCompletionItems(godocs.TextSnippets)...)
 }
 
-func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) (err error) {
-	if req.Params() == nil {
-		return &jsonrpc2.Error{Code: jsonrpc2.InvalidParams}
-	}
-
-	var params lsp.CompletionParams
-	if err := json.Unmarshal(req.Params(), &params); err != nil {
-		return err
-	}
-
+func (h *langHandler) Completion(ctx context.Context, params *lsp.CompletionParams) (result *lsp.CompletionList, err error) {
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
-		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+		return nil, errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 	chart, err := h.chartStore.GetChartForDoc(params.TextDocument.URI)
 	if err != nil {
@@ -58,7 +48,7 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 		result := make([]lsp.CompletionItem, 0)
 		result = append(result, textCompletionsItems...)
 		result = append(result, yamllsCompletions(ctx, h, params)...)
-		return reply(ctx, result, err)
+		return &protocol.CompletionList{IsIncomplete: false, Items: result}, err
 	}
 
 	var (
@@ -78,8 +68,17 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 
 	logger.Println(fmt.Sprintf("Word found for completions is < %s >", word))
 
+	items = make([]lsp.CompletionItem, 0)
+	for _, v := range basicItems {
+		items = append(items, lsp.CompletionItem{
+			Label:         v.Name,
+			InsertText:    v.Name,
+			Detail:        v.Detail,
+			Documentation: v.Doc,
+		})
+	}
 	if len(variableSplitted) == 0 {
-		return reply(ctx, basicItems, err)
+		return &lsp.CompletionList{IsIncomplete: false, Items: items}, err
 	}
 
 	// $ always points to the root context so we can safely remove it
@@ -104,11 +103,15 @@ func (h *langHandler) handleTextDocumentCompletion(ctx context.Context, reply js
 		items = append(items, functionsCompletionItems...)
 	}
 
-	return reply(ctx, items, err)
+	return &lsp.CompletionList{IsIncomplete: false, Items: items}, err
 }
 
-func yamllsCompletions(ctx context.Context, h *langHandler, params lsp.CompletionParams) []lsp.CompletionItem {
-	response := *h.yamllsConnector.CallCompletion(ctx, params)
+func yamllsCompletions(ctx context.Context, h *langHandler, params *lsp.CompletionParams) []lsp.CompletionItem {
+	response, err := h.yamllsConnector.CallCompletion(ctx, params)
+	if err != nil {
+		logger.Error("Error getting yamlls completions", err)
+		return []lsp.CompletionItem{}
+	}
 	logger.Debug("Got completions from yamlls", response)
 	return response.Items
 }

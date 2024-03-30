@@ -1,0 +1,16 @@
+apiVersion: v1
+wrong: key
+kind: Service
+metadata:
+  name: {{ include "example.fullname" . }}
+  labels:
+    {{- include "example.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "example.selectorLabels" . | nindent 4 }}

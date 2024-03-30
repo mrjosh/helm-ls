@@ -2,48 +2,35 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/sirupsen/logrus"
-	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
 
-func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
-	var (
-		params       lsp.InitializeParams
-		workspaceURI uri.URI
-		err          error
-	)
-	if err := json.Unmarshal(req.Params(), &params); err != nil {
-		return err
-	}
+func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializeParams) (result *lsp.InitializeResult, err error) {
+	var workspaceURI uri.URI
 
-	logger.Debug("handleInitialize with params ", req.Params())
 	if len(params.WorkspaceFolders) != 0 {
 		workspaceURI, err = uri.Parse(params.WorkspaceFolders[0].URI)
 		if err != nil {
 			logger.Error("Error parsing workspace URI", err)
-			return err
+			return nil, err
 		}
 	} else {
 		logger.Error("length WorkspaceFolders is 0, falling back to current working directory")
 		workspaceURI = uri.File(".")
 	}
 
-	logger.Debug("Initializing yamllsConnector")
-	h.yamllsConnector.CallInitialize(workspaceURI)
-
 	logger.Debug("Initializing chartStore")
 	h.chartStore = charts.NewChartStore(workspaceURI, h.NewChartWithWatchedFiles)
 
 	logger.Debug("Initializing done")
-	return reply(ctx, lsp.InitializeResult{
+	return &lsp.InitializeResult{
 		Capabilities: lsp.ServerCapabilities{
 			TextDocumentSync: lsp.TextDocumentSyncOptions{
 				Change:    lsp.TextDocumentSyncKindIncremental,
@@ -59,20 +46,28 @@ func (h *langHandler) handleInitialize(ctx context.Context, reply jsonrpc2.Repli
 			HoverProvider:      true,
 			DefinitionProvider: true,
 		},
-	}, nil)
+	}, nil
 }
 
-func (h *langHandler) initializationWithConfig() {
+func (h *langHandler) Initialized(ctx context.Context, _ *lsp.InitializedParams) (err error) {
+	go h.retrieveWorkspaceConfiguration(ctx)
+	return nil
+}
+
+func (h *langHandler) initializationWithConfig(ctx context.Context) {
 	configureLogLevel(h.helmlsConfig)
 	h.chartStore.SetValuesFilesConfig(h.helmlsConfig.ValuesFilesConfig)
-	configureYamlls(h)
+	configureYamlls(ctx, h)
 }
 
-func configureYamlls(h *langHandler) {
+func configureYamlls(ctx context.Context, h *langHandler) {
 	config := h.helmlsConfig
 	if config.YamllsConfiguration.Enabled {
-		h.yamllsConnector = yamlls.NewConnector(config.YamllsConfiguration, h.connPool, h.documents)
-		h.yamllsConnector.CallInitialize(h.chartStore.RootURI)
+		h.yamllsConnector = yamlls.NewConnector(ctx, config.YamllsConfiguration, h.client, h.documents)
+		err := h.yamllsConnector.CallInitialize(ctx, h.chartStore.RootURI)
+		if err != nil {
+			logger.Error("Error initializing yamlls", err)
+		}
 		h.yamllsConnector.InitiallySyncOpenDocuments(h.documents.GetAllDocs())
 	}
 }

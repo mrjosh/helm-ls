@@ -1,11 +1,8 @@
 package lsp
 
 import (
-	"context"
-
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	sitter "github.com/smacker/go-tree-sitter"
-	"github.com/smacker/go-tree-sitter/yaml"
 )
 
 func getRangeForNode(node *sitter.Node) sitter.Range {
@@ -29,15 +26,6 @@ func getTextNodeRanges(gotemplateNode *sitter.Node) []sitter.Range {
 		}
 	}
 	return textNodes
-}
-
-func ParseYamlAst(gotemplateTree *sitter.Tree, content string) *sitter.Tree {
-	parser := sitter.NewParser()
-	parser.SetLanguage(yaml.GetLanguage())
-	parser.SetIncludedRanges(getTextNodeRanges(gotemplateTree.RootNode()))
-
-	tree, _ := parser.ParseCtx(context.Background(), nil, []byte(content))
-	return tree
 }
 
 // TrimTemplate removes all template nodes.

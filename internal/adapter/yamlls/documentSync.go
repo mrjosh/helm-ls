@@ -10,7 +10,7 @@ import (
 )
 
 func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Document) {
-	if yamllsConnector.Conn == nil {
+	if yamllsConnector.server == nil {
 		return
 	}
 	for _, doc := range docs {
@@ -25,24 +25,24 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Doc
 
 func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.DidOpenTextDocumentParams) {
 	logger.Debug("YamllsConnector DocumentDidOpen", params.TextDocument.URI)
-	if yamllsConnector.Conn == nil {
+	if yamllsConnector.server == nil {
 		return
 	}
 	params.TextDocument.Text = lsplocal.TrimTemplate(ast, params.TextDocument.Text)
 
-	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidOpen, params)
+	err := yamllsConnector.server.DidOpen(context.Background(), &params)
 	if err != nil {
 		logger.Error("Error calling yamlls for didOpen", err)
 	}
 }
 
 func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params lsp.DidSaveTextDocumentParams) {
-	if yamllsConnector.Conn == nil {
+	if yamllsConnector.server == nil {
 		return
 	}
 	params.Text = lsplocal.TrimTemplate(doc.Ast, doc.Content)
 
-	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidSave, params)
+	err := yamllsConnector.server.DidSave(context.Background(), &params)
 	if err != nil {
 		logger.Error("Error calling yamlls for didSave", err)
 	}
@@ -55,7 +55,7 @@ func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params 
 }
 
 func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
-	if yamllsConnector.Conn == nil {
+	if yamllsConnector.server == nil {
 		return
 	}
 	trimmedText := lsplocal.TrimTemplate(doc.Ast, doc.Content)
@@ -77,14 +77,14 @@ func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, param
 	}
 
 	logger.Debug("Sending DocumentDidChange", params)
-	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidChange, params)
+	err := yamllsConnector.server.DidChange(context.Background(), &params)
 	if err != nil {
 		logger.Println("Error calling yamlls for didChange", err)
 	}
 }
 
 func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
-	if yamllsConnector.Conn == nil {
+	if yamllsConnector.server == nil {
 		return
 	}
 
@@ -98,7 +98,7 @@ func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Documen
 	}
 
 	logger.Println("Sending DocumentDidChange with full sync", params)
-	err := (*yamllsConnector.Conn).Notify(context.Background(), lsp.MethodTextDocumentDidChange, params)
+	err := yamllsConnector.server.DidChange(context.Background(), &params)
 	if err != nil {
 		logger.Println("Error calling yamlls for didChange", err)
 	}

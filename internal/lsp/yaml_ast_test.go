@@ -84,39 +84,6 @@ b: not`,
 	}
 }
 
-func TestParseYamlAst(t *testing.T) {
-	type args struct {
-		content string
-	}
-	tests := []struct {
-		name      string
-		args      args
-		wantSexpr string
-	}{
-		{
-			name: "simple template node",
-			args: args{
-				"a: {{ .test }}",
-			},
-			wantSexpr: "(stream (document (block_node (block_mapping (block_mapping_pair key: (flow_node (plain_scalar (string_scalar))))))))",
-		},
-		{
-			name: "key value",
-			args: args{
-				"a: value",
-			},
-			wantSexpr: "(stream (document (block_node (block_mapping (block_mapping_pair key: (flow_node (plain_scalar (string_scalar))) value: (flow_node (plain_scalar (string_scalar))))))))",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotemplateTree := ParseAst(nil, tt.args.content)
-			got := ParseYamlAst(gotemplateTree, tt.args.content)
-			assert.Equal(t, tt.wantSexpr, got.RootNode().String())
-		})
-	}
-}
-
 func TestTrimTemplate(t *testing.T) {
 	tests := []struct {
 		documentText string

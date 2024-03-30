@@ -1,7 +1,6 @@
 package lsp
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,40 +13,31 @@ import (
 	"github.com/mrjosh/helm-ls/pkg/lint/support"
 	"github.com/pkg/errors"
 
-	// nolint
 	"github.com/mrjosh/helm-ls/pkg/lint/rules"
-	"go.lsp.dev/jsonrpc2"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
 
 var logger = log.GetLogger()
 
-func NotificationFromLint(ctx context.Context, conn jsonrpc2.Conn, chart *charts.Chart, doc *Document) (*jsonrpc2.Notification, error) {
+func GetDiagnosticsNotification(chart *charts.Chart, doc *Document) *lsp.PublishDiagnosticsParams {
 	vals := chart.ValuesFiles.MainValuesFile.Values
 	if chart.ValuesFiles.OverlayValuesFile != nil {
 		vals = chartutil.CoalesceTables(chart.ValuesFiles.OverlayValuesFile.Values, chart.ValuesFiles.MainValuesFile.Values)
 	}
 
-	diagnostics, err := GetDiagnostics(doc.URI, vals)
-	if err != nil {
-		return nil, err
-	}
+	diagnostics := GetDiagnostics(doc.URI, vals)
 	doc.DiagnosticsCache.HelmDiagnostics = diagnostics
 
-	return nil, conn.Notify(
-		ctx,
-		lsp.MethodTextDocumentPublishDiagnostics,
-		&lsp.PublishDiagnosticsParams{
-			URI:         doc.URI,
-			Diagnostics: doc.DiagnosticsCache.GetMergedDiagnostics(),
-		},
-	)
+	return &lsp.PublishDiagnosticsParams{
+		URI:         doc.URI,
+		Diagnostics: doc.DiagnosticsCache.GetMergedDiagnostics(),
+	}
 }
 
 // GetDiagnostics will run helm linter against the currect document URI using the given values
 // and converts the helm.support.Message to lsp.Diagnostics
-func GetDiagnostics(uri uri.URI, vals chartutil.Values) ([]lsp.Diagnostic, error) {
+func GetDiagnostics(uri uri.URI, vals chartutil.Values) []lsp.Diagnostic {
 	var (
 		filename    = uri.Filename()
 		paths       = strings.Split(filename, "/")
@@ -64,7 +54,6 @@ func GetDiagnostics(uri uri.URI, vals chartutil.Values) ([]lsp.Diagnostic, error
 		}
 	}
 
-	logger.Println(dir)
 	client := action.NewLint()
 
 	result := client.Run([]string{dir}, vals)
@@ -81,7 +70,7 @@ func GetDiagnostics(uri uri.URI, vals chartutil.Values) ([]lsp.Diagnostic, error
 		diagnostics = append(diagnostics, *d)
 	}
 
-	return diagnostics, nil
+	return diagnostics
 }
 
 func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string, error) {

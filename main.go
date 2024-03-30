@@ -19,7 +19,6 @@ var (
 )
 
 func main() {
-
 	rootCmd := &cobra.Command{
 		Use: "helm_ls",
 		Long: `
@@ -27,7 +26,7 @@ func main() {
  / /_/ / _ \ | '_ ' _ \ / / / __|
 / __  /  __/ | | | | | / /__\__ \
 \/ /_/ \___|_|_| |_| |_\____/___/`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Help()
 		},
 	}
@@ -47,5 +46,4 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-
 }
