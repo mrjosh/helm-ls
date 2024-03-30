@@ -30,3 +30,15 @@ func (p *ParentChart) GetParentChart(chartStore *ChartStore) *Chart {
 	}
 	return chart
 }
+
+func (p *ParentChart) GetParentChartRecursive(chartStore *ChartStore) *Chart {
+	chart := p.GetParentChart(chartStore)
+	if chart == nil {
+		return nil
+	}
+	parentChart := chart.ParentChart.GetParentChartRecursive(chartStore)
+	if parentChart == nil {
+		return chart
+	}
+	return parentChart
+}

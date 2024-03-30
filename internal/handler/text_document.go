@@ -18,16 +18,11 @@ func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocume
 
 	h.yamllsConnector.DocumentDidOpen(doc.Ast, *params)
 
-	_, err = h.chartStore.GetChartForDoc(doc.URI)
-	if err != nil {
-		logger.Error("Error getting chart info for file", doc.URI, err)
-	}
-
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
-	chart, err := h.chartStore.GetChartForDoc(doc.URI)
+	chart, err := h.chartStore.GetChartOrParentForDoc(doc.URI)
 	if err != nil {
 		logger.Error("Error getting chart info for file", doc.URI, err)
 	}
@@ -45,7 +40,7 @@ func (h *langHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocume
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
-	chart, err := h.chartStore.GetChartForDoc(doc.URI)
+	chart, err := h.chartStore.GetChartOrParentForDoc(doc.URI)
 	if err != nil {
 		logger.Error("Error getting chart info for file", doc.URI, err)
 	}
