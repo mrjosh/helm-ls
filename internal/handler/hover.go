@@ -11,6 +11,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	lspinternal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/chart"
@@ -57,7 +58,7 @@ func (h *langHandler) Hover(ctx context.Context, params *lsp.HoverParams) (resul
 	if (pt == "selector_expression" || pt == "field") && (ct == "identifier" || ct == "field_identifier") {
 		word = lspinternal.GetFieldIdentifierPath(currentNode, doc)
 	}
-	if ct == "dot" {
+	if ct == gotemplate.NodeTypeDot {
 		word = lspinternal.TraverseIdentifierPathUp(currentNode, doc)
 	}
 

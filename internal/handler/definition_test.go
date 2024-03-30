@@ -25,6 +25,10 @@ var testFileContent = `
 {{ range $index, $element := pipeline }}{{ $index }}{{ $element }}{{ end }} # line 7
 {{ .Values.foo }} # line 8
 {{ .Values.something.nested }} # line 9
+
+{{ range .Values.list }}
+{{ . }} # line 12
+{{ end }}
 `
 
 var (
@@ -35,6 +39,8 @@ var (
 foo: bar
 something: 
   nested: false
+list:
+  - test
 `
 )
 
@@ -145,7 +151,29 @@ func TestDefinitionValue(t *testing.T) {
 }
 
 // Input:
-// {{ .Values.something.nested }} # line 9
+// {{ range .Values.list }}
+// {{ . }} # line 12
+// ---|
+func TestDefinitionValueInList(t *testing.T) {
+	genericDefinitionTest(t, lsp.Position{Line: 12, Character: 3}, []lsp.Location{
+		{
+			URI: testValuesURI,
+			Range: lsp.Range{
+				Start: lsp.Position{
+					Line:      4,
+					Character: 0,
+				},
+				End: lsp.Position{
+					Line:      4,
+					Character: 0,
+				},
+			},
+		},
+	}, nil)
+}
+
+// Input:
+// {{ . }} # line 9
 // ----------------------|
 func TestDefinitionValueNested(t *testing.T) {
 	genericDefinitionTest(t, lsp.Position{Line: 9, Character: 26}, []lsp.Location{
@@ -173,7 +201,11 @@ func TestDefinitionValueFile(t *testing.T) {
 			URI: testValuesURI,
 			Range: lsp.Range{
 				Start: lsp.Position{
-					Line:      0,
+					Line:      1,
+					Character: 0,
+				},
+				End: lsp.Position{
+					Line:      1,
 					Character: 0,
 				},
 			},
@@ -237,7 +269,11 @@ func TestDefinitionValueFileMulitpleValues(t *testing.T) {
 			URI: testValuesURI,
 			Range: lsp.Range{
 				Start: lsp.Position{
-					Line:      0,
+					Line:      1,
+					Character: 0,
+				},
+				End: lsp.Position{
+					Line:      1,
 					Character: 0,
 				},
 			},
@@ -245,7 +281,11 @@ func TestDefinitionValueFileMulitpleValues(t *testing.T) {
 			URI: testOtherValuesURI,
 			Range: lsp.Range{
 				Start: lsp.Position{
-					Line:      0,
+					Line:      1,
+					Character: 0,
+				},
+				End: lsp.Position{
+					Line:      1,
 					Character: 0,
 				},
 			},

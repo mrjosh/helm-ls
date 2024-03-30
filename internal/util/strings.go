@@ -8,10 +8,7 @@ import (
 	"go.lsp.dev/protocol"
 )
 
-var (
-	logger    = log.GetLogger()
-	wordRegex = regexp.MustCompile(`[^ \t\n\f\r,;\[\]\"\']+`)
-)
+var wordRegex = regexp.MustCompile(`[^ \t\n\f\r,;\[\]\"\']+`)
 
 // BetweenStrings gets the substring between two strings.
 func BetweenStrings(value string, a string, b string) string {
