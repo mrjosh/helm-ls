@@ -17,6 +17,7 @@ const (
 	NodeTypeElseIf                   = "else if"
 	NodeTypeEnd                      = "end"
 	NodeTypeError                    = "ERROR"
+	NodeTypeField                    = "field"
 	NodeTypeFieldIdentifier          = "field_identifier"
 	NodeTypeFunctionCall             = "function_call"
 	NodeTypeIdentifier               = "identifier"

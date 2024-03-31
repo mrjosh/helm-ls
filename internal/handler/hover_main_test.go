@@ -47,7 +47,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      25,
 				Character: 28,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "[]"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "imagePullSecrets: []\n"),
 			expectedError: nil,
 		},
 		{
@@ -86,6 +86,24 @@ func TestHoverMain(t *testing.T) {
 			expected:      "",
 			expectedError: nil,
 		},
+		{
+			desc: "Test hover values list",
+			position: lsp.Position{
+				Line:      71,
+				Character: 35,
+			},
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "ingress.hosts:\n- host: chart-example.local\n  paths:\n  - path: /\n    pathType: ImplementationSpecific\n"),
+			expectedError: nil,
+		},
+		{
+			desc: "Test not existing values list",
+			position: lsp.Position{
+				Line:      101,
+				Character: 35,
+			},
+			expected:      "",
+			expectedError: fmt.Errorf("Could not parse ast correctly"),
+		},
 	}
 	for _, tt := range testCases {
 		t.Run(tt.desc, func(t *testing.T) {
@@ -121,7 +139,9 @@ func TestHoverMain(t *testing.T) {
 				},
 			})
 			assert.Equal(t, tt.expectedError, err)
-			assert.Equal(t, tt.expected, result.Contents.Value)
+			if err == nil {
+				assert.Equal(t, tt.expected, result.Contents.Value)
+			}
 		})
 	}
 }

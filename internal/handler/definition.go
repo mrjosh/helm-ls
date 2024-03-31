@@ -46,10 +46,17 @@ func (h *langHandler) definitionAstParsing(chart *charts.Chart, doc *lsplocal.Do
 		relevantChildNode = lsplocal.FindRelevantChildNode(currentNode, pointToLoopUp)
 	)
 
-	switch relevantChildNode.Type() {
+	nodeType := relevantChildNode.Type()
+	switch nodeType {
 	case gotemplate.NodeTypeIdentifier:
-		if relevantChildNode.Parent().Type() == gotemplate.NodeTypeVariable {
+		logger.Println("Parent type", relevantChildNode.Parent().Type())
+		parentType := relevantChildNode.Parent().Type()
+		if parentType == gotemplate.NodeTypeVariable {
 			return h.getDefinitionForVariable(relevantChildNode, doc)
+		}
+
+		if parentType == gotemplate.NodeTypeSelectorExpression || parentType == gotemplate.NodeTypeField {
+			return h.getDefinitionForValue(chart, relevantChildNode, doc)
 		}
 		return h.getDefinitionForFixedIdentifier(chart, relevantChildNode, doc)
 	case gotemplate.NodeTypeDot, gotemplate.NodeTypeDotSymbol, gotemplate.NodeTypeFieldIdentifier:
@@ -63,7 +70,7 @@ func (h *langHandler) getDefinitionForVariable(node *sitter.Node, doc *lsplocal.
 	variableName := node.Content([]byte(doc.Content))
 	defintionNode := lsplocal.GetVariableDefinition(variableName, node.Parent(), doc.Content)
 	if defintionNode == nil {
-		return []lsp.Location{}, fmt.Errorf("Could not find definition for %s", variableName)
+		return []lsp.Location{}, fmt.Errorf("Could not find definition for %s. Variable definition not found", variableName)
 	}
 	return []lsp.Location{{URI: doc.URI, Range: lsp.Range{Start: util.PointToPosition(defintionNode.StartPoint())}}}, nil
 }
@@ -87,7 +94,7 @@ func (h *langHandler) getDefinitionForFixedIdentifier(chart *charts.Chart, node 
 			nil
 	}
 
-	return []lsp.Location{}, fmt.Errorf("Could not find definition for %s", name)
+	return []lsp.Location{}, fmt.Errorf("Could not find definition for %s. Fixed identifier not found", name)
 }
 
 func (h *langHandler) getDefinitionForValue(chart *charts.Chart, node *sitter.Node, doc *lsplocal.Document) ([]lsp.Location, error) {
@@ -122,16 +129,17 @@ func (h *langHandler) getDefinitionForValue(chart *charts.Chart, node *sitter.No
 		}
 		return locations, nil
 	}
-	return []lsp.Location{}, fmt.Errorf("Could not find definition for %s", yamlPath)
+	return []lsp.Location{}, fmt.Errorf("Could not find definition for %s. No definition found", yamlPath)
 }
 
 func getYamlPath(node *sitter.Node, doc *lsplocal.Document) string {
 	switch node.Type() {
 	case gotemplate.NodeTypeDot:
 		return lsplocal.TraverseIdentifierPathUp(node, doc)
-	case gotemplate.NodeTypeDotSymbol, gotemplate.NodeTypeFieldIdentifier:
+	case gotemplate.NodeTypeDotSymbol, gotemplate.NodeTypeFieldIdentifier, gotemplate.NodeTypeIdentifier:
 		return lsplocal.GetFieldIdentifierPath(node, doc)
 	default:
+		logger.Error("Could not get yaml path for node type ", node.Type())
 		return ""
 	}
 }

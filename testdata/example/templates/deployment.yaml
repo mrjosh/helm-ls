@@ -69,3 +69,4 @@ spec:
         {{- if $.Files.Glob "files/dags/*.py" }}
         {{- end }}
       {{- end }}
+      hosts: {{ .Values.ingress.hosts }}

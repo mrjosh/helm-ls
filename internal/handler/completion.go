@@ -206,7 +206,7 @@ func (h *langHandler) setItem(items []lsp.CompletionItem, value interface{}, var
 		documentation = valueOf.String()
 	)
 
-	logger.Println("ValueKind: ", valueOf)
+	logger.Debug("ValueKind: ", valueOf)
 
 	switch valueOf.Kind() {
 	case reflect.Slice, reflect.Map:

@@ -95,7 +95,9 @@ nested: value
 				splittedVar: []string{"key"},
 			},
 			want: `### values.yaml
-[map[nested:value]]
+key:
+- nested: value
+
 
 `,
 			wantErr: false,
