@@ -220,7 +220,10 @@ func (h *langHandler) formatToYAML(field reflect.Value, fieldName string) string
 		return h.toYAML(map[string]interface{}{fieldName: field.Interface()})
 	case reflect.Bool:
 		return fmt.Sprint(h.getBoolType(field))
+	case reflect.Float32, reflect.Float64:
+		return fmt.Sprint(field.Float())
 	default:
+		logger.Error("Unknown kind for hover type: ", field.Kind())
 		return "<Unknown>"
 	}
 }

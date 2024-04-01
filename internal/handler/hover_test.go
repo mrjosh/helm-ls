@@ -215,6 +215,28 @@ value
 `,
 			wantErr: false,
 		},
+		{
+			name: "Formatting of number",
+			args: args{
+				chart: &charts.Chart{
+					ChartMetadata: &charts.ChartMetadata{},
+					ValuesFiles: &charts.ValuesFiles{
+						MainValuesFile: &charts.ValuesFile{
+							Values: map[string]interface{}{
+								"key": float64(1.2345),
+							},
+							URI: "file://tmp/values.yaml",
+						},
+					},
+				},
+				splittedVar: []string{"key"},
+			},
+			want: `### values.yaml
+1.2345
+
+`,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
