@@ -5,18 +5,6 @@ import (
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
-func (v *Visitors) parseNodesRecursive(node *sitter.Node) {
-	for _, visitor := range v.visitors {
-		visitor.Enter(node)
-	}
-	for i := uint32(0); i < node.ChildCount(); i++ {
-		v.parseNodesRecursive(node.Child(int(i)))
-	}
-	for _, visitor := range v.visitors {
-		visitor.Exit(node)
-	}
-}
-
 type Visitors struct {
 	visitors    []Visitor
 	symbolTable *SymbolTable
@@ -25,8 +13,8 @@ type Visitors struct {
 type Visitor interface {
 	Enter(node *sitter.Node)
 	Exit(node *sitter.Node)
-	EnterScopeShift(node *sitter.Node, suffix string)
-	ExitScopeShift(node *sitter.Node)
+	EnterContextShift(node *sitter.Node, suffix string)
+	ExitContextShift(node *sitter.Node)
 }
 
 func (v *Visitors) visitNodesRecursiveWithScopeShift(node *sitter.Node) {
@@ -40,38 +28,38 @@ func (v *Visitors) visitNodesRecursiveWithScopeShift(node *sitter.Node) {
 		condition := node.ChildByFieldName("condition")
 		v.visitNodesRecursiveWithScopeShift(condition)
 		for _, visitor := range v.visitors {
-			visitor.EnterScopeShift(condition, "")
+			visitor.EnterContextShift(condition, "")
 		}
 		for i := uint32(1); i < node.NamedChildCount(); i++ {
 			consequence := node.NamedChild(int(i))
 			v.visitNodesRecursiveWithScopeShift(consequence)
 		}
 		for _, visitor := range v.visitors {
-			visitor.ExitScopeShift(condition)
+			visitor.ExitContextShift(condition)
 		}
 	case gotemplate.NodeTypeRangeAction:
 		rangeNode := node.ChildByFieldName("range")
 		v.visitNodesRecursiveWithScopeShift(rangeNode)
 		for _, visitor := range v.visitors {
-			visitor.EnterScopeShift(rangeNode, "[]")
+			visitor.EnterContextShift(rangeNode, "[]")
 		}
 		for i := uint32(1); i < node.NamedChildCount(); i++ {
 			body := node.NamedChild(int(i))
 			v.visitNodesRecursiveWithScopeShift(body)
 		}
 		for _, visitor := range v.visitors {
-			visitor.ExitScopeShift(rangeNode)
+			visitor.ExitContextShift(rangeNode)
 		}
 	case gotemplate.NodeTypeSelectorExpression:
 		operand := node.ChildByFieldName("operand")
 		v.visitNodesRecursiveWithScopeShift(operand)
 		for _, visitor := range v.visitors {
-			visitor.EnterScopeShift(operand, "")
+			visitor.EnterContextShift(operand, "")
 		}
 		field := node.ChildByFieldName("field")
 		v.visitNodesRecursiveWithScopeShift(field)
 		for _, visitor := range v.visitors {
-			visitor.ExitScopeShift(operand)
+			visitor.ExitContextShift(operand)
 		}
 
 	default:

@@ -39,11 +39,11 @@ func (h *langHandler) Definition(ctx context.Context, params *lsp.DefinitionPara
 func (h *langHandler) definitionAstParsing(chart *charts.Chart, doc *lsplocal.Document, position lsp.Position) ([]lsp.Location, error) {
 	var (
 		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
-		pointToLoopUp = sitter.Point{
+		pointToLookUp = sitter.Point{
 			Row:    position.Line,
 			Column: position.Character,
 		}
-		relevantChildNode = lsplocal.FindRelevantChildNode(currentNode, pointToLoopUp)
+		relevantChildNode = lsplocal.FindRelevantChildNode(currentNode, pointToLookUp)
 	)
 
 	nodeType := relevantChildNode.Type()

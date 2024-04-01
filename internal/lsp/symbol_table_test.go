@@ -20,9 +20,7 @@ func TestSymbolTableForIncludeDefinitions(t *testing.T) {
 
 	ast := ParseAst(nil, content)
 
-	symbolTable := NewSymbolTable(ast)
-
-	symbolTable.parseTree(ast, []byte(content))
+	symbolTable := NewSymbolTable(ast, []byte(content))
 
 	assert.Len(t, symbolTable.includeDefinitions, 2)
 
@@ -50,7 +48,6 @@ func TestSymbolTableForValues(t *testing.T) {
 {{ .Test }}
 {{ .Values.with.something }}
 
-
 {{ range .list }}
 	{{ . }}
 	{{ .listinner }}
@@ -68,13 +65,105 @@ func TestSymbolTableForValues(t *testing.T) {
 
 	ast := ParseAst(nil, content)
 
-	symbolTable := NewSymbolTable(ast)
-
-	symbolTable.parseTree(ast, []byte(content))
-
-	for k, v := range symbolTable.values {
-		logger.Println(k, v)
+	symbolTable := NewSymbolTable(ast, []byte(content))
+	type expectedValue struct {
+		path       []string
+		startPoint sitter.Point
 	}
 
-	assert.False(t, true)
+	expected := []expectedValue{
+		{
+			path: []string{"Test"},
+			startPoint: sitter.Point{
+				Row:    5,
+				Column: 3,
+			},
+		},
+		{
+			path: []string{"Test"},
+			startPoint: sitter.Point{
+				Row:    20,
+				Column: 3,
+			},
+		},
+		{
+			path: []string{"Values", "with", "something"},
+			startPoint: sitter.Point{
+				Row:    1,
+				Column: 21,
+			},
+		},
+		{
+			path: []string{"Values", "with", "something"},
+			startPoint: sitter.Point{
+				Row:    6,
+				Column: 16,
+			},
+		},
+		{
+			path: []string{"list"},
+			startPoint: sitter.Point{
+				Row:    8,
+				Column: 9,
+			},
+		},
+		{
+			path: []string{"list[]"},
+			startPoint: sitter.Point{
+				Row:    9,
+				Column: 4,
+			},
+		},
+		{
+			path: []string{"list[]", "listinner"},
+			startPoint: sitter.Point{
+				Row:    10,
+				Column: 4,
+			},
+		},
+		{
+			path: []string{"dollar"},
+			startPoint: sitter.Point{
+				Row:    11,
+				Column: 6,
+			},
+		},
+		{
+			path: []string{"list[]", "nested"},
+			startPoint: sitter.Point{
+				Row:    12,
+				Column: 10,
+			},
+		},
+		{
+			path: []string{"list[]", "nested[]", "nestedinList"},
+			startPoint: sitter.Point{
+				Row:    13,
+				Column: 5,
+			},
+		},
+		{
+			path: []string{"Values", "dollar"},
+			startPoint: sitter.Point{
+				Row:    15,
+				Column: 19,
+			},
+		},
+		{
+			path: []string{"Values", "dollar[]", "nestedinList"},
+			startPoint: sitter.Point{
+				Row:    16,
+				Column: 5,
+			},
+		},
+	}
+
+	for _, v := range expected {
+		values := symbolTable.GetValues(v.path)
+		points := []sitter.Point{}
+		for _, v := range values {
+			points = append(points, v.StartPoint)
+		}
+		assert.Contains(t, points, v.startPoint)
+	}
 }

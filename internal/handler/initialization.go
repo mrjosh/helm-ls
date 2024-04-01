@@ -45,6 +45,7 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 			},
 			HoverProvider:      true,
 			DefinitionProvider: true,
+			ReferencesProvider: true,
 		},
 	}, nil
 }

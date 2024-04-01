@@ -45,7 +45,7 @@ func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsCon
 		Ast:              ast,
 		DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
 		IsOpen:           true,
-		SymbolTable:      NewSymbolTable(ast),
+		SymbolTable:      NewSymbolTable(ast, []byte(params.TextDocument.Text)),
 	}
 	logger.Debug("Storing doc ", path)
 	s.documents.Store(path, doc)
@@ -89,6 +89,7 @@ func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	d.Content = string(content)
 
 	d.ApplyChangesToAst(d.Content)
+	d.SymbolTable = NewSymbolTable(d.Ast, []byte(d.Content))
 
 	d.lines = nil
 }
@@ -97,15 +98,15 @@ func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 func (d *Document) WordAt(pos lsp.Position) string {
 	logger.Debug(pos)
 
-	line, ok := d.GetLine(int(pos.Line))
+	line, ok := d.getLine(int(pos.Line))
 	if !ok {
 		return ""
 	}
 	return util.WordAt(line, int(pos.Character))
 }
 
-// GetLine returns the line at the given index.
-func (d *Document) GetLine(index int) (string, bool) {
+// getLine returns the line at the given index.
+func (d *Document) getLine(index int) (string, bool) {
 	lines := d.getLines()
 	if index < 0 || index > len(lines) {
 		return "", false
