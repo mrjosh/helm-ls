@@ -47,7 +47,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      25,
 				Character: 28,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "imagePullSecrets: []\n"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "imagePullSecrets: []"),
 			expectedError: nil,
 		},
 		{
@@ -96,13 +96,13 @@ func TestHoverMain(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			desc: "Test not existing values list",
+			desc: "Test hover values number",
 			position: lsp.Position{
-				Line:      101,
-				Character: 35,
+				Line:      8,
+				Character: 28,
 			},
-			expected:      "",
-			expectedError: fmt.Errorf("Could not parse ast correctly"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "1"),
+			expectedError: nil,
 		},
 	}
 	for _, tt := range testCases {
@@ -139,9 +139,7 @@ func TestHoverMain(t *testing.T) {
 				},
 			})
 			assert.Equal(t, tt.expectedError, err)
-			if err == nil {
-				assert.Equal(t, tt.expected, result.Contents.Value)
-			}
+			assert.Equal(t, tt.expected, result.Contents.Value)
 		})
 	}
 }
