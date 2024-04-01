@@ -37,14 +37,17 @@ func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsCon
 
 	uri := params.TextDocument.URI
 	path := uri.Filename()
+	ast := ParseAst(nil, params.TextDocument.Text)
 	doc := &Document{
 		URI:              uri,
 		Path:             path,
 		Content:          params.TextDocument.Text,
-		Ast:              ParseAst(nil, params.TextDocument.Text),
+		Ast:              ast,
 		DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
+		IsOpen:           true,
+		SymbolTable:      NewSymbolTable(ast),
 	}
-	// logger.Println("Storing doc ", path, s.documents)
+	logger.Debug("Storing doc ", path)
 	s.documents.Store(path, doc)
 	return doc, nil
 }
@@ -67,6 +70,8 @@ type Document struct {
 	lines                   []string
 	Ast                     *sitter.Tree
 	DiagnosticsCache        DiagnosticsCache
+	IsOpen                  bool
+	SymbolTable             *SymbolTable
 }
 
 // ApplyChanges updates the content of the document from LSP textDocument/didChange events.
