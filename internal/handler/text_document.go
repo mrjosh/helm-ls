@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	lspinternal "github.com/mrjosh/helm-ls/internal/lsp"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	lsp "go.lsp.dev/protocol"
 )
@@ -63,7 +62,7 @@ func (h *langHandler) DidChange(ctx context.Context, params *lsp.DidChangeTextDo
 	doc.ApplyChanges(params.ContentChanges)
 
 	for _, change := range params.ContentChanges {
-		node := lspinternal.NodeAtPosition(doc.Ast, change.Range.Start)
+		node := lsplocal.NodeAtPosition(doc.Ast, change.Range.Start)
 		if node.Type() != "text" {
 			shouldSendFullUpdateToYamlls = true
 			break

@@ -25,7 +25,7 @@ func TestSymbolTableForIncludeDefinitions(t *testing.T) {
 	assert.Len(t, symbolTable.includeDefinitions, 2)
 
 	// TODO: remove the double quotes
-	assert.Equal(t, symbolTable.includeDefinitions["\"bar\""], sitter.Range{
+	assert.Equal(t, symbolTable.includeDefinitions["bar"], []sitter.Range{{
 		StartPoint: sitter.Point{
 			Row:    5,
 			Column: 0,
@@ -36,7 +36,7 @@ func TestSymbolTableForIncludeDefinitions(t *testing.T) {
 		},
 		StartByte: 56,
 		EndByte:   110,
-	})
+	}})
 }
 
 func TestSymbolTableForValues(t *testing.T) {

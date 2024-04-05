@@ -6,28 +6,37 @@ import (
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
+type TemplateContext []string
+
 type SymbolTable struct {
-	values             map[string][]sitter.Range
+	contexts           map[string][]sitter.Range
+	contextsReversed   map[sitter.Range]TemplateContext
 	includeDefinitions map[string][]sitter.Range
-	includeReferences  map[string][]sitter.Range
+	includeUseages     map[string][]sitter.Range
 }
 
 func NewSymbolTable(ast *sitter.Tree, content []byte) *SymbolTable {
 	s := &SymbolTable{
-		values:             make(map[string][]sitter.Range),
+		contexts:           make(map[string][]sitter.Range),
+		contextsReversed:   make(map[sitter.Range]TemplateContext),
 		includeDefinitions: make(map[string][]sitter.Range),
-		includeReferences:  make(map[string][]sitter.Range),
+		includeUseages:     make(map[string][]sitter.Range),
 	}
 	s.parseTree(ast, content)
 	return s
 }
 
-func (s *SymbolTable) AddValue(path []string, pointRange sitter.Range) {
-	s.values[strings.Join(path, ".")] = append(s.values[strings.Join(path, ".")], pointRange)
+func (s *SymbolTable) AddValue(templateContext []string, pointRange sitter.Range) {
+	s.contexts[strings.Join(templateContext, ".")] = append(s.contexts[strings.Join(templateContext, ".")], pointRange)
+	s.contextsReversed[pointRange] = templateContext
 }
 
 func (s *SymbolTable) GetValues(path []string) []sitter.Range {
-	return s.values[strings.Join(path, ".")]
+	return s.contexts[strings.Join(path, ".")]
+}
+
+func (s *SymbolTable) GetTemplateContext(pointRange sitter.Range) TemplateContext {
+	return s.contextsReversed[pointRange]
 }
 
 func (s *SymbolTable) AddIncludeDefinition(symbol string, pointRange sitter.Range) {
@@ -35,41 +44,26 @@ func (s *SymbolTable) AddIncludeDefinition(symbol string, pointRange sitter.Rang
 }
 
 func (s *SymbolTable) AddIncludeReference(symbol string, pointRange sitter.Range) {
-	s.includeReferences[symbol] = append(s.includeReferences[symbol], pointRange)
+	s.includeUseages[symbol] = append(s.includeUseages[symbol], pointRange)
 }
 
-func (s *SymbolTable) GetIncludeDefinitions(symbol string) ([]sitter.Range, bool) {
-	result, ok := s.includeDefinitions[symbol]
-	if !ok {
-		return []sitter.Range{}, false
-	}
-	return result, true
+func (s *SymbolTable) GetIncludeDefinitions(symbol string) []sitter.Range {
+	return s.includeDefinitions[symbol]
 }
 
-func (s *SymbolTable) GetIncludeReference(symbol string) ([]sitter.Range, bool) {
-	result, ok := s.includeReferences[symbol]
-	if !ok {
-		return []sitter.Range{}, false
-	}
-	return result, true
+func (s *SymbolTable) GetIncludeReference(symbol string) []sitter.Range {
+	result := s.includeUseages[symbol]
+	definitions := s.includeDefinitions[symbol]
+	return append(result, definitions...)
 }
 
 func (s *SymbolTable) parseTree(ast *sitter.Tree, content []byte) {
 	rootNode := ast.RootNode()
-
 	v := Visitors{
 		symbolTable: s,
 		visitors: []Visitor{
-			&ValuesVisitor{
-				currentContext: []string{},
-				stashedContext: [][]string{},
-				symbolTable:    s,
-				content:        content,
-			},
-			&IncludeDefinitionsVisitor{
-				symbolTable: s,
-				content:     content,
-			},
+			NewValuesVisitor(s, content),
+			NewIncludeDefinitionsVisitor(s, content),
 		},
 	}
 

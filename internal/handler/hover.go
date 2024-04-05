@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"reflect"
-	"sort"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
+	languagefeatures "github.com/mrjosh/helm-ls/internal/language_features"
 	lspinternal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 
@@ -17,18 +16,15 @@ import (
 	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	lsp "go.lsp.dev/protocol"
-	"go.lsp.dev/uri"
 )
 
 func (h *langHandler) Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error) {
-	doc, ok := h.documents.Get(params.TextDocument.URI)
-	if !ok {
-		return nil, errors.New("Could not get document: " + params.TextDocument.URI.Filename())
-	}
-	chart, err := h.chartStore.GetChartForDoc(params.TextDocument.URI)
+	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams)
 	if err != nil {
-		logger.Error("Error getting chart info for file", params.TextDocument.URI, err)
+		return nil, err
 	}
+	doc := genericDocumentUseCase.Document
+	chart := genericDocumentUseCase.Chart
 
 	var (
 		currentNode = lspinternal.NodeAtPosition(doc.Ast, params.Position)
@@ -61,6 +57,11 @@ func (h *langHandler) Hover(ctx context.Context, params *lsp.HoverParams) (resul
 	}
 	if ct == gotemplate.NodeTypeDot {
 		word = lspinternal.TraverseIdentifierPathUp(currentNode, doc)
+	}
+	if pt == gotemplate.NodeTypeArgumentList {
+		includesCallFeature := languagefeatures.NewIncludesCallFeature(genericDocumentUseCase)
+		response, err := includesCallFeature.Hover()
+		return util.BuildHoverResponse(response, wordRange), err
 	}
 
 	var (
@@ -145,39 +146,20 @@ func (h *langHandler) getChartMetadataHover(metadata *chart.Metadata, key string
 
 func (h *langHandler) getValueHover(chart *charts.Chart, splittedVar []string) (result string, err error) {
 	var (
-		valuesFiles = chart.ResolveValueFiles(splittedVar, h.chartStore)
-		results     = map[uri.URI]string{}
+		valuesFiles  = chart.ResolveValueFiles(splittedVar, h.chartStore)
+		hoverResults = util.HoverResultsWithFiles{}
 	)
 
 	for _, valuesFiles := range valuesFiles {
 		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
 			result, err := h.getTableOrValueForSelector(valuesFile.Values, strings.Join(valuesFiles.Selector, "."))
 			if err == nil {
-				results[valuesFile.URI] = result
+				hoverResults = append(hoverResults, util.HoverResultWithFile{URI: valuesFile.URI, Value: result})
 			}
 		}
 	}
 
-	keys := make([]string, 0, len(results))
-	for u := range results {
-		keys = append(keys, string(u))
-	}
-
-	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
-
-	for _, key := range keys {
-		uriKey := uri.New(key)
-		value := results[uriKey]
-		if value == "" {
-			value = "\"\""
-		}
-		filepath, err := filepath.Rel(h.chartStore.RootURI.Filename(), uriKey.Filename())
-		if err != nil {
-			filepath = uriKey.Filename()
-		}
-		result += fmt.Sprintf("### %s\n%s\n\n", filepath, value)
-	}
-	return result, nil
+	return hoverResults.Format(h.chartStore.RootURI), nil
 }
 
 func (h *langHandler) getTableOrValueForSelector(values chartutil.Values, selector string) (string, error) {

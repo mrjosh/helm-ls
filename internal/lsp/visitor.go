@@ -18,6 +18,9 @@ type Visitor interface {
 }
 
 func (v *Visitors) visitNodesRecursiveWithScopeShift(node *sitter.Node) {
+	if node == nil {
+		return
+	}
 	for _, visitor := range v.visitors {
 		visitor.Enter(node)
 	}
@@ -39,6 +42,9 @@ func (v *Visitors) visitNodesRecursiveWithScopeShift(node *sitter.Node) {
 		}
 	case gotemplate.NodeTypeRangeAction:
 		rangeNode := node.ChildByFieldName("range")
+		if rangeNode == nil {
+			break // range is optional (e.g. {{ range $index, $element := pipeline }})
+		}
 		v.visitNodesRecursiveWithScopeShift(rangeNode)
 		for _, visitor := range v.visitors {
 			visitor.EnterContextShift(rangeNode, "[]")

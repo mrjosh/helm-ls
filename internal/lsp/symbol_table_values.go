@@ -12,21 +12,55 @@ type ValuesVisitor struct {
 	content        []byte
 }
 
+func NewValuesVisitor(symbolTable *SymbolTable, content []byte) *ValuesVisitor {
+	return &ValuesVisitor{
+		currentContext: []string{},
+		stashedContext: [][]string{},
+		symbolTable:    symbolTable,
+		content:        content,
+	}
+}
+
+func (v *ValuesVisitor) PushContext(context string) {
+	v.currentContext = append(v.currentContext, context)
+}
+
+func (v *ValuesVisitor) PushContextMany(context []string) {
+	v.currentContext = append(v.currentContext, context...)
+}
+
+func (v *ValuesVisitor) PopContext() {
+	v.currentContext = v.currentContext[:len(v.currentContext)-1]
+}
+
+func (v *ValuesVisitor) PopContextN(n int) {
+	v.currentContext = v.currentContext[:len(v.currentContext)-n]
+}
+
+func (v *ValuesVisitor) StashContext() {
+	v.stashedContext = append(v.stashedContext, v.currentContext)
+	v.currentContext = []string{}
+}
+
+func (v *ValuesVisitor) RestoreStashedContext() {
+	v.currentContext = v.stashedContext[len(v.stashedContext)-1]
+	v.stashedContext = v.stashedContext[:len(v.stashedContext)-1]
+}
+
 func (v *ValuesVisitor) Enter(node *sitter.Node) {
 	switch node.Type() {
 	case gotemplate.NodeTypeDot:
-		v.symbolTable.AddValue(v.currentContext, getRangeForNode(node))
+		v.symbolTable.AddValue(v.currentContext, GetRangeForNode(node))
 	case gotemplate.NodeTypeFieldIdentifier:
 		content := node.Content(v.content)
-		v.symbolTable.AddValue(append(v.currentContext, content), getRangeForNode(node))
+		v.symbolTable.AddValue(append(v.currentContext, content), GetRangeForNode(node))
 	case gotemplate.NodeTypeField:
 		content := node.ChildByFieldName("name").Content(v.content)
-		v.symbolTable.AddValue(append(v.currentContext, content), getRangeForNode(node))
+		v.symbolTable.AddValue(append(v.currentContext, content), GetRangeForNode(node))
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
 		if operandNode.Type() == gotemplate.NodeTypeVariable && operandNode.Content(v.content) == "$" {
-			v.stashedContext = append(v.stashedContext, v.currentContext)
-			v.currentContext = []string{}
+			v.StashContext()
 		}
 	}
 }
@@ -36,8 +70,7 @@ func (v *ValuesVisitor) Exit(node *sitter.Node) {
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
 		if operandNode.Type() == gotemplate.NodeTypeVariable && operandNode.Content(v.content) == "$" {
-			v.currentContext = v.stashedContext[len(v.stashedContext)-1]
-			v.stashedContext = v.stashedContext[:len(v.stashedContext)-1]
+			v.RestoreStashedContext()
 		}
 	}
 }
@@ -49,33 +82,30 @@ func (v *ValuesVisitor) EnterContextShift(node *sitter.Node, suffix string) {
 		v.currentContext = append(v.currentContext, content)
 	case gotemplate.NodeTypeField:
 		content := node.ChildByFieldName("name").Content(v.content) + suffix
-		v.currentContext = append(v.currentContext, content)
+		v.PushContext(content)
 	case gotemplate.NodeTypeSelectorExpression:
 		s := getContextForSelectorExpression(node, v.content)
 		if len(s) > 0 {
 			s[len(s)-1] = s[len(s)-1] + suffix
 			if s[0] == "$" {
-				v.stashedContext = append(v.stashedContext, v.currentContext)
-				v.currentContext = []string{}
+				v.StashContext()
 				s = s[1:]
 			}
 		}
-		v.currentContext = append(v.currentContext, s...)
+		v.PushContextMany(s)
 	}
 }
 
 func (v *ValuesVisitor) ExitContextShift(node *sitter.Node) {
 	switch node.Type() {
 	case gotemplate.NodeTypeField, gotemplate.NodeTypeFieldIdentifier:
-		v.currentContext = v.currentContext[:len(v.currentContext)-1]
+		v.PopContext()
 	case gotemplate.NodeTypeSelectorExpression:
 		s := getContextForSelectorExpression(node, v.content)
 		if len(s) > 0 && s[0] == "$" {
-			v.currentContext = v.stashedContext[len(v.stashedContext)-1]
-			v.stashedContext = v.stashedContext[:len(v.stashedContext)-1]
-			s = s[1:]
+			v.RestoreStashedContext()
 		} else {
-			v.currentContext = v.currentContext[:len(v.currentContext)-len(s)]
+			v.PopContextN(len(s))
 		}
 	}
 }

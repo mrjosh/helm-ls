@@ -2,11 +2,11 @@ package handler
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
+	languagefeatures "github.com/mrjosh/helm-ls/internal/language_features"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	gotemplate "github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -16,16 +16,14 @@ import (
 )
 
 func (h *langHandler) Definition(ctx context.Context, params *lsp.DefinitionParams) (result []lsp.Location, err error) {
-	doc, ok := h.documents.Get(params.TextDocument.URI)
-	if !ok {
-		return nil, errors.New("Could not get document: " + params.TextDocument.URI.Filename())
-	}
-	chart, err := h.chartStore.GetChartForDoc(params.TextDocument.URI)
+	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams)
 	if err != nil {
-		logger.Error("Error getting chart info for file", params.TextDocument.URI, err)
+		return nil, err
 	}
+	doc := genericDocumentUseCase.Document
+	chart := genericDocumentUseCase.Chart
 
-	result, err = h.definitionAstParsing(chart, doc, params.Position)
+	result, err = h.definitionAstParsing(genericDocumentUseCase, chart, doc, params.Position)
 	if err != nil {
 		// suppress errors for clients
 		// otherwise using go-to-definition on words that have no definition
@@ -36,21 +34,16 @@ func (h *langHandler) Definition(ctx context.Context, params *lsp.DefinitionPara
 	return result, nil
 }
 
-func (h *langHandler) definitionAstParsing(chart *charts.Chart, doc *lsplocal.Document, position lsp.Position) ([]lsp.Location, error) {
+func (h *langHandler) definitionAstParsing(genericDocumentUseCase languagefeatures.GenericDocumentUseCase, chart *charts.Chart, doc *lsplocal.Document, position lsp.Position) ([]lsp.Location, error) {
 	var (
-		currentNode   = lsplocal.NodeAtPosition(doc.Ast, position)
-		pointToLookUp = sitter.Point{
-			Row:    position.Line,
-			Column: position.Character,
-		}
-		relevantChildNode = lsplocal.FindRelevantChildNode(currentNode, pointToLookUp)
+		relevantChildNode = genericDocumentUseCase.Node
+		parentType        = relevantChildNode.Parent().Type()
 	)
 
 	nodeType := relevantChildNode.Type()
 	switch nodeType {
 	case gotemplate.NodeTypeIdentifier:
 		logger.Println("Parent type", relevantChildNode.Parent().Type())
-		parentType := relevantChildNode.Parent().Type()
 		if parentType == gotemplate.NodeTypeVariable {
 			return h.getDefinitionForVariable(relevantChildNode, doc)
 		}
@@ -63,16 +56,21 @@ func (h *langHandler) definitionAstParsing(chart *charts.Chart, doc *lsplocal.Do
 		return h.getDefinitionForValue(chart, relevantChildNode, doc)
 	}
 
+	if parentType == gotemplate.NodeTypeArgumentList {
+		includesCallFeature := languagefeatures.NewIncludesCallFeature(genericDocumentUseCase)
+		return includesCallFeature.Definition()
+	}
+
 	return []lsp.Location{}, fmt.Errorf("Definition not implemented for node type %s", relevantChildNode.Type())
 }
 
 func (h *langHandler) getDefinitionForVariable(node *sitter.Node, doc *lsplocal.Document) ([]lsp.Location, error) {
 	variableName := node.Content([]byte(doc.Content))
-	defintionNode := lsplocal.GetVariableDefinition(variableName, node.Parent(), doc.Content)
-	if defintionNode == nil {
+	definitionNode := lsplocal.GetVariableDefinition(variableName, node.Parent(), doc.Content)
+	if definitionNode == nil {
 		return []lsp.Location{}, fmt.Errorf("Could not find definition for %s. Variable definition not found", variableName)
 	}
-	return []lsp.Location{{URI: doc.URI, Range: lsp.Range{Start: util.PointToPosition(defintionNode.StartPoint())}}}, nil
+	return []lsp.Location{{URI: doc.URI, Range: lsp.Range{Start: util.PointToPosition(definitionNode.StartPoint())}}}, nil
 }
 
 // getDefinitionForFixedIdentifier checks if the current identifier has a constant definition and returns it
@@ -119,7 +117,7 @@ func (h *langHandler) getDefinitionForValue(chart *charts.Chart, node *sitter.No
 		}
 	}
 
-	if err == nil && definitionFileURI != "" {
+	if definitionFileURI != "" {
 		locations := []lsp.Location{}
 		for _, position := range positions {
 			locations = append(locations, lsp.Location{

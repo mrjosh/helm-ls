@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
+	languagefeatures "github.com/mrjosh/helm-ls/internal/language_features"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	gotemplate "github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	sitter "github.com/smacker/go-tree-sitter"
@@ -65,7 +66,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 		Ast:     tree,
 	}
 
-	location, err := handler.definitionAstParsing(&charts.Chart{
+	location, err := handler.definitionAstParsing(languagefeatures.GenericDocumentUseCase{}, &charts.Chart{
 		ChartMetadata: &charts.ChartMetadata{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
@@ -234,7 +235,7 @@ func genericDefinitionTestMultipleValuesFiles(t *testing.T, position lsp.Positio
 		Ast:     tree,
 	}
 
-	location, err := handler.definitionAstParsing(&charts.Chart{
+	location, err := handler.definitionAstParsing(languagefeatures.GenericDocumentUseCase{}, &charts.Chart{
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
 				Values:    make(map[string]interface{}),
