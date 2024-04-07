@@ -34,11 +34,16 @@ func (h *langHandler) Definition(ctx context.Context, params *lsp.DefinitionPara
 	return result, nil
 }
 
-func (h *langHandler) definitionAstParsing(genericDocumentUseCase languagefeatures.GenericDocumentUseCase, chart *charts.Chart, doc *lsplocal.Document, position lsp.Position) ([]lsp.Location, error) {
+func (h *langHandler) definitionAstParsing(genericDocumentUseCase *languagefeatures.GenericDocumentUseCase, chart *charts.Chart, doc *lsplocal.Document, position lsp.Position) ([]lsp.Location, error) {
 	var (
 		relevantChildNode = genericDocumentUseCase.Node
-		parentType        = relevantChildNode.Parent().Type()
+		parentNode        = relevantChildNode.Parent()
+		parentType        string
 	)
+
+	if parentNode != nil {
+		parentType = parentNode.Type()
+	}
 
 	nodeType := relevantChildNode.Type()
 	switch nodeType {

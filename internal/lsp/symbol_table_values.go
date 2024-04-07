@@ -5,58 +5,58 @@ import (
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
-type ValuesVisitor struct {
-	currentContext []string
-	stashedContext [][]string
+type TemplateContextVisitor struct {
+	currentContext TemplateContext
+	stashedContext []TemplateContext
 	symbolTable    *SymbolTable
 	content        []byte
 }
 
-func NewValuesVisitor(symbolTable *SymbolTable, content []byte) *ValuesVisitor {
-	return &ValuesVisitor{
-		currentContext: []string{},
-		stashedContext: [][]string{},
+func NewTemplateContextVisitor(symbolTable *SymbolTable, content []byte) *TemplateContextVisitor {
+	return &TemplateContextVisitor{
+		currentContext: TemplateContext{},
+		stashedContext: []TemplateContext{},
 		symbolTable:    symbolTable,
 		content:        content,
 	}
 }
 
-func (v *ValuesVisitor) PushContext(context string) {
+func (v *TemplateContextVisitor) PushContext(context string) {
 	v.currentContext = append(v.currentContext, context)
 }
 
-func (v *ValuesVisitor) PushContextMany(context []string) {
+func (v *TemplateContextVisitor) PushContextMany(context []string) {
 	v.currentContext = append(v.currentContext, context...)
 }
 
-func (v *ValuesVisitor) PopContext() {
+func (v *TemplateContextVisitor) PopContext() {
 	v.currentContext = v.currentContext[:len(v.currentContext)-1]
 }
 
-func (v *ValuesVisitor) PopContextN(n int) {
+func (v *TemplateContextVisitor) PopContextN(n int) {
 	v.currentContext = v.currentContext[:len(v.currentContext)-n]
 }
 
-func (v *ValuesVisitor) StashContext() {
+func (v *TemplateContextVisitor) StashContext() {
 	v.stashedContext = append(v.stashedContext, v.currentContext)
 	v.currentContext = []string{}
 }
 
-func (v *ValuesVisitor) RestoreStashedContext() {
+func (v *TemplateContextVisitor) RestoreStashedContext() {
 	v.currentContext = v.stashedContext[len(v.stashedContext)-1]
 	v.stashedContext = v.stashedContext[:len(v.stashedContext)-1]
 }
 
-func (v *ValuesVisitor) Enter(node *sitter.Node) {
+func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 	switch node.Type() {
 	case gotemplate.NodeTypeDot:
-		v.symbolTable.AddValue(v.currentContext, GetRangeForNode(node))
+		v.symbolTable.AddTemplateContext(v.currentContext, GetRangeForNode(node))
 	case gotemplate.NodeTypeFieldIdentifier:
 		content := node.Content(v.content)
-		v.symbolTable.AddValue(append(v.currentContext, content), GetRangeForNode(node))
+		v.symbolTable.AddTemplateContext(append(v.currentContext, content), GetRangeForNode(node))
 	case gotemplate.NodeTypeField:
 		content := node.ChildByFieldName("name").Content(v.content)
-		v.symbolTable.AddValue(append(v.currentContext, content), GetRangeForNode(node))
+		v.symbolTable.AddTemplateContext(append(v.currentContext, content), GetRangeForNode(node.ChildByFieldName("name")))
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
 		if operandNode.Type() == gotemplate.NodeTypeVariable && operandNode.Content(v.content) == "$" {
@@ -65,7 +65,7 @@ func (v *ValuesVisitor) Enter(node *sitter.Node) {
 	}
 }
 
-func (v *ValuesVisitor) Exit(node *sitter.Node) {
+func (v *TemplateContextVisitor) Exit(node *sitter.Node) {
 	switch node.Type() {
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
@@ -75,7 +75,7 @@ func (v *ValuesVisitor) Exit(node *sitter.Node) {
 	}
 }
 
-func (v *ValuesVisitor) EnterContextShift(node *sitter.Node, suffix string) {
+func (v *TemplateContextVisitor) EnterContextShift(node *sitter.Node, suffix string) {
 	switch node.Type() {
 	case gotemplate.NodeTypeFieldIdentifier:
 		content := node.Content(v.content) + suffix
@@ -96,7 +96,7 @@ func (v *ValuesVisitor) EnterContextShift(node *sitter.Node, suffix string) {
 	}
 }
 
-func (v *ValuesVisitor) ExitContextShift(node *sitter.Node) {
+func (v *TemplateContextVisitor) ExitContextShift(node *sitter.Node) {
 	switch node.Type() {
 	case gotemplate.NodeTypeField, gotemplate.NodeTypeFieldIdentifier:
 		v.PopContext()
@@ -110,15 +110,15 @@ func (v *ValuesVisitor) ExitContextShift(node *sitter.Node) {
 	}
 }
 
-func getContextForSelectorExpression(node *sitter.Node, content []byte) []string {
+func getContextForSelectorExpression(node *sitter.Node, content []byte) TemplateContext {
 	if node == nil {
-		return []string{}
+		return TemplateContext{}
 	}
 	if node.Type() == gotemplate.NodeTypeField {
-		return []string{node.ChildByFieldName("name").Content(content)}
+		return TemplateContext{node.ChildByFieldName("name").Content(content)}
 	}
 	if node.Type() == gotemplate.NodeTypeVariable {
-		return []string{node.Content(content)}
+		return TemplateContext{node.Content(content)}
 	}
 
 	operand := node.ChildByFieldName("operand")

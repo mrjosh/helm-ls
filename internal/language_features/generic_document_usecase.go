@@ -7,10 +7,14 @@ import (
 )
 
 type GenericDocumentUseCase struct {
-	Document      *lsplocal.Document
-	DocumentStore *lsplocal.DocumentStore
-	Chart         *charts.Chart
-	Node          *sitter.Node
+	Document       *lsplocal.Document
+	DocumentStore  *lsplocal.DocumentStore
+	Chart          *charts.Chart
+	Node           *sitter.Node
+	ChartStore     *charts.ChartStore
+	NodeType       string
+	ParentNode     *sitter.Node
+	ParentNodeType string
 }
 
 func (u *GenericDocumentUseCase) NodeContent() string {

@@ -48,6 +48,11 @@ func (h *langHandler) Hover(ctx context.Context, params *lsp.HoverParams) (resul
 		response, err := h.yamllsConnector.CallHover(ctx, *params, word)
 		return response, err
 	}
+	// if (pt == gotemplate.NodeTypeField && ct == gotemplate.NodeTypeIdentifier) || ct == gotemplate.NodeTypeFieldIdentifier || ct == gotemplate.NodeTypeField {
+	// 	valuesFeature := languagefeatures.NewValuesFeature(genericDocumentUseCase)
+	// 	response, err := valuesFeature.Hover()
+	// 	return util.BuildHoverResponse(response, wordRange), err
+	// }
 	if pt == gotemplate.NodeTypeFunctionCall && ct == gotemplate.NodeTypeIdentifier {
 		word = currentNode.Content([]byte(doc.Content))
 	}
@@ -58,7 +63,7 @@ func (h *langHandler) Hover(ctx context.Context, params *lsp.HoverParams) (resul
 	if ct == gotemplate.NodeTypeDot {
 		word = lspinternal.TraverseIdentifierPathUp(currentNode, doc)
 	}
-	if pt == gotemplate.NodeTypeArgumentList {
+	if pt == gotemplate.NodeTypeArgumentList && ct == gotemplate.NodeTypeInterpretedStringLiteral {
 		includesCallFeature := languagefeatures.NewIncludesCallFeature(genericDocumentUseCase)
 		response, err := includesCallFeature.Hover()
 		return util.BuildHoverResponse(response, wordRange), err

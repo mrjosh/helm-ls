@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
@@ -127,16 +128,16 @@ func TestRefercesTemplateContext(t *testing.T) {
 {{ .Values.test.nested }}
 {{ .Values.test }}
 `
-	expected := []lsp.Location{
+	expectedValues := []lsp.Location{
 		{
 			URI: uri.File("/tmp/testfile.yaml"),
 			Range: protocol.Range{
 				Start: protocol.Position{
-					Line: 0x1, Character: 0x3,
+					Line: 0x1, Character: 4,
 				},
 				End: protocol.Position{
 					Line:      0x1,
-					Character: 0x13,
+					Character: 0xa,
 				},
 			},
 		},
@@ -145,11 +146,11 @@ func TestRefercesTemplateContext(t *testing.T) {
 			Range: protocol.Range{
 				Start: protocol.Position{
 					Line:      0x2,
-					Character: 0x3,
+					Character: 0x4,
 				},
 				End: protocol.Position{
 					Line:      0x2,
-					Character: 0x13,
+					Character: 0xa,
 				},
 			},
 		},
@@ -157,12 +158,12 @@ func TestRefercesTemplateContext(t *testing.T) {
 			URI: uri.File("/tmp/testfile.yaml"),
 			Range: protocol.Range{
 				Start: protocol.Position{
-					Line:      0x0,
-					Character: 0x0,
+					Line:      0x3,
+					Character: 0x4,
 				},
 				End: protocol.Position{
-					Line:      0x0,
-					Character: 0x1c,
+					Line:      0x3,
+					Character: 0xa,
 				},
 			},
 		},
@@ -179,7 +180,7 @@ func TestRefercesTemplateContext(t *testing.T) {
 				Line:      1,
 				Character: 8,
 			},
-			expected: expected,
+			expected: expectedValues,
 		},
 	}
 
@@ -215,6 +216,77 @@ func TestRefercesTemplateContext(t *testing.T) {
 			assert.Equal(t, tt.expectedError, err)
 			if err == nil {
 				assert.Equal(t, tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestRefercesTemplateContextWithTestFile(t *testing.T) {
+	testCases := []struct {
+		desc                string
+		position            lsp.Position
+		expectedStartPoints []lsp.Position
+		expectedError       error
+	}{
+		{
+			desc: "Test references on .Values",
+			position: lsp.Position{
+				Line:      25,
+				Character: 18,
+			},
+			expectedStartPoints: []lsp.Position{{Line: 25, Character: 16}, {Line: 31, Character: 20}},
+		},
+		{
+			desc: "Test references on .Values.imagePullSecrets",
+			position: lsp.Position{
+				Line:      25,
+				Character: 31,
+			},
+			expectedStartPoints: []lsp.Position{{Line: 25, Character: 23}},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.desc, func(t *testing.T) {
+			documents := lsplocal.NewDocumentStore()
+
+			path := "../../testdata/example/templates/deployment.yaml"
+			fileURI := uri.File(path)
+
+			content, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal("Could not read test file", err)
+			}
+
+			d := lsp.DidOpenTextDocumentParams{
+				TextDocument: lsp.TextDocumentItem{
+					URI:        fileURI,
+					LanguageID: "",
+					Version:    0,
+					Text:       string(content),
+				},
+			}
+			documents.DidOpen(&d, util.DefaultConfig)
+			h := &langHandler{
+				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart),
+				documents:       documents,
+				yamllsConnector: &yamlls.Connector{},
+			}
+			result, err := h.References(context.Background(), &lsp.ReferenceParams{
+				TextDocumentPositionParams: lsp.TextDocumentPositionParams{
+					TextDocument: lsp.TextDocumentIdentifier{
+						URI: fileURI,
+					},
+					Position: tt.position,
+				},
+			})
+			assert.Equal(t, tt.expectedError, err)
+			startPoints := []lsp.Position{}
+			for _, location := range result {
+				startPoints = append(startPoints, location.Range.Start)
+			}
+			for _, expected := range tt.expectedStartPoints {
+				assert.Contains(t, startPoints, expected)
 			}
 		})
 	}

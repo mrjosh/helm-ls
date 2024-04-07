@@ -1,6 +1,7 @@
 package lsp
 
 import (
+	"os"
 	"testing"
 
 	sitter "github.com/smacker/go-tree-sitter"
@@ -24,7 +25,6 @@ func TestSymbolTableForIncludeDefinitions(t *testing.T) {
 
 	assert.Len(t, symbolTable.includeDefinitions, 2)
 
-	// TODO: remove the double quotes
 	assert.Equal(t, symbolTable.includeDefinitions["bar"], []sitter.Range{{
 		StartPoint: sitter.Point{
 			Row:    5,
@@ -76,14 +76,14 @@ func TestSymbolTableForValues(t *testing.T) {
 			path: []string{"Test"},
 			startPoint: sitter.Point{
 				Row:    5,
-				Column: 3,
+				Column: 4,
 			},
 		},
 		{
 			path: []string{"Test"},
 			startPoint: sitter.Point{
 				Row:    20,
-				Column: 3,
+				Column: 4,
 			},
 		},
 		{
@@ -104,7 +104,7 @@ func TestSymbolTableForValues(t *testing.T) {
 			path: []string{"list"},
 			startPoint: sitter.Point{
 				Row:    8,
-				Column: 9,
+				Column: 10,
 			},
 		},
 		{
@@ -118,7 +118,7 @@ func TestSymbolTableForValues(t *testing.T) {
 			path: []string{"list[]", "listinner"},
 			startPoint: sitter.Point{
 				Row:    10,
-				Column: 4,
+				Column: 5,
 			},
 		},
 		{
@@ -132,14 +132,14 @@ func TestSymbolTableForValues(t *testing.T) {
 			path: []string{"list[]", "nested"},
 			startPoint: sitter.Point{
 				Row:    12,
-				Column: 10,
+				Column: 11,
 			},
 		},
 		{
 			path: []string{"list[]", "nested[]", "nestedinList"},
 			startPoint: sitter.Point{
 				Row:    13,
-				Column: 5,
+				Column: 6,
 			},
 		},
 		{
@@ -153,13 +153,48 @@ func TestSymbolTableForValues(t *testing.T) {
 			path: []string{"Values", "dollar[]", "nestedinList"},
 			startPoint: sitter.Point{
 				Row:    16,
-				Column: 5,
+				Column: 6,
 			},
 		},
 	}
 
 	for _, v := range expected {
-		values := symbolTable.GetValues(v.path)
+		values := symbolTable.GetTemplateContextRanges(v.path)
+		points := []sitter.Point{}
+		for _, v := range values {
+			points = append(points, v.StartPoint)
+		}
+		assert.Contains(t, points, v.startPoint)
+	}
+}
+
+func TestSymbolTableForValuesTestFile(t *testing.T) {
+	path := "../../testdata/example/templates/deployment.yaml"
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal("Could not read test file", err)
+	}
+	ast := ParseAst(nil, string(content))
+
+	symbolTable := NewSymbolTable(ast, []byte(content))
+	type expectedValue struct {
+		path       []string
+		startPoint sitter.Point
+	}
+
+	expected := []expectedValue{
+		{
+			path: []string{"Values", "ingress"},
+			startPoint: sitter.Point{
+				Row:    0x47,
+				Column: 0x18,
+			},
+		},
+	}
+
+	for _, v := range expected {
+		values := symbolTable.GetTemplateContextRanges(v.path)
 		points := []sitter.Point{}
 		for _, v := range values {
 			points = append(points, v.StartPoint)

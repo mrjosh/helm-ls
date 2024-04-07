@@ -2,15 +2,14 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"testing"
 
+	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
-	languagefeatures "github.com/mrjosh/helm-ls/internal/language_features"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
-	gotemplate "github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
-	sitter "github.com/smacker/go-tree-sitter"
+	"github.com/mrjosh/helm-ls/internal/util"
+	"github.com/stretchr/testify/assert"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 	yamlv3 "gopkg.in/yaml.v3"
@@ -33,7 +32,7 @@ var testFileContent = `
 `
 
 var (
-	testDocumentTemplateURI = uri.URI("file:///test.yaml")
+	testDocumentTemplateURI = uri.URI("file:///templates/test.yaml")
 	testValuesURI           = uri.URI("file:///values.yaml")
 	testOtherValuesURI      = uri.URI("file:///values.other.yaml")
 	valuesContent           = `
@@ -51,22 +50,12 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 	if err != nil {
 		t.Fatal(err)
 	}
-	handler := &langHandler{
-		linterName: "helm-lint",
-		connPool:   nil,
-		documents:  nil,
-	}
 
-	parser := sitter.NewParser()
-	parser.SetLanguage(gotemplate.GetLanguage())
-	tree, _ := parser.ParseCtx(context.Background(), nil, []byte(testFileContent))
-	doc := &lsplocal.Document{
-		Content: testFileContent,
-		URI:     testDocumentTemplateURI,
-		Ast:     tree,
-	}
+	documents := lsplocal.NewDocumentStore()
+	fileURI := testDocumentTemplateURI
+	rootUri := uri.File("/")
 
-	location, err := handler.definitionAstParsing(languagefeatures.GenericDocumentUseCase{}, &charts.Chart{
+	chart := &charts.Chart{
 		ChartMetadata: &charts.ChartMetadata{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
@@ -77,15 +66,33 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 			AdditionalValuesFiles: []*charts.ValuesFile{},
 		},
 		RootURI: "",
-	}, doc, position)
-
-	if err != nil && err.Error() != expectedError.Error() {
-		t.Errorf("expected %v, got %v", expectedError, err)
+	}
+	d := lsp.DidOpenTextDocumentParams{
+		TextDocument: lsp.TextDocumentItem{
+			URI:        fileURI,
+			LanguageID: "",
+			Version:    0,
+			Text:       string(testFileContent),
+		},
+	}
+	documents.DidOpen(&d, util.DefaultConfig)
+	chartStore := charts.NewChartStore(rootUri, charts.NewChart)
+	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: chart}
+	h := &langHandler{
+		chartStore:      chartStore,
+		documents:       documents,
+		yamllsConnector: &yamlls.Connector{},
 	}
 
-	if reflect.DeepEqual(location, expectedLocations) == false {
-		t.Errorf("expected %v, got %v", expectedLocations, location)
-	}
+	location, err := h.Definition(context.TODO(), &lsp.DefinitionParams{
+		TextDocumentPositionParams: lsp.TextDocumentPositionParams{
+			TextDocument: lsp.TextDocumentIdentifier{URI: fileURI},
+			Position:     position,
+		},
+	})
+
+	assert.Equal(t, expectedError, err)
+	assert.Equal(t, expectedLocations, location)
 }
 
 // Input:
@@ -106,8 +113,7 @@ func TestDefinitionVariable(t *testing.T) {
 }
 
 func TestDefinitionNotImplemented(t *testing.T) {
-	genericDefinitionTest(t, lsp.Position{Line: 1, Character: 1}, []lsp.Location{},
-		fmt.Errorf("Definition not implemented for node type %s", "{{"))
+	genericDefinitionTest(t, lsp.Position{Line: 1, Character: 1}, nil, nil)
 }
 
 // Input:
@@ -220,22 +226,12 @@ func genericDefinitionTestMultipleValuesFiles(t *testing.T, position lsp.Positio
 	if err != nil {
 		t.Fatal(err)
 	}
-	handler := &langHandler{
-		linterName: "helm-lint",
-		connPool:   nil,
-		documents:  nil,
-	}
+	documents := lsplocal.NewDocumentStore()
+	fileURI := testDocumentTemplateURI
+	rootUri := uri.File("/")
 
-	parser := sitter.NewParser()
-	parser.SetLanguage(gotemplate.GetLanguage())
-	tree, _ := parser.ParseCtx(context.Background(), nil, []byte(testFileContent))
-	doc := &lsplocal.Document{
-		Content: testFileContent,
-		URI:     testDocumentTemplateURI,
-		Ast:     tree,
-	}
-
-	location, err := handler.definitionAstParsing(languagefeatures.GenericDocumentUseCase{}, &charts.Chart{
+	chart := &charts.Chart{
+		ChartMetadata: &charts.ChartMetadata{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
 				Values:    make(map[string]interface{}),
@@ -251,7 +247,30 @@ func genericDefinitionTestMultipleValuesFiles(t *testing.T, position lsp.Positio
 			},
 		},
 		RootURI: "",
-	}, doc, position)
+	}
+	d := lsp.DidOpenTextDocumentParams{
+		TextDocument: lsp.TextDocumentItem{
+			URI:        fileURI,
+			LanguageID: "",
+			Version:    0,
+			Text:       string(testFileContent),
+		},
+	}
+	documents.DidOpen(&d, util.DefaultConfig)
+	chartStore := charts.NewChartStore(rootUri, charts.NewChart)
+	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: chart}
+	h := &langHandler{
+		chartStore:      chartStore,
+		documents:       documents,
+		yamllsConnector: &yamlls.Connector{},
+	}
+
+	location, err := h.Definition(context.TODO(), &lsp.DefinitionParams{
+		TextDocumentPositionParams: lsp.TextDocumentPositionParams{
+			TextDocument: lsp.TextDocumentIdentifier{URI: fileURI},
+			Position:     position,
+		},
+	})
 
 	if err != nil && err.Error() != expectedError.Error() {
 		t.Errorf("expected %v, got %v", expectedError, err)

@@ -8,6 +8,14 @@ import (
 
 type TemplateContext []string
 
+func (t TemplateContext) Format() string {
+	return strings.Join(t, ".")
+}
+
+func (t TemplateContext) Tail() TemplateContext {
+	return t[1:]
+}
+
 type SymbolTable struct {
 	contexts           map[string][]sitter.Range
 	contextsReversed   map[sitter.Range]TemplateContext
@@ -26,13 +34,15 @@ func NewSymbolTable(ast *sitter.Tree, content []byte) *SymbolTable {
 	return s
 }
 
-func (s *SymbolTable) AddValue(templateContext []string, pointRange sitter.Range) {
-	s.contexts[strings.Join(templateContext, ".")] = append(s.contexts[strings.Join(templateContext, ".")], pointRange)
-	s.contextsReversed[pointRange] = templateContext
+func (s *SymbolTable) AddTemplateContext(templateContext TemplateContext, pointRange sitter.Range) {
+	s.contexts[templateContext.Format()] = append(s.contexts[strings.Join(templateContext, ".")], pointRange)
+	sliceCopy := make(TemplateContext, len(templateContext))
+	copy(sliceCopy, templateContext)
+	s.contextsReversed[pointRange] = sliceCopy
 }
 
-func (s *SymbolTable) GetValues(path []string) []sitter.Range {
-	return s.contexts[strings.Join(path, ".")]
+func (s *SymbolTable) GetTemplateContextRanges(templateContext TemplateContext) []sitter.Range {
+	return s.contexts[templateContext.Format()]
 }
 
 func (s *SymbolTable) GetTemplateContext(pointRange sitter.Range) TemplateContext {
@@ -62,7 +72,7 @@ func (s *SymbolTable) parseTree(ast *sitter.Tree, content []byte) {
 	v := Visitors{
 		symbolTable: s,
 		visitors: []Visitor{
-			NewValuesVisitor(s, content),
+			NewTemplateContextVisitor(s, content),
 			NewIncludeDefinitionsVisitor(s, content),
 		},
 	}

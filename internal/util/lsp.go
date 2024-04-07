@@ -19,8 +19,9 @@ type HoverResultsWithFiles []HoverResultWithFile
 func (h HoverResultsWithFiles) Format(rootURI uri.URI) string {
 	var formatted string
 	sort.Slice(h, func(i, j int) bool {
-		return h[i].URI < h[j].URI
+		return h[i].URI > h[j].URI
 	})
+
 	for _, result := range h {
 		value := result.Value
 		if value == "" {

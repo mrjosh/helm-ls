@@ -4,7 +4,6 @@ import (
 	"context"
 
 	languagefeatures "github.com/mrjosh/helm-ls/internal/language_features"
-	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	lsp "go.lsp.dev/protocol"
 )
 
@@ -14,26 +13,17 @@ func (h *langHandler) References(ctx context.Context, params *lsp.ReferenceParam
 		return nil, err
 	}
 
-	parentNode := genericDocumentUseCase.Node.Parent()
-	pt := parentNode.Type()
-	ct := genericDocumentUseCase.Node.Type()
-
-	logger.Println("pt", pt, "ct", ct)
-	logger.Println(genericDocumentUseCase.NodeContent())
-
-	if pt == gotemplate.NodeTypeDefineAction && ct == gotemplate.NodeTypeInterpretedStringLiteral {
-		includesDefinitionFeature := languagefeatures.NewIncludesDefinitionFeature(genericDocumentUseCase)
-		return includesDefinitionFeature.References()
+	usecases := []languagefeatures.ReferencesUseCase{
+		languagefeatures.NewIncludesDefinitionFeature(genericDocumentUseCase),
+		languagefeatures.NewIncludesCallFeature(genericDocumentUseCase),
+		languagefeatures.NewValuesFeature(genericDocumentUseCase),
 	}
 
-	if pt == gotemplate.NodeTypeArgumentList {
-		includesCallFeature := languagefeatures.NewIncludesCallFeature(genericDocumentUseCase)
-		return includesCallFeature.References()
+	for _, usecase := range usecases {
+		if usecase.AppropriateForNode(genericDocumentUseCase.NodeType, genericDocumentUseCase.ParentNodeType, genericDocumentUseCase.Node) {
+			return usecase.References()
+		}
 	}
 
-	if (pt == gotemplate.NodeTypeField && ct == gotemplate.NodeTypeIdentifier) || ct == gotemplate.NodeTypeFieldIdentifier || ct == gotemplate.NodeTypeField {
-		valuesFeature := languagefeatures.NewValuesFeature(genericDocumentUseCase)
-		return valuesFeature.References()
-	}
 	return nil, nil
 }

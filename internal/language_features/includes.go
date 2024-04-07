@@ -4,32 +4,47 @@ import (
 	lsp "go.lsp.dev/protocol"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
+	sitter "github.com/smacker/go-tree-sitter"
 )
 
 type IncludesFeature struct {
-	GenericDocumentUseCase
+	*GenericDocumentUseCase
+}
+
+type IncludesCallFeature struct {
+	*IncludesFeature
 }
 
 // should be called on {{ include "name" . }}
-type IncludesCallFeature struct {
-	IncludesFeature
+func (f *IncludesCallFeature) AppropriateForNode(currentNodeType string, parentNodeType string, node *sitter.Node) bool {
+	if parentNodeType != gotemplate.NodeTypeArgumentList {
+		return false
+	}
+	functionCallNode := node.Parent().Parent()
+	_, err := lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
+	return err == nil
+}
+
+type IncludesDefinitionFeature struct {
+	*IncludesFeature
 }
 
 // should be called on {{ define "name" }}
-type IncludesDefinitionFeature struct {
-	IncludesFeature
+func (f *IncludesDefinitionFeature) AppropriateForNode(currentNodeType string, parentNodeType string, node *sitter.Node) bool {
+	return parentNodeType == gotemplate.NodeTypeDefineAction && currentNodeType == gotemplate.NodeTypeInterpretedStringLiteral
 }
 
-func NewIncludesCallFeature(genericDocumentUseCase GenericDocumentUseCase) *IncludesCallFeature {
+func NewIncludesCallFeature(genericDocumentUseCase *GenericDocumentUseCase) *IncludesCallFeature {
 	return &IncludesCallFeature{
-		IncludesFeature: IncludesFeature{genericDocumentUseCase},
+		IncludesFeature: &IncludesFeature{genericDocumentUseCase},
 	}
 }
 
-func NewIncludesDefinitionFeature(genericDocumentUseCase GenericDocumentUseCase) *IncludesDefinitionFeature {
+func NewIncludesDefinitionFeature(genericDocumentUseCase *GenericDocumentUseCase) *IncludesDefinitionFeature {
 	return &IncludesDefinitionFeature{
-		IncludesFeature: IncludesFeature{genericDocumentUseCase},
+		IncludesFeature: &IncludesFeature{genericDocumentUseCase},
 	}
 }
 
@@ -39,21 +54,17 @@ func (f *IncludesCallFeature) References() (result []lsp.Location, err error) {
 		return []lsp.Location{}, err
 	}
 
-	locations := f.getReferenceLocations(includeName)
-	return locations, nil
+	return f.getReferenceLocations(includeName), nil
 }
 
 func (f *IncludesCallFeature) getIncludeName() (string, error) {
 	functionCallNode := f.Node.Parent().Parent()
-	includeName, err := lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
-	return includeName, err
+	return lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
 }
 
 func (f *IncludesDefinitionFeature) References() (result []lsp.Location, err error) {
 	includeName := util.RemoveQuotes(f.GenericDocumentUseCase.NodeContent())
-
-	locations := f.getReferenceLocations(includeName)
-	return locations, nil
+	return f.getReferenceLocations(includeName), nil
 }
 
 func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Location {
