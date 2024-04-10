@@ -178,6 +178,33 @@ settings = {
 See [examples/nvim/init.lua](https://github.com/mrjosh/helm-ls/blob/master/examples/nvim/init.lua) for an
 complete example, which also includes yaml-language-server.
 
+#### Neovim + CoC plugin
+
+Using the [coc.nvim](https://github.com/neoclide/coc.nvim) plugin, you don't need the previous configuration in lua. Coc will handle the configuration instead.
+
+You only need to configure the use of `helm_ls` in the "`langageserver`" section of your `coc-settings.json` file. 
+
+Open Neovim and type the command `:CocConfig` to access the configuration file. Find the `langageserver` section, or create one if necessary, and add this configuration:
+
+
+```json
+"languageserver": {
+  "helm": {
+    "command": "helm_ls",
+    "args": ["serve"],
+    "filetypes": ["yaml", "helm", "helmfile"],
+    "rootPatterns": ["Chart.yaml"]
+  }
+},
+```
+
+Note that you can install `helm_ls` in a directory that is not in your PATH, and then specify the full path to the executable in the `command` field.
+
+Save the configuration file and then, either:
+- Reastart neovim
+- Type `:CocRestart` in neovim to restart the language server.
+
+Open a Helm file, and you should be able to see errors, documentation, completion, etc.
 
 ### VSCode
 
