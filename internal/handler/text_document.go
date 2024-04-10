@@ -80,15 +80,18 @@ func (h *langHandler) DidChange(ctx context.Context, params *lsp.DidChangeTextDo
 }
 
 func (h *langHandler) DidCreateFiles(ctx context.Context, params *lsp.CreateFilesParams) (err error) {
-	panic("unimplemented")
+	logger.Error("DidCreateFiles unimplemented")
+	return nil
 }
 
 // DidDeleteFiles implements protocol.Server.
 func (h *langHandler) DidDeleteFiles(ctx context.Context, params *lsp.DeleteFilesParams) (err error) {
-	panic("unimplemented")
+	logger.Error("DidDeleteFiles unimplemented")
+	return nil
 }
 
 // DidRenameFiles implements protocol.Server.
 func (h *langHandler) DidRenameFiles(ctx context.Context, params *lsp.RenameFilesParams) (err error) {
-	panic("unimplemented")
+	logger.Error("DidRenameFiles unimplemented")
+	return nil
 }
