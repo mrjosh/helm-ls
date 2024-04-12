@@ -8,14 +8,14 @@ import (
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/util"
-	"github.com/mrjosh/helm-ls/pkg/action"
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
-	"github.com/mrjosh/helm-ls/pkg/lint/support"
 	"github.com/pkg/errors"
 
-	"github.com/mrjosh/helm-ls/pkg/lint/rules"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
+	"helm.sh/helm/v3/pkg/action"
+	// "helm.sh/helm/v3/pkg/lint/rules"
+	"helm.sh/helm/v3/pkg/chartutil"
+	"helm.sh/helm/v3/pkg/lint/support"
 )
 
 var logger = log.GetLogger()
@@ -69,6 +69,7 @@ func GetDiagnostics(uri uri.URI, vals chartutil.Values) []lsp.Diagnostic {
 		}
 		diagnostics = append(diagnostics, *d)
 	}
+	logger.Println(fmt.Sprintf("helm lint: result for file %s : %v", uri, diagnostics))
 
 	return diagnostics
 }
@@ -87,35 +88,35 @@ func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string
 
 		severity = lsp.DiagnosticSeverityError
 
-		if superr, ok := supMsg.Err.(*rules.YAMLToJSONParseError); ok {
+		// if superr, ok := supMsg.Err.(*rules.YAMLToJSONParseError); ok {
 
-			line = superr.Line
-			msg = superr.Error()
+		// line = superr.Line
+		// msg = superr.Error()
+		//
+		// } else {
 
-		} else {
-
-			fileLine := util.BetweenStrings(supMsg.Error(), "(", ")")
-			fileLineArr := strings.Split(fileLine, ":")
-			if len(fileLineArr) < 2 {
-				return nil, filename, errors.Errorf("linter Err contains no position information")
-			}
-			lineStr := fileLineArr[1]
-			line, err = strconv.Atoi(lineStr)
-			if err != nil {
-				return nil, filename, err
-			}
-			msgStr := util.AfterStrings(supMsg.Error(), "):")
-			msg = strings.TrimSpace(msgStr)
-
+		fileLine := util.BetweenStrings(supMsg.Error(), "(", ")")
+		fileLineArr := strings.Split(fileLine, ":")
+		if len(fileLineArr) < 2 {
+			return nil, filename, errors.Errorf("linter Err contains no position information")
 		}
+		lineStr := fileLineArr[1]
+		line, err = strconv.Atoi(lineStr)
+		if err != nil {
+			return nil, filename, err
+		}
+		msgStr := util.AfterStrings(supMsg.Error(), "):")
+		msg = strings.TrimSpace(msgStr)
+
+		// }
 
 	case support.WarningSev:
 
-		severity = lsp.DiagnosticSeverityWarning
-		if err, ok := supMsg.Err.(*rules.MetadataError); ok {
-			line = 1
-			msg = err.Details().Error()
-		}
+		// severity = lsp.DiagnosticSeverityWarning
+		// if err, ok := supMsg.Err.(*rules.MetadataError); ok {
+		// 	line = 1
+		// 	msg = err.Details().Error()
+		// }
 
 	case support.InfoSev:
 

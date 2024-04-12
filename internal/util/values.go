@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	lsp "go.lsp.dev/protocol"
 	"gopkg.in/yaml.v2"
+	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 func GetTableOrValueForSelector(values chartutil.Values, selector string) (string, error) {

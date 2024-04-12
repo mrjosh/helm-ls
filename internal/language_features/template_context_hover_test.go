@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	"github.com/mrjosh/helm-ls/pkg/chart"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 func Test_langHandler_getValueHover(t *testing.T) {
@@ -233,6 +233,28 @@ value
 			},
 			want: `### values.yaml
 1.2345
+
+`,
+			wantErr: false,
+		},
+		{
+			name: "Lookup in list",
+			args: args{
+				chart: &charts.Chart{
+					ChartMetadata: &charts.ChartMetadata{},
+					ValuesFiles: &charts.ValuesFiles{
+						MainValuesFile: &charts.ValuesFile{
+							Values: map[string]interface{}{
+								"key": []interface{}{"hello"},
+							},
+							URI: "file://tmp/values.yaml",
+						},
+					},
+				},
+				splittedVar: []string{"key[0]"},
+			},
+			want: `### values.yaml
+hello
 
 `,
 			wantErr: false,

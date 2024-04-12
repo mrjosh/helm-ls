@@ -12,7 +12,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
-	"github.com/mrjosh/helm-ls/pkg/chart"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 type TemplateContextFeature struct {

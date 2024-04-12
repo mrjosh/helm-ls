@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
+	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 func (s *ChartStore) GetChartForDoc(uri lsp.DocumentURI) (*Chart, error) {

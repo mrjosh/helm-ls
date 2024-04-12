@@ -3,10 +3,11 @@ package charts
 import (
 	"path/filepath"
 
-	"github.com/mrjosh/helm-ls/pkg/chart"
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
+	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
 	"gopkg.in/yaml.v3"
+	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 type ChartMetadata struct {
@@ -17,7 +18,7 @@ type ChartMetadata struct {
 
 func NewChartMetadata(rootURI uri.URI) *ChartMetadata {
 	filePath := filepath.Join(rootURI.Filename(), chartutil.ChartfileName)
-	chartNode, err := chartutil.ReadYamlFileToNode(filePath)
+	chartNode, err := util.ReadYamlFileToNode(filePath)
 	if err != nil {
 		logger.Error("Error loading Chart.yaml file", rootURI, err)
 	}

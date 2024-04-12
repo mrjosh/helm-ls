@@ -1,8 +1,9 @@
 package charts
 
 import (
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
+	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
+	"helm.sh/helm/v3/pkg/chartutil"
 
 	"gopkg.in/yaml.v3"
 )
@@ -37,7 +38,7 @@ func readInValuesFile(filePath string) (chartutil.Values, yaml.Node) {
 		logger.Error("Error loading values file ", filePath, err)
 	}
 
-	valueNodes, err := chartutil.ReadYamlFileToNode(filePath)
+	valueNodes, err := util.ReadYamlFileToNode(filePath)
 	if err != nil {
 		logger.Error("Error loading values file ", filePath, err)
 	}
