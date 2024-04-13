@@ -2,45 +2,54 @@ package languagefeatures
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
 	lsp "go.lsp.dev/protocol"
 
+	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
-	sitter "github.com/smacker/go-tree-sitter"
+	"github.com/mrjosh/helm-ls/pkg/chart"
+	"github.com/mrjosh/helm-ls/pkg/chartutil"
 )
 
 type TemplateContextFeature struct {
-	*GenericDocumentUseCase
+	*GenericTemplateContextFeature
 }
 
-func NewValuesFeature(genericDocumentUseCase *GenericDocumentUseCase) *TemplateContextFeature {
+func NewTemplateContextFeature(genericDocumentUseCase *GenericDocumentUseCase) *TemplateContextFeature {
 	return &TemplateContextFeature{
-		GenericDocumentUseCase: genericDocumentUseCase,
+		GenericTemplateContextFeature: &GenericTemplateContextFeature{genericDocumentUseCase},
 	}
 }
 
-func (f *TemplateContextFeature) AppropriateForNode(currentNodeType string, parentNodeType string, node *sitter.Node) bool {
-	return (parentNodeType == gotemplate.NodeTypeField && currentNodeType == gotemplate.NodeTypeIdentifier) || currentNodeType == gotemplate.NodeTypeFieldIdentifier || currentNodeType == gotemplate.NodeTypeField
+func (f *TemplateContextFeature) AppropriateForNode() bool {
+	if f.NodeType == gotemplate.NodeTypeDot {
+		return true
+	}
+	return (f.ParentNodeType == gotemplate.NodeTypeField && f.NodeType == gotemplate.NodeTypeIdentifier) ||
+		f.NodeType == gotemplate.NodeTypeFieldIdentifier ||
+		f.NodeType == gotemplate.NodeTypeField
 }
 
 func (f *TemplateContextFeature) References() (result []lsp.Location, err error) {
-	includeName, err := f.getTemplateContext()
+	templateContext, err := f.getTemplateContext()
 	if err != nil {
 		return []lsp.Location{}, err
 	}
 
-	locations := f.getReferenceLocations(includeName)
-	return locations, nil
+	locations := f.getReferenceLocations(templateContext)
+	return append(locations, f.getDefinitionLocations(templateContext)...), nil
 }
 
-func (f *TemplateContextFeature) getTemplateContext() (lsplocal.TemplateContext, error) {
-	templateContext := f.GenericDocumentUseCase.Document.SymbolTable.GetTemplateContext(lsplocal.GetRangeForNode(f.Node))
-	if len(templateContext) == 0 || templateContext == nil {
-		return lsplocal.TemplateContext{}, fmt.Errorf("no template context found")
+func (f *TemplateContextFeature) Definition() (result []lsp.Location, err error) {
+	templateContext, err := f.getTemplateContext()
+	if err != nil {
+		return []lsp.Location{}, err
 	}
-	return templateContext, nil
+	return f.getDefinitionLocations(templateContext), nil
 }
 
 func (f *TemplateContextFeature) getReferenceLocations(templateContext lsplocal.TemplateContext) []lsp.Location {
@@ -57,20 +66,68 @@ func (f *TemplateContextFeature) getReferenceLocations(templateContext lsplocal.
 
 func (f *TemplateContextFeature) getDefinitionLocations(templateContext lsplocal.TemplateContext) []lsp.Location {
 	locations := []lsp.Location{}
-	if len(templateContext) == 0 || templateContext == nil {
-		return []lsp.Location{}
-	}
 
 	switch templateContext[0] {
 	case "Values":
 		for _, value := range f.Chart.ResolveValueFiles(templateContext.Tail(), f.ChartStore) {
 			locations = append(locations, value.ValuesFiles.GetPositionsForValue(value.Selector)...)
 		}
+		return locations
+	case "Chart":
+		location, _ := f.Chart.GetValueLocation(templateContext.Tail())
+		return []lsp.Location{location}
 	}
 	return locations
 }
 
 func (f *TemplateContextFeature) Hover() (string, error) {
 	templateContext, err := f.getTemplateContext()
+
+	switch templateContext[0] {
+	case "Values":
+		return f.valuesHover(templateContext.Tail())
+	case "Chart":
+		docs, error := f.builtInOjectDocsLookup(templateContext.Tail().Format(), helmdocs.BuiltInOjectVals[templateContext[0]])
+		value := f.getMetadataField(&f.Chart.ChartMetadata.Metadata, docs.Name)
+		return fmt.Sprintf("%s\n\n%s\n", docs.Doc, value), error
+	case "Release", "Files", "Capabilities", "Template":
+		docs, error := f.builtInOjectDocsLookup(templateContext.Tail().Format(), helmdocs.BuiltInOjectVals[templateContext[0]])
+		return docs.Doc, error
+	}
+
 	return templateContext.Format(), err
+}
+
+func (f *TemplateContextFeature) valuesHover(templateContext lsplocal.TemplateContext) (string, error) {
+	var (
+		valuesFiles  = f.Chart.ResolveValueFiles(templateContext, f.ChartStore)
+		hoverResults = util.HoverResultsWithFiles{}
+	)
+	for _, valuesFiles := range valuesFiles {
+		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
+			result, err := f.getTableOrValueForSelector(valuesFile.Values, strings.Join(valuesFiles.Selector, "."))
+			if err == nil {
+				hoverResults = append(hoverResults, util.HoverResultWithFile{URI: valuesFile.URI, Value: result})
+			}
+		}
+	}
+	return hoverResults.Format(f.ChartStore.RootURI), nil
+}
+
+func (f *TemplateContextFeature) getMetadataField(v *chart.Metadata, fieldName string) string {
+	r := reflect.ValueOf(v)
+	field := reflect.Indirect(r).FieldByName(fieldName)
+	return util.FormatToYAML(field, fieldName)
+}
+
+func (f *TemplateContextFeature) getTableOrValueForSelector(values chartutil.Values, selector string) (string, error) {
+	if len(selector) > 0 {
+		localValues, err := values.Table(selector)
+		if err != nil {
+			value, err := values.PathValue(selector)
+			return util.FormatToYAML(reflect.Indirect(reflect.ValueOf(value)), selector), err
+		}
+		return localValues.YAML()
+	}
+	return values.YAML()
 }

@@ -208,11 +208,11 @@ func TestDefinitionValueFile(t *testing.T) {
 			URI: testValuesURI,
 			Range: lsp.Range{
 				Start: lsp.Position{
-					Line:      1,
+					Line:      0,
 					Character: 0,
 				},
 				End: lsp.Position{
-					Line:      1,
+					Line:      0,
 					Character: 0,
 				},
 			},
@@ -289,11 +289,11 @@ func TestDefinitionValueFileMulitpleValues(t *testing.T) {
 			URI: testValuesURI,
 			Range: lsp.Range{
 				Start: lsp.Position{
-					Line:      1,
+					Line:      0,
 					Character: 0,
 				},
 				End: lsp.Position{
-					Line:      1,
+					Line:      0,
 					Character: 0,
 				},
 			},
@@ -301,11 +301,11 @@ func TestDefinitionValueFileMulitpleValues(t *testing.T) {
 			URI: testOtherValuesURI,
 			Range: lsp.Range{
 				Start: lsp.Position{
-					Line:      1,
+					Line:      0,
 					Character: 0,
 				},
 				End: lsp.Position{
-					Line:      1,
+					Line:      0,
 					Character: 0,
 				},
 			},

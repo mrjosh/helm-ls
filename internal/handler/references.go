@@ -16,11 +16,11 @@ func (h *langHandler) References(ctx context.Context, params *lsp.ReferenceParam
 	usecases := []languagefeatures.ReferencesUseCase{
 		languagefeatures.NewIncludesDefinitionFeature(genericDocumentUseCase),
 		languagefeatures.NewIncludesCallFeature(genericDocumentUseCase),
-		languagefeatures.NewValuesFeature(genericDocumentUseCase),
+		languagefeatures.NewTemplateContextFeature(genericDocumentUseCase),
 	}
 
 	for _, usecase := range usecases {
-		if usecase.AppropriateForNode(genericDocumentUseCase.NodeType, genericDocumentUseCase.ParentNodeType, genericDocumentUseCase.Node) {
+		if usecase.AppropriateForNode() {
 			return usecase.References()
 		}
 	}

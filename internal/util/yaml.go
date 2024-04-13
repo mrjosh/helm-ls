@@ -17,7 +17,7 @@ func GetPositionOfNode(node *yamlv3.Node, query []string) (lsp.Position, error) 
 		return lsp.Position{Line: uint32(node.Line) - 1, Character: uint32(node.Column) - 1}, nil
 	}
 
-	query[0] = strings.TrimSuffix(query[0], "[0]")
+	query[0] = strings.TrimSuffix(query[0], "[]")
 
 	switch node.Kind {
 	case yamlv3.DocumentNode:

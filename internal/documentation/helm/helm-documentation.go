@@ -1,4 +1,6 @@
-package handler
+package helmdocs
+
+import "github.com/mrjosh/helm-ls/internal/util"
 
 type HelmDocumentation struct {
 	Name   string
@@ -7,9 +9,10 @@ type HelmDocumentation struct {
 }
 
 var (
-	basicItems = []HelmDocumentation{
+	BuiltInObjects = []HelmDocumentation{
 		{"Values", ".Values", `The values made available through values.yaml, --set and -f.`},
 		{"Chart", ".Chart", "Chart metadata"},
+		{"Subcharts", ".Subcharts", "This provides access to the scope (.Values, .Charts, .Releases etc.) of subcharts to the parent. For example .Subcharts.mySubChart.myValue to access the myValue in the mySubChart chart."},
 		{"Files", ".Files.Get $str", "access non-template files within the chart"},
 		{"Capabilities", ".Capabilities.KubeVersion ", "access capabilities of Kubernetes"},
 		{"Release", ".Release", `Built-in release values. Attributes include:
@@ -21,8 +24,9 @@ var (
     - .Release.IsInstall: True if this is an install
     - .Release.Revision: The revision number
     `},
+		{"Template", ".Template", "Contains information about the current template that is being executed"},
 	}
-	builtinFuncs = []HelmDocumentation{
+	BuiltinFuncs = []HelmDocumentation{
 		{"template", "template $str $ctx", "render the template at location $str"},
 		{"define", "define $str", "define a template with the name $str"},
 		{"and", "and $a $b ...", "if $a then $b else $a"},
@@ -44,7 +48,7 @@ var (
 		{"le", "le $a $b", "returns true if $a <= $b"},
 		{"ge", "ge $a $b", "returns true if $a >= $b"},
 	}
-	sprigFuncs = []HelmDocumentation{
+	SprigFuncs = []HelmDocumentation{
 		// 2.12.0
 		{"snakecase", "snakecase $str", "Convert $str to snake_case"},
 		{"camelcase", "camelcase $str", "convert string to camelCase"},
@@ -173,7 +177,7 @@ var (
 		{"derivePassword", "derivePassword $counter $long $pass $user $domain", "generate a password from [Master Password](http://masterpasswordapp.com/algorithm.html) spec"},
 		{"generatePrivateKey", "generatePrivateKey 'ecdsa'", "generate private PEM key (takes dsa, rsa, or ecdsa)"},
 	}
-	helmFuncs = []HelmDocumentation{
+	HelmFuncs = []HelmDocumentation{
 		{"include", "include $str $ctx", "(chainable) include the named template with the given context."},
 		{"toYaml", "toYaml $var", "convert $var to YAML"},
 		{"toJson", "toJson $var", "convert $var to JSON"},
@@ -183,13 +187,22 @@ var (
 		{"required", "required $str $val", "fail template with message $str if $val is not provided or is empty"},
 	}
 
-	capabilitiesVals = []HelmDocumentation{
-		{"KubeVersion", ".Capabilities.KubeVersion", "Kubernetes version"},
+	CapabilitiesVals = []HelmDocumentation{
 		{"TillerVersion", ".Capabilities.TillerVersion", "Tiller version"},
-		{"ApiVersions.Has", `.Capabilities.ApiVersions.Has "batch/v1"`, "Returns true if the given Kubernetes API/version is present on the cluster"},
+		{"APIVersions", "Capabilities.APIVersions", "A set of versions."},
+		{"APIVersions.Has", "Capabilities.APIVersions.Has $version", "Indicates whether a version (e.g., batch/v1) or resource (e.g., apps/v1/Deployment) is available on the cluster."},
+		{"KubeVersion", "Capabilities.KubeVersion", "The Kubernetes version."},
+		{"KubeVersion.Version", "Capabilities.KubeVersion.Version", "The Kubernetes version in semver format."},
+		{"KubeVersion.Major", "Capabilities.KubeVersion.Major", "The Kubernetes major version."},
+		{"KubeVersion.Minor", "Capabilities.KubeVersion.Minor", "The Kubernetes minor version."},
+		{"KubeVersion.GitCommit", "Capabilities.HelmVersion", "The object containing the Helm Version details, it is the same output of helm version."},
+		{"KubeVersion.GitTreeState", "Capabilities.HelmVersion.Version", "The current Helm version in semver format."},
+		{"HelmVersion.GitCommit", "Capabilities.HelmVersion.GitCommit", "The Helm git sha1."},
+		{"HelmVersion.GitTreeState", "Capabilities.HelmVersion.GitTreeState", "The state of the Helm git tree."},
+		{"HelmVersion.GoVersion", "Capabilities.HelmVersion.GoVersion", "The version of the Go compiler used."},
 	}
 
-	chartVals = []HelmDocumentation{
+	ChartVals = []HelmDocumentation{
 		{"Name", ".Chart.Name", "Name of the chart"},
 		{"Version", ".Chart.Version", "Version of the chart"},
 		{"Description", ".Chart.Description", "Chart description"},
@@ -201,9 +214,21 @@ var (
 		{"AppVersion", ".Chart.AppVersion", "The version of the main app contained in this chart"},
 		{"Deprecated", ".Chart.Deprecated", "If true, this chart is no longer maintained"},
 		{"TillerVersion", ".Chart.TillerVersion", "The version (range) if Tiller that this chart can run on."},
+		{"APIVersion", ".Chart.APIVersion", "The API Version of this chart"},
+		{"Condition", ".Chart.Condition", "The condition to check to enable chart"},
+		{"Tags", ".Chart.Tags", "The tags to check to enable chart"},
+		{"Annotations", ".Chart.Annotations", "Additional annotations (key-value pairs)"},
+		{"KubeVersion", ".Chart.KubeVersion", "Kubernetes version required"},
+		{"Dependencies", ".Chart.Dependencies", "List of chart dependencies"},
+		{"Type", ".Chart.Type", "Chart type (application or library)"},
 	}
 
-	releaseVals = []HelmDocumentation{
+	TemplateVals = []HelmDocumentation{
+		{"Name", ".Template.Name", "A namespaced file path to the current template (e.g. mychart/templates/mytemplate.yaml)"},
+		{"BasePath", ".Template.BasePath", "The namespaced path to the templates directory of the current chart (e.g. mychart/templates)."},
+	}
+
+	ReleaseVals = []HelmDocumentation{
 		{"Name", ".Release.Name", "Name of the release"},
 		{"Time", ".Release.Time", "Time of the release"},
 		{"Namespace", ".Release.Namespace", "Default namespace of the release"},
@@ -213,7 +238,7 @@ var (
 		{"Revision", ".Release.Revision", "Release revision number (starts at 1)"},
 	}
 
-	filesVals = []HelmDocumentation{
+	FilesVals = []HelmDocumentation{
 		{"Get", ".Files.Get $path", "Get file contents. Path is relative to chart."},
 		{"GetBytes", ".Files.GetBytes $path", "Get file contents as a byte array. Path is relative to chart."},
 		{"Glob", ".Files.Glob $glob", "Returns a list of files whose names match the given shell glob pattern."},
@@ -221,4 +246,27 @@ var (
 		{"AsSecrets", ".Files.AsSecrets $path", "Returns the file bodies as Base 64 encoded strings."},
 		{"AsConfig", ".Files.AsConfig $path", "Returns file bodies as a YAML map."},
 	}
+
+	BuiltInOjectVals = map[string][]HelmDocumentation{
+		"Chart":        ChartVals,
+		"Release":      ReleaseVals,
+		"Files":        FilesVals,
+		"Capabilities": CapabilitiesVals,
+		"Template":     TemplateVals,
+	}
 )
+
+func GetFunctionByName(name string) (HelmDocumentation, bool) {
+	completionItems := [][]HelmDocumentation{
+		BuiltinFuncs,
+		SprigFuncs,
+		HelmFuncs,
+	}
+	toSearch := util.ConcatMultipleSlices(completionItems)
+	for _, completionItem := range toSearch {
+		if name == completionItem.Name {
+			return completionItem, true
+		}
+	}
+	return HelmDocumentation{}, false
+}

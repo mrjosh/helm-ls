@@ -10,6 +10,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	gotemplate "github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
+	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	sitter "github.com/smacker/go-tree-sitter"
 	"go.lsp.dev/protocol"
@@ -17,6 +18,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/mrjosh/helm-ls/internal/documentation/godocs"
+	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
 )
 
 var (
@@ -26,9 +28,9 @@ var (
 )
 
 func init() {
-	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(helmFuncs)...)
-	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(builtinFuncs)...)
-	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(sprigFuncs)...)
+	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(helmdocs.HelmFuncs)...)
+	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(helmdocs.BuiltinFuncs)...)
+	functionsCompletionItems = append(functionsCompletionItems, getFunctionCompletionItems(helmdocs.SprigFuncs)...)
 	textCompletionsItems = append(textCompletionsItems, getTextCompletionItems(godocs.TextSnippets)...)
 }
 
@@ -69,7 +71,7 @@ func (h *langHandler) Completion(ctx context.Context, params *lsp.CompletionPara
 	logger.Println(fmt.Sprintf("Word found for completions is < %s >", word))
 
 	items = make([]lsp.CompletionItem, 0)
-	for _, v := range basicItems {
+	for _, v := range helmdocs.BuiltInObjects {
 		items = append(items, lsp.CompletionItem{
 			Label:         v.Name,
 			InsertText:    v.Name,
@@ -89,17 +91,17 @@ func (h *langHandler) Completion(ctx context.Context, params *lsp.CompletionPara
 
 	switch variableSplitted[0] {
 	case "Chart":
-		items = getVariableCompletionItems(chartVals)
+		items = getVariableCompletionItems(helmdocs.ChartVals)
 	case "Values":
 		items = h.getValuesCompletions(chart, variableSplitted[1:])
 	case "Release":
-		items = getVariableCompletionItems(releaseVals)
+		items = getVariableCompletionItems(helmdocs.ReleaseVals)
 	case "Files":
-		items = getVariableCompletionItems(filesVals)
+		items = getVariableCompletionItems(helmdocs.FilesVals)
 	case "Capabilities":
-		items = getVariableCompletionItems(capabilitiesVals)
+		items = getVariableCompletionItems(helmdocs.CapabilitiesVals)
 	default:
-		items = getVariableCompletionItems(basicItems)
+		items = getVariableCompletionItems(helmdocs.BuiltInObjects)
 		items = append(items, functionsCompletionItems...)
 	}
 
@@ -214,7 +216,7 @@ func (h *langHandler) setItem(items []lsp.CompletionItem, value interface{}, var
 		documentation = h.toYAML(value)
 	case reflect.Bool:
 		itemKind = lsp.CompletionItemKindVariable
-		documentation = h.getBoolType(value)
+		documentation = util.GetBoolType(value)
 	case reflect.Float32, reflect.Float64:
 		documentation = fmt.Sprintf("%.2f", valueOf.Float())
 		itemKind = lsp.CompletionItemKindVariable
@@ -238,21 +240,14 @@ func (h *langHandler) toYAML(value interface{}) string {
 	return string(valBytes)
 }
 
-func (h *langHandler) getBoolType(value interface{}) string {
-	if val, ok := value.(bool); ok && val {
-		return "True"
-	}
-	return "False"
-}
-
-func getVariableCompletionItems(helmDocs []HelmDocumentation) (result []lsp.CompletionItem) {
+func getVariableCompletionItems(helmDocs []helmdocs.HelmDocumentation) (result []lsp.CompletionItem) {
 	for _, item := range helmDocs {
 		result = append(result, variableCompletionItem(item))
 	}
 	return result
 }
 
-func variableCompletionItem(helmDocumentation HelmDocumentation) lsp.CompletionItem {
+func variableCompletionItem(helmDocumentation helmdocs.HelmDocumentation) lsp.CompletionItem {
 	return lsp.CompletionItem{
 		Label:         helmDocumentation.Name,
 		InsertText:    helmDocumentation.Name,
@@ -262,14 +257,14 @@ func variableCompletionItem(helmDocumentation HelmDocumentation) lsp.CompletionI
 	}
 }
 
-func getFunctionCompletionItems(helmDocs []HelmDocumentation) (result []lsp.CompletionItem) {
+func getFunctionCompletionItems(helmDocs []helmdocs.HelmDocumentation) (result []lsp.CompletionItem) {
 	for _, item := range helmDocs {
 		result = append(result, functionCompletionItem(item))
 	}
 	return result
 }
 
-func functionCompletionItem(helmDocumentation HelmDocumentation) lsp.CompletionItem {
+func functionCompletionItem(helmDocumentation helmdocs.HelmDocumentation) lsp.CompletionItem {
 	return lsp.CompletionItem{
 		Label:         helmDocumentation.Name,
 		InsertText:    helmDocumentation.Name,

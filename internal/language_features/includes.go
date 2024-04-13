@@ -6,7 +6,6 @@ import (
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
-	sitter "github.com/smacker/go-tree-sitter"
 )
 
 type IncludesFeature struct {
@@ -18,11 +17,11 @@ type IncludesCallFeature struct {
 }
 
 // should be called on {{ include "name" . }}
-func (f *IncludesCallFeature) AppropriateForNode(currentNodeType string, parentNodeType string, node *sitter.Node) bool {
-	if parentNodeType != gotemplate.NodeTypeArgumentList {
+func (f *IncludesCallFeature) AppropriateForNode() bool {
+	if f.ParentNodeType != gotemplate.NodeTypeArgumentList {
 		return false
 	}
-	functionCallNode := node.Parent().Parent()
+	functionCallNode := f.Node.Parent().Parent()
 	_, err := lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
 	return err == nil
 }
@@ -32,8 +31,8 @@ type IncludesDefinitionFeature struct {
 }
 
 // should be called on {{ define "name" }}
-func (f *IncludesDefinitionFeature) AppropriateForNode(currentNodeType string, parentNodeType string, node *sitter.Node) bool {
-	return parentNodeType == gotemplate.NodeTypeDefineAction && currentNodeType == gotemplate.NodeTypeInterpretedStringLiteral
+func (f *IncludesDefinitionFeature) AppropriateForNode() bool {
+	return f.ParentNodeType == gotemplate.NodeTypeDefineAction && f.NodeType == gotemplate.NodeTypeInterpretedStringLiteral
 }
 
 func NewIncludesCallFeature(genericDocumentUseCase *GenericDocumentUseCase) *IncludesCallFeature {

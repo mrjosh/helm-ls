@@ -45,8 +45,8 @@ func ParseIncludeFunctionCall(node *sitter.Node, content []byte) (string, error)
 		return "", fmt.Errorf("node is not a function call")
 	}
 	functionName := node.ChildByFieldName("function").Content(content)
-	if functionName != "include" {
-		return "", fmt.Errorf("function name is not include")
+	if functionName != "include" && functionName != "template" { // template is not documented but was seen in the wild
+		return "", fmt.Errorf("function name is not include or template")
 	}
 	arguments := node.ChildByFieldName("arguments")
 	if arguments == nil || arguments.ChildCount() == 0 {

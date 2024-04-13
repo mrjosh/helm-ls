@@ -60,19 +60,19 @@ func TestGetPositionOfNodeWithList(t *testing.T) {
 		t.Errorf("error yml parsing")
 	}
 
-	result, err := GetPositionOfNode(&node, []string{"list[0]"})
+	result, err := GetPositionOfNode(&node, []string{"list[]"})
 	expected := lsp.Position{Line: 32, Character: 0}
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 
-	result, err = GetPositionOfNode(&node, []string{"list[0]", "first"})
+	result, err = GetPositionOfNode(&node, []string{"list[]", "first"})
 	expected = lsp.Position{Line: 33, Character: 4}
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 
-	result, err = GetPositionOfNode(&node, []string{"notExistingList[0]", "first"})
+	result, err = GetPositionOfNode(&node, []string{"notExistingList[]", "first"})
 	expected = lsp.Position{}
 
 	assert.Error(t, err)
@@ -87,7 +87,7 @@ func TestGetPositionOfNodeInEmptyDocument(t *testing.T) {
 		t.Errorf("error yml parsing")
 	}
 
-	result, err := GetPositionOfNode(&node, []string{"list[0]"})
+	result, err := GetPositionOfNode(&node, []string{"list[]"})
 	expected := lsp.Position{}
 
 	assert.Error(t, err)
@@ -99,7 +99,7 @@ func TestGetPositionOfNodeInEmptyDocument(t *testing.T) {
 		t.Errorf("error yml parsing")
 	}
 
-	result, err = GetPositionOfNode(&node, []string{"list[0]"})
+	result, err = GetPositionOfNode(&node, []string{"list[]"})
 	expected = lsp.Position{}
 
 	assert.Error(t, err)
