@@ -61,6 +61,7 @@ func TestSymbolTableForValues(t *testing.T) {
 {{ end }}
 
 {{ .Test }}
+{{ . }}
 `
 
 	ast := ParseAst(nil, content)
@@ -154,6 +155,13 @@ func TestSymbolTableForValues(t *testing.T) {
 			startPoint: sitter.Point{
 				Row:    16,
 				Column: 6,
+			},
+		},
+		{
+			path: []string{},
+			startPoint: sitter.Point{
+				Row:    21,
+				Column: 3,
 			},
 		},
 	}

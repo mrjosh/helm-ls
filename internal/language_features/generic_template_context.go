@@ -14,11 +14,7 @@ type GenericTemplateContextFeature struct {
 }
 
 func (f *GenericTemplateContextFeature) getTemplateContext() (lsplocal.TemplateContext, error) {
-	templateContext := f.GenericDocumentUseCase.Document.SymbolTable.GetTemplateContext(lsplocal.GetRangeForNode(f.Node))
-	if len(templateContext) == 0 || templateContext == nil {
-		return lsplocal.TemplateContext{}, fmt.Errorf("no template context found")
-	}
-	return templateContext, nil
+	return f.GenericDocumentUseCase.Document.SymbolTable.GetTemplateContext(lsplocal.GetRangeForNode(f.Node))
 }
 
 func (f *GenericTemplateContextFeature) getReferencesFromSymbolTable(templateContext lsplocal.TemplateContext) []lsp.Location {

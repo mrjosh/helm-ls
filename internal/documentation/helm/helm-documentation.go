@@ -1,6 +1,10 @@
 package helmdocs
 
-import "github.com/mrjosh/helm-ls/internal/util"
+import (
+	"slices"
+
+	"github.com/mrjosh/helm-ls/internal/util"
+)
 
 type HelmDocumentation struct {
 	Name   string
@@ -186,6 +190,8 @@ var (
 		{"fromJson", "fromJson $str", "parse JSON $str into a dict or list"},
 		{"required", "required $str $val", "fail template with message $str if $val is not provided or is empty"},
 	}
+
+	AllFuncs = slices.Concat(HelmFuncs, SprigFuncs, BuiltinFuncs)
 
 	CapabilitiesVals = []HelmDocumentation{
 		{"TillerVersion", ".Capabilities.TillerVersion", "Tiller version"},

@@ -23,3 +23,8 @@ type DefinitionUseCase interface {
 	UseCase
 	Definition() (result []lsp.Location, err error)
 }
+
+type CompletionUseCase interface {
+	UseCase
+	Completion() (result *lsp.CompletionList, err error)
+}

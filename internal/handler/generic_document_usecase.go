@@ -22,21 +22,12 @@ func (h *langHandler) NewGenericDocumentUseCase(params lsp.TextDocumentPositionP
 	if node == nil {
 		return &languagefeatures.GenericDocumentUseCase{}, errors.New("Could not get node for: " + params.TextDocument.URI.Filename())
 	}
-	parentNode := node.Parent()
-	var parentNodeType string
-	if parentNode != nil {
-		parentNodeType = parentNode.Type()
-	}
-	return &languagefeatures.GenericDocumentUseCase{
-		Document:       doc,
-		DocumentStore:  h.documents,
-		Chart:          chart,
-		ChartStore:     h.chartStore,
-		Node:           node,
-		ParentNode:     parentNode,
-		ParentNodeType: parentNodeType,
-		NodeType:       node.Type(),
-	}, nil
+	return languagefeatures.GenericDocumentUseCase{
+		Document:      doc,
+		DocumentStore: h.documents,
+		Chart:         chart,
+		ChartStore:    h.chartStore,
+	}.WithNode(node), nil
 }
 
 func (h *langHandler) getNode(doc *lsplocal.Document, position lsp.Position) *sitter.Node {

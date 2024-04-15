@@ -1,6 +1,7 @@
 package lsp
 
 import (
+	"fmt"
 	"strings"
 
 	sitter "github.com/smacker/go-tree-sitter"
@@ -45,8 +46,12 @@ func (s *SymbolTable) GetTemplateContextRanges(templateContext TemplateContext) 
 	return s.contexts[templateContext.Format()]
 }
 
-func (s *SymbolTable) GetTemplateContext(pointRange sitter.Range) TemplateContext {
-	return s.contextsReversed[pointRange]
+func (s *SymbolTable) GetTemplateContext(pointRange sitter.Range) (TemplateContext, error) {
+	result, ok := s.contextsReversed[pointRange]
+	if !ok {
+		return result, fmt.Errorf("no template context found")
+	}
+	return result, nil
 }
 
 func (s *SymbolTable) AddIncludeDefinition(symbol string, pointRange sitter.Range) {

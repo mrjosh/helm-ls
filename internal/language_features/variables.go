@@ -20,7 +20,8 @@ func NewVariablesFeature(genericDocumentUseCase *GenericDocumentUseCase) *Variab
 }
 
 func (f *VariablesFeature) AppropriateForNode() bool {
-	return f.NodeType == gotemplate.NodeTypeIdentifier && f.ParentNodeType == gotemplate.NodeTypeVariable
+	return f.NodeType == gotemplate.NodeTypeIdentifier &&
+		f.ParentNodeType == gotemplate.NodeTypeVariable
 }
 
 func (f *VariablesFeature) Definition() (result []lsp.Location, err error) {
