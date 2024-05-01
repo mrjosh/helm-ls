@@ -10,7 +10,7 @@
 \/ /_/ \___|_|_| |_| |_\____/___/
 </pre>
 
-## Helm Language Server Protocol
+## Helm Language Server 
 
 Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP](https://microsoft.github.io/language-server-protocol/) implementation.
 
@@ -18,21 +18,27 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
 
 * [Demo](#demo)
 * [Getting Started](#getting-started)
-    * [Installation with a package manager](#installation-with-a-package-manager)
-    * [Download](#download)
+  * [Installation with a package manager](#installation-with-a-package-manager)
+    * [Homebrew](#homebrew)
+    * [Nix](#nix)
+    * [Arch Linux](#arch-linux)
+    * [Windows](#windows)
+    * [mason (neovim)](#mason-neovim)
+  * [Manual download](#manual-download)
     * [Make it executable](#make-it-executable)
-    * [Integration with yaml-language-server](#integration-with-yaml-language-server)
+  * [Integration with yaml-language-server](#integration-with-yaml-language-server)
 * [Configuration options](#configuration-options)
-    * [General](#general)
-    * [Values Files](#values-files)
-    * [yaml-language-server config](#yaml-language-server-config)
-    * [Default Configuration](#default-configuration)
+  * [General](#general)
+  * [Values Files](#values-files)
+  * [yaml-language-server config](#yaml-language-server-config)
+  * [Default Configuration](#default-configuration)
 * [Editor Config examples](#editor-config-examples)
-    * [Neovim (using nvim-lspconfig)](#neovim-using-nvim-lspconfig)
-        * [Vim Helm Plugin](#vim-helm-plugin)
-        * [Setup laguage server](#setup-laguage-server)
-    * [VSCode](#vscode)
-    * [Emacs eglot setup](#emacs-eglot-setup)
+  * [Neovim (using nvim-lspconfig)](#neovim-using-nvim-lspconfig)
+    * [Vim Helm Plugin](#vim-helm-plugin)
+    * [nvim-lspconfig setup](#nvim-lspconfig-setup)
+    * [coc.nvim setup](#cocnvim-setup)
+  * [VSCode](#vscode)
+  * [Emacs eglot setup](#emacs-eglot-setup)
 * [Contributing](#contributing)
 * [License](#license)
 
@@ -50,7 +56,48 @@ Helm-ls is currently available as a package for some package managers.
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/helm-ls.svg)](https://repology.org/project/helm-ls/versions)
 
-### Download
+These are some of the supported package managers. Thanks to everyone who packaged it!
+
+#### Homebrew
+
+If you are using MacOS or Linux with [Homebrew](https://brew.sh/) you can install it with brew.
+
+```bash
+brew install helm-ls
+```
+
+#### Nix
+
+```bash
+nix-shell -p helm-ls
+```
+
+#### Arch Linux
+
+You can install it from the [aur](https://aur.archlinux.org/packages/helm-ls/) using your preferred aur helper, e.g. yay:
+
+```bash
+yay -S helm-ls
+```
+
+#### Windows
+
+You can use [scoop](https://scoop.sh/) to install it:
+
+```powershell
+scoop bucket add extras
+scoop install extras/helm-ls
+```
+
+#### mason (neovim)
+
+If you are using neovim with [mason](https://github.com/williamboman/mason.nvim) you can also install it with mason.
+
+```vim
+:MasonInstall helm-ls
+```
+
+### Manual download
 
 - Download the latest helm_ls executable file from [here](https://github.com/mrjosh/helm-ls/releases/latest) and move it to your binaries directory
 
@@ -60,9 +107,7 @@ Helm-ls is currently available as a package for some package managers.
 curl -L https://github.com/mrjosh/helm-ls/releases/download/master/helm_ls_{os}_{arch} --output /usr/local/bin/helm_ls
 ```
 
-If you are using neovim with [mason](https://github.com/williamboman/mason.nvim) you can also install it with mason.
-
-### Make it executable
+#### Make it executable
 
 ```bash
 chmod +x /usr/local/bin/helm_ls
@@ -71,8 +116,11 @@ chmod +x /usr/local/bin/helm_ls
 ### Integration with [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)
 
 Helm-ls will use yaml-language-server to provide additional capabilities, if it is installed.
-This feature is expermiental, you can disable it in the config ([see](#configuration-options)).
-Having a broken template syntax (e.g. while your are stil typing) will cause diagnostics from yaml-language-server to be shown as errors.
+
+> [!WARNING]
+>
+> This feature is experimental, you can disable it in the config ([see](#configuration-options)) if you are getting a lot of errors beginning with `Yamlls:`.
+> Having a broken template syntax (e.g. while your are still typing) will also cause diagnostics from yaml-language-server to be shown as errors.
 
 To install it using npm run (or use your preferred package manager):
 
@@ -110,7 +158,7 @@ You can configure helm-ls with lsp workspace configurations.
 - **Path to yaml-language-server**: Specify the executable location.
 - **Diagnostics Settings**:
 
-  - **Limit**: Number of displayed diagnostics per file.
+  - **Limit**: Number of displayed diagnostics per file. Set this to 0 to disable all diagnostics from yaml-language-server but keep other features such as hover.
   - **Show Directly**: Show diagnostics while typing.
 
 - **Additional Settings** (see [yaml-language-server](https://github.com/redhat-developer/yaml-language-server#language-server-settings)):
@@ -153,13 +201,15 @@ settings = {
 
 #### Vim Helm Plugin
 
-You'll need [vim-helm](https://github.com/towolf/vim-helm) plugin installed before using helm_ls, to install it using vim-plug (or use your preferred plugin manager):
+To get filetype detection working, you'll need the [vim-helm](https://github.com/towolf/vim-helm) plugin installed before using helm_ls, to install it using vim-plug (or use your preferred plugin manager):
 
 ```lua
 Plug 'towolf/vim-helm'
 ```
 
-#### Setup laguage server
+#### nvim-lspconfig setup
+
+Add the following to your neovim lua config:
 
 ```lua
 local lspconfig = require('lspconfig')
@@ -178,6 +228,25 @@ settings = {
 See [examples/nvim/init.lua](https://github.com/mrjosh/helm-ls/blob/master/examples/nvim/init.lua) for an
 complete example, which also includes yaml-language-server.
 
+#### coc.nvim setup
+
+You can also use [coc.nvim](https://github.com/neoclide/coc.nvim) to set up the language server.
+You will need to configure the use of `helm_ls` in the `langageserver` section of your `coc-settings.json` file.
+
+Open Neovim and type the command `:CocConfig` to access the configuration file. Find the `langageserver` section and add this configuration:
+
+```json
+"languageserver": {
+  "helm": {
+    "command": "helm_ls",
+    "args": ["serve"],
+    "filetypes": ["helm", "helmfile"],
+    "rootPatterns": ["Chart.yaml"]
+  }
+}
+```
+
+Save the configuration file and then either restart Neovim or type `:CocRestart` to restart the language server.
 
 ### VSCode
 
@@ -219,10 +288,10 @@ Alternatively, you can include a comment such as the following at the top of Hel
 
 ## Contributing
 
-Thank you for considering contributing to HelmLs project!
+Thank you for considering contributing to Helm-ls project!
 
 ## License
 
-The HelmLs is open-source software licensed under the MIT license.
+The Helm-ls is open-source software licensed under the MIT license.
 
 Part of the documentation that is included in helm-ls is copied from the Go standard library. The original license is included in the files containing the documentation.
