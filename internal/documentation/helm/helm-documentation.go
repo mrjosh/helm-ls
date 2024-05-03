@@ -1,8 +1,6 @@
 package helmdocs
 
 import (
-	"slices"
-
 	"github.com/mrjosh/helm-ls/internal/util"
 )
 
@@ -191,7 +189,7 @@ var (
 		{"required", "required $str $val", "fail template with message $str if $val is not provided or is empty"},
 	}
 
-	AllFuncs = slices.Concat(HelmFuncs, SprigFuncs, BuiltinFuncs)
+	AllFuncs = util.ConcatMultipleSlices([][]HelmDocumentation{HelmFuncs, SprigFuncs, BuiltinFuncs})
 
 	CapabilitiesVals = []HelmDocumentation{
 		{"TillerVersion", ".Capabilities.TillerVersion", "Tiller version"},

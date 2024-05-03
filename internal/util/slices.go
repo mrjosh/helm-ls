@@ -1,5 +1,7 @@
 package util
 
+// TODO: update this to use slices.Concat once we update
+// from	go 1.21	to go 1.22
 func ConcatMultipleSlices[T any](slices [][]T) []T {
 	var totalLen int
 

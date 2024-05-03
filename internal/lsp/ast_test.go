@@ -8,7 +8,6 @@ import (
 )
 
 func TestFindRelevantChildNodeCompletio(t *testing.T) {
-
 	template := `{{ .Values. }}
 {{ .Values.re }}
 
@@ -26,12 +25,12 @@ func TestFindRelevantChildNodeCompletio(t *testing.T) {
 		Column: 11,
 	})
 
-	assert.Equal(t, node.StartPoint(), sitter.Point{
+	assert.Equal(t, sitter.Point{
+		Row:    0,
+		Column: 10,
+	}, node.StartPoint())
+	assert.Equal(t, sitter.Point{
 		Row:    0,
 		Column: 11,
-	})
-	assert.Equal(t, node.EndPoint(), sitter.Point{
-		Row:    0,
-		Column: 11,
-	})
+	}, node.EndPoint())
 }
