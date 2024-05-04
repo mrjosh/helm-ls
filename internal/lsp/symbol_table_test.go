@@ -62,6 +62,10 @@ func TestSymbolTableForValues(t *testing.T) {
 
 {{ .Test }}
 {{ . }}
+
+{{ if (and .Values. ) }}
+
+{{ end }}
 `
 
 	ast := ParseAst(nil, content)
@@ -202,6 +206,44 @@ func TestSymbolTableForValuesTestFile(t *testing.T) {
 	}
 
 	for _, v := range expected {
+		values := symbolTable.GetTemplateContextRanges(v.path)
+		points := []sitter.Point{}
+		for _, v := range values {
+			points = append(points, v.StartPoint)
+		}
+		assert.Contains(t, points, v.startPoint)
+	}
+}
+
+func TestSymbolTableForValuesSingleTests(t *testing.T) {
+	type testCase struct {
+		template   string
+		path       []string
+		startPoint sitter.Point
+	}
+
+	testCases := []testCase{
+		{
+			template: `{{ if (and .Values. ) }} {{ end }} `,
+			path:     []string{"Values"},
+			startPoint: sitter.Point{
+				Row:    0,
+				Column: 12,
+			},
+		},
+		{
+			template: `{{ if (and .Values. ) }} {{ end }} `,
+			path:     []string{"Values", ""},
+			startPoint: sitter.Point{
+				Row:    0,
+				Column: 18,
+			},
+		},
+	}
+
+	for _, v := range testCases {
+		ast := ParseAst(nil, v.template)
+		symbolTable := NewSymbolTable(ast, []byte(v.template))
 		values := symbolTable.GetTemplateContextRanges(v.path)
 		points := []sitter.Point{}
 		for _, v := range values {

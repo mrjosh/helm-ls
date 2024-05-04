@@ -26,9 +26,6 @@ func NewTemplateContextFeature(genericDocumentUseCase *GenericDocumentUseCase) *
 }
 
 func (f *TemplateContextFeature) AppropriateForNode() bool {
-	nodeContent := f.NodeContent()
-	println(nodeContent)
-
 	if f.NodeType == gotemplate.NodeTypeDot || f.NodeType == gotemplate.NodeTypeDotSymbol {
 		return true
 	}
@@ -104,13 +101,13 @@ func (f *TemplateContextFeature) Hover() (string, error) {
 func (f *TemplateContextFeature) valuesHover(templateContext lsplocal.TemplateContext) (string, error) {
 	var (
 		valuesFiles  = f.Chart.ResolveValueFiles(templateContext, f.ChartStore)
-		hoverResults = util.HoverResultsWithFiles{}
+		hoverResults = protocol.HoverResultsWithFiles{}
 	)
 	for _, valuesFiles := range valuesFiles {
 		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
 			result, err := util.GetTableOrValueForSelector(valuesFile.Values, strings.Join(valuesFiles.Selector, "."))
 			if err == nil {
-				hoverResults = append(hoverResults, util.HoverResultWithFile{URI: valuesFile.URI, Value: result})
+				hoverResults = append(hoverResults, protocol.HoverResultWithFile{URI: valuesFile.URI, Value: result})
 			}
 		}
 	}
@@ -121,58 +118,4 @@ func (f *TemplateContextFeature) getMetadataField(v *chart.Metadata, fieldName s
 	r := reflect.ValueOf(v)
 	field := reflect.Indirect(r).FieldByName(fieldName)
 	return util.FormatToYAML(field, fieldName)
-}
-
-func (f *TemplateContextFeature) Completion() (result *lsp.CompletionList, err error) {
-	templateContext, err := f.getTemplateContext()
-	if err != nil {
-		return nil, err
-	}
-
-	if len(templateContext) == 0 {
-		result := helmdocs.BuiltInObjects
-		return protocol.NewCompletionResults(result).ToLSP(), nil
-	}
-
-	if len(templateContext) == 1 {
-		result, ok := helmdocs.BuiltInOjectVals[templateContext[0]]
-		if !ok {
-			result := helmdocs.BuiltInObjects
-			return protocol.NewCompletionResults(result).ToLSP(), nil
-		}
-		return protocol.NewCompletionResults(result).ToLSP(), nil
-	}
-
-	switch templateContext[0] {
-	case "Values":
-		return f.valuesCompletion(templateContext)
-	case "Chart", "Release", "Files", "Capabilities", "Template":
-		// TODO: make this more fine, by checking the length
-		result, ok := helmdocs.BuiltInOjectVals[templateContext[0]]
-		if !ok {
-			result := helmdocs.BuiltInObjects
-			return protocol.NewCompletionResults(result).ToLSP(), nil
-		}
-		return protocol.NewCompletionResults(result).ToLSP(), nil
-
-	}
-
-	return nil, nil
-}
-
-func (f *TemplateContextFeature) valuesCompletion(templateContext lsplocal.TemplateContext) (*lsp.CompletionList, error) {
-	m := make(map[string]lsp.CompletionItem)
-	for _, queriedValuesFiles := range f.Chart.ResolveValueFiles(templateContext.Tail(), f.ChartStore) {
-		for _, valuesFile := range queriedValuesFiles.ValuesFiles.AllValuesFiles() {
-			for _, item := range util.GetValueCompletion(valuesFile.Values, queriedValuesFiles.Selector) {
-				m[item.InsertText] = item
-			}
-		}
-	}
-	completions := []lsp.CompletionItem{}
-	for _, item := range m {
-		completions = append(completions, item)
-	}
-
-	return &lsp.CompletionList{Items: completions, IsIncomplete: false}, nil
 }

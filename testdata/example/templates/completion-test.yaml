@@ -6,7 +6,7 @@
 {{ .Chart.N }}
 {{ . }}
 
-{{ toYaml .Release. }}
-{{ toYaml (.Release. ) }}
-{{ .Release. }}
+{{ if (and .Values.    ) }}
 
+{{ end }}
+{{ if  }}

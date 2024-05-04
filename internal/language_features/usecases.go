@@ -1,8 +1,11 @@
 package languagefeatures
 
 import (
+	"github.com/mrjosh/helm-ls/internal/log"
 	lsp "go.lsp.dev/protocol"
 )
+
+var logger = log.GetLogger()
 
 // interface for use cases
 type UseCase interface {

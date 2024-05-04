@@ -4,4 +4,4 @@ Taken from https://github.com/ngalaiko/tree-sitter-go-template, or currently thi
 
 ## Binding
 
-Using this libary: https://github.com/smacker/go-tree-sitter
+Using this library: https://github.com/smacker/go-tree-sitter

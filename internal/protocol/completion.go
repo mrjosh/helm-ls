@@ -1,42 +1,57 @@
 package protocol
 
 import (
+	"github.com/mrjosh/helm-ls/internal/documentation/godocs"
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
 	lsp "go.lsp.dev/protocol"
 )
 
-type CompletionResults []CompletionResult
+type CompletionResults struct {
+	Items []lsp.CompletionItem
+}
 
-func NewCompletionResults(docs []helmdocs.HelmDocumentation) *CompletionResults {
-	result := CompletionResults{}
+func (c CompletionResults) ToList() (result *lsp.CompletionList) {
+	return &lsp.CompletionList{Items: c.Items, IsIncomplete: false}
+}
 
+func (c CompletionResults) WithDocs(docs []helmdocs.HelmDocumentation, kind lsp.CompletionItemKind) CompletionResults {
+	items := c.Items
 	for _, doc := range docs {
-		result = append(result, CompletionResult{doc})
+		items = append(items,
+			lsp.CompletionItem{
+				Label:            doc.Name,
+				Detail:           doc.Detail,
+				InsertText:       doc.Name,
+				InsertTextFormat: lsp.InsertTextFormatPlainText,
+				Kind:             kind,
+			},
+		)
 	}
-
-	return &result
+	return CompletionResults{Items: items}
 }
 
-type CompletionResult struct {
-	Documentation helmdocs.HelmDocumentation
+func (c CompletionResults) WithSnippets(snippets []godocs.GoTemplateSnippet) CompletionResults {
+	items := c.Items
+	for _, snippet := range snippets {
+		items = append(items, textCompletionItem(snippet))
+	}
+	return CompletionResults{Items: items}
 }
 
-func (c *CompletionResult) ToLSP() (result lsp.CompletionItem) {
+func textCompletionItem(gotemplateSnippet godocs.GoTemplateSnippet) lsp.CompletionItem {
 	return lsp.CompletionItem{
-		Label:            c.Documentation.Name,
-		Detail:           c.Documentation.Detail,
-		InsertText:       c.Documentation.Name,
+		Label:            gotemplateSnippet.Name,
+		InsertText:       gotemplateSnippet.Snippet,
+		Detail:           gotemplateSnippet.Detail,
+		Documentation:    gotemplateSnippet.Doc,
+		Kind:             lsp.CompletionItemKindText,
 		InsertTextFormat: lsp.InsertTextFormatSnippet,
-		Kind:             lsp.CompletionItemKindConstant, // TODO: make this more variable
 	}
 }
 
-func (c *CompletionResults) ToLSP() (result *lsp.CompletionList) {
-	items := []lsp.CompletionItem{}
-
-	for _, completion := range *c {
-		items = append(items, completion.ToLSP())
+func GetTextCompletionItems(gotemplateSnippet []godocs.GoTemplateSnippet) (result []lsp.CompletionItem) {
+	for _, item := range gotemplateSnippet {
+		result = append(result, textCompletionItem(item))
 	}
-
-	return &lsp.CompletionList{Items: items}
+	return result
 }

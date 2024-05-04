@@ -20,6 +20,15 @@ func NodeAtPosition(tree *sitter.Tree, position lsp.Position) *sitter.Node {
 	return tree.RootNode().NamedDescendantForPointRange(start, start)
 }
 
+func NestedNodeAtPositionForCompletion(tree *sitter.Tree, position lsp.Position) *sitter.Node {
+	currentNode := NodeAtPosition(tree, position)
+	pointToLoopUp := sitter.Point{
+		Row:    position.Line,
+		Column: position.Character,
+	}
+	return FindRelevantChildNodeCompletion(currentNode, pointToLoopUp)
+}
+
 func FindDirectChildNodeByStart(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
 	for i := 0; i < int(currentNode.ChildCount()); i++ {
 		child := currentNode.Child(i)

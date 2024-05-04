@@ -20,7 +20,8 @@ func NewFunctionCallFeature(genericDocumentUseCase *GenericDocumentUseCase) *Fun
 }
 
 func (f *FunctionCallFeature) AppropriateForNode() bool {
-	return f.NodeType == gotemplate.NodeTypeIdentifier && f.ParentNodeType == gotemplate.NodeTypeFunctionCall
+	return f.NodeType == gotemplate.NodeTypeIdentifier &&
+		f.ParentNodeType == gotemplate.NodeTypeFunctionCall
 }
 
 func (f *FunctionCallFeature) Hover() (string, error) {
@@ -32,5 +33,5 @@ func (f *FunctionCallFeature) Hover() (string, error) {
 }
 
 func (f *FunctionCallFeature) Completion() (result *lsp.CompletionList, err error) {
-	return protocol.NewCompletionResults(helmdocs.AllFuncs).ToLSP(), nil
+	return protocol.CompletionResults{}.WithDocs(helmdocs.AllFuncs, lsp.CompletionItemKindFunction).ToList(), nil
 }

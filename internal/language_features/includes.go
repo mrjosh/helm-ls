@@ -4,8 +4,10 @@ import (
 	lsp "go.lsp.dev/protocol"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
+	sitter "github.com/smacker/go-tree-sitter"
 )
 
 type IncludesFeature struct {
@@ -18,12 +20,27 @@ type IncludesCallFeature struct {
 
 // should be called on {{ include "name" . }}
 func (f *IncludesCallFeature) AppropriateForNode() bool {
-	if f.ParentNodeType != gotemplate.NodeTypeArgumentList {
+	functionCallNode := f.getFunctionCallNode()
+
+	if functionCallNode == nil {
 		return false
 	}
-	functionCallNode := f.Node.Parent().Parent()
 	_, err := lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
 	return err == nil
+}
+
+func (f *IncludesCallFeature) getFunctionCallNode() *sitter.Node {
+	var functionCallNode *sitter.Node
+	if f.ParentNodeType == gotemplate.NodeTypeArgumentList {
+		functionCallNode = f.Node.Parent().Parent()
+	}
+	if f.ParentNodeType == gotemplate.NodeTypeInterpretedStringLiteral {
+		parentParent := f.ParentNode.Parent()
+		if parentParent != nil && parentParent.Type() == gotemplate.NodeTypeArgumentList {
+			functionCallNode = parentParent.Parent()
+		}
+	}
+	return functionCallNode
 }
 
 type IncludesDefinitionFeature struct {
@@ -57,7 +74,7 @@ func (f *IncludesCallFeature) References() (result []lsp.Location, err error) {
 }
 
 func (f *IncludesCallFeature) getIncludeName() (string, error) {
-	functionCallNode := f.Node.Parent().Parent()
+	functionCallNode := f.getFunctionCallNode()
 	return lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
 }
 
@@ -90,14 +107,14 @@ func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Locat
 	return locations
 }
 
-func (f *IncludesFeature) getDefinitionsHover(includeName string) util.HoverResultsWithFiles {
-	result := util.HoverResultsWithFiles{}
+func (f *IncludesFeature) getDefinitionsHover(includeName string) protocol.HoverResultsWithFiles {
+	result := protocol.HoverResultsWithFiles{}
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
 		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
 		for _, referenceRange := range referenceRanges {
 			node := doc.Ast.RootNode().NamedDescendantForPointRange(referenceRange.StartPoint, referenceRange.EndPoint)
 			if node != nil {
-				result = append(result, util.HoverResultWithFile{
+				result = append(result, protocol.HoverResultWithFile{
 					Value: node.Content([]byte(doc.Content)),
 					URI:   doc.URI,
 				})
@@ -124,4 +141,19 @@ func (f *IncludesCallFeature) Definition() (result []lsp.Location, err error) {
 		return []lsp.Location{}, err
 	}
 	return f.getDefinitionLocations(includeName), nil
+}
+
+func (f *IncludesCallFeature) Completion() (*lsp.CompletionList, error) {
+	items := []lsp.CompletionItem{}
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
+		inlcudeDefinitionNames := doc.SymbolTable.GetAllIncludeDefinitionsNames()
+		for _, includeDefinitionName := range inlcudeDefinitionNames {
+			items = append(items, lsp.CompletionItem{
+				InsertText: includeDefinitionName,
+				Kind:       lsp.CompletionItemKindFunction,
+				Label:      includeDefinitionName,
+			})
+		}
+	}
+	return &lsp.CompletionList{IsIncomplete: false, Items: items}, nil
 }

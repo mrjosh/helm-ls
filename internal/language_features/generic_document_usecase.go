@@ -20,13 +20,3 @@ type GenericDocumentUseCase struct {
 func (u *GenericDocumentUseCase) NodeContent() string {
 	return u.Node.Content([]byte(u.Document.Content))
 }
-
-func (u GenericDocumentUseCase) WithNode(node *sitter.Node) *GenericDocumentUseCase {
-	u.Node = node
-	u.NodeType = node.Type()
-	u.ParentNode = node.Parent()
-	if u.ParentNode != nil {
-		u.ParentNodeType = u.ParentNode.Type()
-	}
-	return &u
-}

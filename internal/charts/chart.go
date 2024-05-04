@@ -60,8 +60,9 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 }
 
 func (c *Chart) GetValueLocation(templateContext []string) (lsp.Location, error) {
-	modifyedVar := make([]string, 0)
-	// for Charts, we make the first letter lowercase
+	modifyedVar := make([]string, len(templateContext))
+	// make the first letter lowercase since in the template the first letter is
+	// capitalized, but it is not in the Chart.yaml file
 	for _, value := range templateContext {
 		restOfString := ""
 		if (len(value)) > 1 {

@@ -4,12 +4,14 @@ import (
 	"errors"
 
 	languagefeatures "github.com/mrjosh/helm-ls/internal/language_features"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *langHandler) NewGenericDocumentUseCase(params lsp.TextDocumentPositionParams) (*languagefeatures.GenericDocumentUseCase, error) {
+func (h *langHandler) NewGenericDocumentUseCase(
+	params lsp.TextDocumentPositionParams,
+	nodeSelection func(ast *sitter.Tree, position lsp.Position) (node *sitter.Node),
+) (*languagefeatures.GenericDocumentUseCase, error) {
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
 		return &languagefeatures.GenericDocumentUseCase{}, errors.New("Could not get document: " + params.TextDocument.URI.Filename())
@@ -18,19 +20,29 @@ func (h *langHandler) NewGenericDocumentUseCase(params lsp.TextDocumentPositionP
 	if err != nil {
 		logger.Error("Error getting chart info for file", params.TextDocument.URI, err)
 	}
-	node := h.getNode(doc, params.Position)
+
+	node := nodeSelection(doc.Ast, params.Position)
 	if node == nil {
 		return &languagefeatures.GenericDocumentUseCase{}, errors.New("Could not get node for: " + params.TextDocument.URI.Filename())
 	}
-	return languagefeatures.GenericDocumentUseCase{
-		Document:      doc,
-		DocumentStore: h.documents,
-		Chart:         chart,
-		ChartStore:    h.chartStore,
-	}.WithNode(node), nil
-}
 
-func (h *langHandler) getNode(doc *lsplocal.Document, position lsp.Position) *sitter.Node {
-	currentNode := lsplocal.NodeAtPosition(doc.Ast, position)
-	return currentNode
+	var (
+		nodeType       = node.Type()
+		parentNode     = node.Parent()
+		parentNodeType string
+	)
+	if parentNode != nil {
+		parentNodeType = parentNode.Type()
+	}
+
+	return &languagefeatures.GenericDocumentUseCase{
+		Document:       doc,
+		DocumentStore:  h.documents,
+		Chart:          chart,
+		ChartStore:     h.chartStore,
+		Node:           node,
+		NodeType:       nodeType,
+		ParentNode:     parentNode,
+		ParentNodeType: parentNodeType,
+	}, nil
 }

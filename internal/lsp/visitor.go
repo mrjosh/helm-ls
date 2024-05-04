@@ -56,7 +56,7 @@ func (v *Visitors) visitNodesRecursiveWithScopeShift(node *sitter.Node) {
 		for _, visitor := range v.visitors {
 			visitor.ExitContextShift(rangeNode)
 		}
-	case gotemplate.NodeTypeSelectorExpression:
+	case gotemplate.NodeTypeSelectorExpression, gotemplate.NodeTypeUnfinishedSelectorExpression:
 		operand := node.ChildByFieldName("operand")
 		v.visitNodesRecursiveWithScopeShift(operand)
 		for _, visitor := range v.visitors {

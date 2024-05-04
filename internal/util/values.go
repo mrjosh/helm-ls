@@ -31,7 +31,6 @@ func GetValueCompletion(values chartutil.Values, splittedVar []string) []lsp.Com
 	)
 
 	if len(splittedVar) > 0 {
-
 		localValues, err = values.Table(tableName)
 		if err != nil {
 			if len(splittedVar) > 1 {
@@ -47,17 +46,16 @@ func GetValueCompletion(values chartutil.Values, splittedVar []string) []lsp.Com
 		} else {
 			values = localValues
 		}
-
 	}
 
 	for variable, value := range values {
-		items = setItem(items, value, variable)
+		items = append(items, builCompletionItem(value, variable))
 	}
 
 	return items
 }
 
-func setItem(items []lsp.CompletionItem, value interface{}, variable string) []lsp.CompletionItem {
+func builCompletionItem(value interface{}, variable string) lsp.CompletionItem {
 	var (
 		itemKind      = lsp.CompletionItemKindVariable
 		valueOf       = reflect.ValueOf(value)
@@ -80,13 +78,13 @@ func setItem(items []lsp.CompletionItem, value interface{}, variable string) []l
 		itemKind = lsp.CompletionItemKindField
 	}
 
-	return append(items, lsp.CompletionItem{
+	return lsp.CompletionItem{
 		Label:         variable,
 		InsertText:    variable,
 		Documentation: documentation,
 		Detail:        valueOf.Kind().String(),
 		Kind:          itemKind,
-	})
+	}
 }
 
 func FormatToYAML(field reflect.Value, fieldName string) string {

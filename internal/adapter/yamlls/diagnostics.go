@@ -2,6 +2,8 @@ package yamlls
 
 import (
 	"context"
+	"runtime"
+	"strings"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	sitter "github.com/smacker/go-tree-sitter"
@@ -71,6 +73,11 @@ func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
 		//   {{- end }}
 		return false
 	default:
+		// TODO: remove this once the tree-sitter grammar behavior for windows newlines is the same as for unix
+		if strings.HasPrefix(diagnostic.Message, "Incorrect type. Expected") && runtime.GOOS == "windows" {
+			return false
+		}
+
 		return true
 	}
 }

@@ -59,6 +59,6 @@ func ParseIncludeFunctionCall(node *sitter.Node, content []byte) (string, error)
 	return util.RemoveQuotes(firstArgument.Content(content)), nil
 }
 
-func (v *IncludeDefinitionsVisitor) Exit(node *sitter.Node)                             {}
-func (v *IncludeDefinitionsVisitor) EnterContextShift(node *sitter.Node, suffix string) {}
-func (v *IncludeDefinitionsVisitor) ExitContextShift(node *sitter.Node)                 {}
+func (v *IncludeDefinitionsVisitor) Exit(_ *sitter.Node)                        {}
+func (v *IncludeDefinitionsVisitor) EnterContextShift(_ *sitter.Node, _ string) {}
+func (v *IncludeDefinitionsVisitor) ExitContextShift(_ *sitter.Node)            {}

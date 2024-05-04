@@ -1,4 +1,4 @@
-package util
+package protocol
 
 import (
 	"fmt"
@@ -34,10 +34,6 @@ func (h HoverResultsWithFiles) Format(rootURI uri.URI) string {
 		formatted += fmt.Sprintf("### %s\n%s\n\n", filepath, value)
 	}
 	return formatted
-}
-
-func (h *HoverResultsWithFiles) Add(hoverResult HoverResultWithFile) {
-	*h = append(*h, hoverResult)
 }
 
 func BuildHoverResponse(value string, wordRange lsp.Range) *lsp.Hover {

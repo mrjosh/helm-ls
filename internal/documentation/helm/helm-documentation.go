@@ -261,13 +261,7 @@ var (
 )
 
 func GetFunctionByName(name string) (HelmDocumentation, bool) {
-	completionItems := [][]HelmDocumentation{
-		BuiltinFuncs,
-		SprigFuncs,
-		HelmFuncs,
-	}
-	toSearch := util.ConcatMultipleSlices(completionItems)
-	for _, completionItem := range toSearch {
+	for _, completionItem := range AllFuncs {
 		if name == completionItem.Name {
 			return completionItem, true
 		}

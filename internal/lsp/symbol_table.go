@@ -17,6 +17,15 @@ func (t TemplateContext) Tail() TemplateContext {
 	return t[1:]
 }
 
+func (t TemplateContext) IsVariable() bool {
+	return len(t) > 0 && t[0] == "$"
+}
+
+func (t TemplateContext) AppendSuffix(suffix string) TemplateContext {
+	t[len(t)-1] = t[len(t)-1] + suffix
+	return t
+}
+
 type SymbolTable struct {
 	contexts           map[string][]sitter.Range
 	contextsReversed   map[sitter.Range]TemplateContext
@@ -26,10 +35,10 @@ type SymbolTable struct {
 
 func NewSymbolTable(ast *sitter.Tree, content []byte) *SymbolTable {
 	s := &SymbolTable{
-		contexts:           make(map[string][]sitter.Range),
-		contextsReversed:   make(map[sitter.Range]TemplateContext),
-		includeDefinitions: make(map[string][]sitter.Range),
-		includeUseages:     make(map[string][]sitter.Range),
+		contexts:           map[string][]sitter.Range{},
+		contextsReversed:   map[sitter.Range]TemplateContext{},
+		includeDefinitions: map[string][]sitter.Range{},
+		includeUseages:     map[string][]sitter.Range{},
 	}
 	s.parseTree(ast, content)
 	return s
@@ -64,6 +73,13 @@ func (s *SymbolTable) AddIncludeReference(symbol string, pointRange sitter.Range
 
 func (s *SymbolTable) GetIncludeDefinitions(symbol string) []sitter.Range {
 	return s.includeDefinitions[symbol]
+}
+
+func (s *SymbolTable) GetAllIncludeDefinitionsNames() (result []string) {
+	for k := range s.includeDefinitions {
+		result = append(result, k)
+	}
+	return result
 }
 
 func (s *SymbolTable) GetIncludeReference(symbol string) []sitter.Range {

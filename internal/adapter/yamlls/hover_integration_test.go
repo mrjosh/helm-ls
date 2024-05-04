@@ -73,7 +73,7 @@ func TestYamllsHoverIntegration(t *testing.T) {
 					},
 				}, tt.word)
 				return err == nil && strings.Contains(result.Contents.Value, tt.expected)
-			}, time.Second*10, time.Second/2)
+			}, time.Second*40, time.Second*2)
 		})
 	}
 }
