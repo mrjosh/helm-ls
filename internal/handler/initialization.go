@@ -27,7 +27,7 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 	}
 
 	logger.Debug("Initializing chartStore")
-	h.chartStore = charts.NewChartStore(workspaceURI, h.NewChartWithWatchedFiles)
+	h.chartStore = charts.NewChartStore(workspaceURI, h.NewChartWithInitActions)
 
 	logger.Debug("Initializing done")
 	return &lsp.InitializeResult{
@@ -45,6 +45,7 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 			},
 			HoverProvider:      true,
 			DefinitionProvider: true,
+			ReferencesProvider: true,
 		},
 	}, nil
 }
@@ -81,4 +82,9 @@ func configureLogLevel(helmlsConfig util.HelmlsConfiguration) {
 	if os.Getenv("LOG_LEVEL") == "debug" {
 		logger.SetLevel(logrus.DebugLevel)
 	}
+}
+
+func (h *langHandler) NewChartWithInitActions(rootURI uri.URI, valuesFilesConfig util.ValuesFilesConfig) *charts.Chart {
+	go h.LoadDocsOnNewChart(rootURI)
+	return h.NewChartWithWatchedFiles(rootURI, valuesFilesConfig)
 }

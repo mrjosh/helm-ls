@@ -3,10 +3,12 @@ package handler
 import (
 	"context"
 	"errors"
+	"io/fs"
+	"path/filepath"
 
-	lspinternal "github.com/mrjosh/helm-ls/internal/lsp"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	lsp "go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
 )
 
 func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
@@ -63,7 +65,7 @@ func (h *langHandler) DidChange(ctx context.Context, params *lsp.DidChangeTextDo
 	doc.ApplyChanges(params.ContentChanges)
 
 	for _, change := range params.ContentChanges {
-		node := lspinternal.NodeAtPosition(doc.Ast, change.Range.Start)
+		node := lsplocal.NodeAtPosition(doc.Ast, change.Range.Start)
 		if node.Type() != "text" {
 			shouldSendFullUpdateToYamlls = true
 			break
@@ -94,4 +96,16 @@ func (h *langHandler) DidDeleteFiles(ctx context.Context, params *lsp.DeleteFile
 func (h *langHandler) DidRenameFiles(ctx context.Context, params *lsp.RenameFilesParams) (err error) {
 	logger.Error("DidRenameFiles unimplemented")
 	return nil
+}
+
+// TODO: maybe use the helm implementation of this once https://github.com/mrjosh/helm-ls/pull/77 is resolved
+func (h *langHandler) LoadDocsOnNewChart(rootURI uri.URI) {
+	_ = filepath.WalkDir(filepath.Join(rootURI.Filename(), "templates"),
+		func(path string, d fs.DirEntry, err error) error {
+			if !d.IsDir() {
+				return h.documents.Store(uri.File(path), h.helmlsConfig)
+			}
+			return nil
+		},
+	)
 }

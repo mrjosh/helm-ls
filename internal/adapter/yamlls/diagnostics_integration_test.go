@@ -166,4 +166,5 @@ func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 	}
 
 	assert.Contains(t, diagnostic, expected)
+	assert.Len(t, diagnostic, 1)
 }

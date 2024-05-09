@@ -14,6 +14,9 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Doc
 		return
 	}
 	for _, doc := range docs {
+		if !doc.IsOpen {
+			continue
+		}
 		yamllsConnector.DocumentDidOpen(doc.Ast, lsp.DidOpenTextDocumentParams{
 			TextDocument: lsp.TextDocumentItem{
 				URI:  doc.URI,

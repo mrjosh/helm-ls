@@ -219,12 +219,6 @@ func (h *langHandler) RangeFormatting(ctx context.Context, params *lsp.DocumentR
 	return nil, nil
 }
 
-// References implements protocol.Server.
-func (h *langHandler) References(ctx context.Context, params *lsp.ReferenceParams) (result []lsp.Location, err error) {
-	logger.Error("References unimplemented")
-	return nil, nil
-}
-
 // Rename implements protocol.Server.
 func (h *langHandler) Rename(ctx context.Context, params *lsp.RenameParams) (result *lsp.WorkspaceEdit, err error) {
 	logger.Error("Rename unimplemented")

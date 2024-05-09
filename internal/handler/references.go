@@ -8,22 +8,21 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *langHandler) Definition(_ context.Context, params *lsp.DefinitionParams) (result []lsp.Location, err error) {
+func (h *langHandler) References(_ context.Context, params *lsp.ReferenceParams) (result []lsp.Location, err error) {
 	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams, lsplocal.NodeAtPosition)
 	if err != nil {
 		return nil, err
 	}
-	usecases := []languagefeatures.DefinitionUseCase{
-		languagefeatures.NewBuiltInObjectsFeature(genericDocumentUseCase), // has to be before template context
-		languagefeatures.NewTemplateContextFeature(genericDocumentUseCase),
+
+	usecases := []languagefeatures.ReferencesUseCase{
+		languagefeatures.NewIncludesDefinitionFeature(genericDocumentUseCase),
 		languagefeatures.NewIncludesCallFeature(genericDocumentUseCase),
-		languagefeatures.NewVariablesFeature(genericDocumentUseCase),
+		languagefeatures.NewTemplateContextFeature(genericDocumentUseCase),
 	}
 
 	for _, usecase := range usecases {
 		if usecase.AppropriateForNode() {
-			result, err := usecase.Definition()
-			return result, err
+			return usecase.References()
 		}
 	}
 

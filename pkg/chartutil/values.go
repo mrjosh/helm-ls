@@ -92,7 +92,7 @@ func (v Values) Encode(w io.Writer) error {
 }
 
 func tableLookup(v Values, simple string) (Values, error) {
-	if strings.HasSuffix(simple, "[0]") {
+	if strings.HasSuffix(simple, "[]") {
 		return arryLookup(v, simple)
 	}
 

@@ -1,4 +1,4 @@
-package handler
+package languagefeatures
 
 import (
 	"path/filepath"
@@ -240,13 +240,16 @@ value
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &langHandler{
-				chartStore: &charts.ChartStore{
+			genericDocumentUseCase := &GenericDocumentUseCase{
+				Chart: tt.args.chart,
+				ChartStore: &charts.ChartStore{
 					RootURI: uri.New("file://tmp/"),
 					Charts:  tt.args.parentCharts,
 				},
+				// Node: tt.args.chart.ValuesFiles.MainValuesFile.Node,
 			}
-			got, err := h.getValueHover(tt.args.chart, tt.args.splittedVar)
+			valuesFeature := NewTemplateContextFeature(genericDocumentUseCase)
+			got, err := valuesFeature.valuesHover(tt.args.splittedVar)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("langHandler.getValueHover() error = %v, wantErr %v", err, tt.wantErr)
 				return

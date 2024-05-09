@@ -1,8 +1,11 @@
 package charts
 
 import (
+	"strings"
+
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/util"
+	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
 
@@ -54,4 +57,21 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 	extendedQuery := append([]string{chartName}, query...)
 	return append(ownResult,
 		parentChart.ResolveValueFiles(extendedQuery, chartStore)...)
+}
+
+func (c *Chart) GetValueLocation(templateContext []string) (lsp.Location, error) {
+	modifyedVar := make([]string, len(templateContext))
+	// make the first letter lowercase since in the template the first letter is
+	// capitalized, but it is not in the Chart.yaml file
+	for _, value := range templateContext {
+		restOfString := ""
+		if (len(value)) > 1 {
+			restOfString = value[1:]
+		}
+		firstLetterLowercase := strings.ToLower(string(value[0])) + restOfString
+		modifyedVar = append(modifyedVar, firstLetterLowercase)
+	}
+	position, err := util.GetPositionOfNode(&c.ChartMetadata.YamlNode, modifyedVar)
+
+	return lsp.Location{URI: c.ChartMetadata.URI, Range: lsp.Range{Start: position}}, err
 }

@@ -3,12 +3,15 @@ package yamlls
 import (
 	"context"
 
-	"github.com/mrjosh/helm-ls/internal/util"
+	"github.com/mrjosh/helm-ls/internal/protocol"
 	lsp "go.lsp.dev/protocol"
 )
 
 // Calls the Hover method of yamlls to get a fitting hover response
 // If hover returns nothing appropriate, calls yamlls for completions
+//
+// Yamlls can not handle hover if the schema validation returns error,
+// thats why we fall back to calling completion
 func (yamllsConnector Connector) CallHover(ctx context.Context, params lsp.HoverParams, word string) (*lsp.Hover, error) {
 	if yamllsConnector.server == nil {
 		return &lsp.Hover{}, nil
@@ -25,14 +28,16 @@ func (yamllsConnector Connector) CallHover(ctx context.Context, params lsp.Hover
 	return (yamllsConnector).getHoverFromCompletion(ctx, params, word)
 }
 
-func (yamllsConnector Connector) getHoverFromCompletion(ctx context.Context, params lsp.HoverParams, word string) (*lsp.Hover, error) {
+func (yamllsConnector Connector) getHoverFromCompletion(ctx context.Context, params lsp.HoverParams, word string) (response *lsp.Hover, err error) {
 	var (
-		err              error
+		resultRange      lsp.Range
 		documentation    string
 		completionParams = lsp.CompletionParams{
 			TextDocumentPositionParams: params.TextDocumentPositionParams,
 		}
 	)
+
+	word = removeTrailingColon(word)
 
 	completionList, err := yamllsConnector.server.Completion(ctx, &completionParams)
 	if err != nil {
@@ -43,10 +48,17 @@ func (yamllsConnector Connector) getHoverFromCompletion(ctx context.Context, par
 	for _, completionItem := range completionList.Items {
 		if completionItem.InsertText == word {
 			documentation = completionItem.Documentation.(string)
+			resultRange = completionItem.TextEdit.Range
 			break
 		}
 	}
 
-	response := util.BuildHoverResponse(documentation, lsp.Range{})
-	return response, nil
+	return protocol.BuildHoverResponse(documentation, resultRange), nil
+}
+
+func removeTrailingColon(word string) string {
+	if len(word) > 2 && string(word[len(word)-1]) == ":" {
+		word = word[0 : len(word)-1]
+	}
+	return word
 }

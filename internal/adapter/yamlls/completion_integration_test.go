@@ -24,7 +24,7 @@ func TestYamllsCompletionIntegration(t *testing.T) {
 		expected []lsp.CompletionItem
 	}{
 		{
-			desc: "test hover on deployment.yaml",
+			desc: "test completion on deployment.yaml",
 			file: "../../../testdata/example/templates/deployment.yaml",
 			position: lsp.Position{
 				Line:      42,
