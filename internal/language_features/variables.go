@@ -26,7 +26,7 @@ func (f *VariablesFeature) AppropriateForNode() bool {
 
 func (f *VariablesFeature) Definition() (result []lsp.Location, err error) {
 	variableName := f.GenericDocumentUseCase.NodeContent()
-	definitionNode := lsplocal.GetVariableDefinition(variableName, f.GenericDocumentUseCase.ParentNode, f.Document.Content)
+	definitionNode := lsplocal.GetVariableDefinition(variableName, f.GenericDocumentUseCase.Node, f.Document.Content)
 	if definitionNode == nil {
 		return []lsp.Location{}, fmt.Errorf("Could not find definition for %s. Variable definition not found", variableName)
 	}

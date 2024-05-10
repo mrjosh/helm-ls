@@ -9,20 +9,18 @@ import (
 )
 
 func TestGetVariableDefinitionDirectDecleration(t *testing.T) {
-
-	var template = `
+	template := `
 {{ $variable := "text" }}
 {{ $variable }}
 	`
 
 	node, err := sitter.ParseCtx(context.Background(), []byte(template), gotemplate.GetLanguage())
-
 	if err != nil {
 		t.Errorf("Parsing did not work")
 	}
 
 	usageNode := node.NamedChild(1)
-	definitionNode := GetVariableDefinitionOfNode(usageNode, template)
+	definitionNode := GetVariableDefinition("variable", usageNode, template)
 
 	if definitionNode == nil {
 		t.Errorf("Could not get definitionNode")
@@ -32,31 +30,29 @@ func TestGetVariableDefinitionDirectDecleration(t *testing.T) {
 }
 
 func TestGetVariableDefinitionOtherDecleration(t *testing.T) {
-	var template = `
+	template := `
 {{ $variable := "text" }}
 {{ $someOther := "text" }}
 {{ $variable }}
 	`
 
 	node, err := sitter.ParseCtx(context.Background(), []byte(template), gotemplate.GetLanguage())
-
 	if err != nil {
 		t.Errorf("Parsing did not work")
 	}
 
 	usageNode := node.NamedChild(2)
-	definitionNode := GetVariableDefinitionOfNode(usageNode, template)
+	definitionNode := GetVariableDefinition("variable", usageNode, template)
 
 	if definitionNode == nil {
 		t.Errorf("Could not get definitionNode")
 	} else if definitionNode.Content([]byte(template)) != "$variable := \"text\"" {
 		t.Errorf("Definition did not match but was %s", definitionNode.Content([]byte(template)))
 	}
-
 }
 
 func TestGetVariableDefinitionRange(t *testing.T) {
-	var template = `{{ range $index, $element := pipeline }}{{ $index }}{{ $element }}{{ end }}`
+	template := `{{ range $index, $element := pipeline }}{{ $index }}{{ $element }}{{ end }}`
 	// (template [0, 0] - [1, 0]
 	//   (range_action [0, 0] - [0, 75]
 	//     (range_variable_definition [0, 9] - [0, 37]
@@ -72,7 +68,6 @@ func TestGetVariableDefinitionRange(t *testing.T) {
 	//       name: (identifier [0, 56] - [0, 63]))))
 
 	node, err := sitter.ParseCtx(context.Background(), []byte(template), gotemplate.GetLanguage())
-
 	if err != nil {
 		t.Errorf("Parsing did not work")
 	}
@@ -85,7 +80,7 @@ func TestGetVariableDefinitionRange(t *testing.T) {
 	if elementUsageNode.Content([]byte(template)) != "$element" {
 		t.Errorf("Definition did not match but was %s", elementUsageNode.Content([]byte(template)))
 	}
-	definitionNode := GetVariableDefinitionOfNode(elementUsageNode, template)
+	definitionNode := GetVariableDefinition("element", elementUsageNode, template)
 
 	if definitionNode == nil {
 		t.Errorf("Could not get definitionNode")
@@ -101,7 +96,7 @@ func TestGetVariableDefinitionRange(t *testing.T) {
 	if indexUsageNode.Content([]byte(template)) != "$index" {
 		t.Errorf("Definition did not match but was %s", indexUsageNode.Content([]byte(template)))
 	}
-	definitionNode = GetVariableDefinitionOfNode(indexUsageNode, template)
+	definitionNode = GetVariableDefinition("index", indexUsageNode, template)
 
 	if definitionNode == nil {
 		t.Errorf("Could not get definitionNode")
