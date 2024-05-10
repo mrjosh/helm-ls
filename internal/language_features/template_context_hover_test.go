@@ -251,7 +251,7 @@ value
 						},
 					},
 				},
-				splittedVar: []string{"key[0]"},
+				splittedVar: []string{"key[]"},
 			},
 			want: `### values.yaml
 hello

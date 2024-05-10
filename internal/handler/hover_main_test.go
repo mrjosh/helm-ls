@@ -24,6 +24,15 @@ func TestHoverMain(t *testing.T) {
 		expectedError error
 	}{
 		{
+			desc: "Test hover on dot",
+			position: lsp.Position{
+				Line:      17,
+				Character: 19,
+			},
+			expected:      fmt.Sprintf("### %s\n%s\n\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "{}"),
+			expectedError: nil,
+		},
+		{
 			desc: "Test hover on function",
 			position: lsp.Position{
 				Line:      7,
@@ -57,15 +66,6 @@ func TestHoverMain(t *testing.T) {
 				Character: 28,
 			},
 			expected:      "Name of the chart\n\nexample\n",
-			expectedError: nil,
-		},
-		{
-			desc: "Test hover on dot",
-			position: lsp.Position{
-				Line:      17,
-				Character: 19,
-			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "{}"),
 			expectedError: nil,
 		},
 		{

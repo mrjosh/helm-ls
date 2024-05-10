@@ -173,6 +173,9 @@ func TestCompletionMainSingleLines(t *testing.T) {
 		{"Test completion on {{ .Capabilities.KubeVersion.^ }}", []string{"Minor"}, []string{}, nil},
 		{"Test completion on {{ .Capabilities.KubeVersion.Mi^ }}", []string{"nor"}, []string{}, nil},
 		{`Test completion on {{ define "test" }} T1 {{ end }} {{ include "te^"}}`, []string{"test"}, []string{}, nil},
+		{`Test completion on {{ range .Values.ingress.hosts }} {{ .^ }} {{ end }}`, []string{"host", "paths"}, []string{}, nil},
+		{`Test completion on {{ range .Values.ingress.hosts }} {{ .ho^  }} {{ end }}`, []string{"host", "paths"}, []string{}, nil},
+		{`Test completion on {{ range .Values.ingress.hosts }} {{ range .paths 	}} {{ .^ }} {{ end }} {{ end }}`, []string{"pathType", "path"}, []string{}, nil},
 	}
 
 	for _, tt := range testCases {
@@ -181,7 +184,7 @@ func TestCompletionMainSingleLines(t *testing.T) {
 			col := strings.Index(tt.templateWithMark, "^")
 			buf := strings.Replace(tt.templateWithMark, "^", "", 1)
 			pos := protocol.Position{Line: 0, Character: uint32(col)}
-			// to get the correct values file
+			// to get the correct values file ../../testdata/example/values.yaml
 			fileURI := uri.File("../../testdata/example/templates/completion-test.yaml")
 
 			result, err := completionTestCall(fileURI, buf, pos)
