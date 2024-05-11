@@ -66,7 +66,8 @@ func valuesLookup(values chartutil.Values, splittedVar []string) (chartutil.Valu
 
 // PathValue takes a path that traverses a YAML structure and returns the value at the end of that path.
 // The path starts at the root of the YAML structure and is comprised of YAML keys separated by periods.
-// Given the following YAML data the value at path "chapter.one.title" is "Loomings".
+// Given the following YAML data the value at path "chapter.one.title" is "Loomings". The path can also
+// include array indexes as in "chapters[].title" which will use the first element of the array.
 //
 //	chapter:
 //	  one:
@@ -152,8 +153,7 @@ func builCompletionItem(value interface{}, variable string) lsp.CompletionItem {
 }
 
 func FormatToYAML(field reflect.Value, fieldName string) string {
-	x := field.Kind()
-	switch x {
+	switch field.Kind() {
 	case reflect.String:
 		return field.String()
 	case reflect.Map:
