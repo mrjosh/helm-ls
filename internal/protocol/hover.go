@@ -14,6 +14,11 @@ type HoverResultWithFile struct {
 	URI   uri.URI
 }
 
+func (h HoverResultWithFile) AsHelmCode() HoverResultWithFile {
+	h.Value = fmt.Sprintf("```%s\n%s\n```", "helm", h.Value)
+	return h
+}
+
 type HoverResultsWithFiles []HoverResultWithFile
 
 func (h HoverResultsWithFiles) Format(rootURI uri.URI) string {

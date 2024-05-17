@@ -7,6 +7,7 @@ import (
 
 	lsp "go.lsp.dev/protocol"
 	yamlv3 "gopkg.in/yaml.v3"
+	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 func GetPositionOfNode(node *yamlv3.Node, query []string) (lsp.Position, error) {
@@ -83,5 +84,14 @@ func ReadYamlFileToNode(filename string) (node yamlv3.Node, err error) {
 	}
 
 	err = yamlv3.Unmarshal(data, &node)
+	return node, err
+}
+
+func ValuesToYamlNode(values chartutil.Values) (node yamlv3.Node, err error) {
+	yaml, error := values.YAML()
+	if error != nil {
+		return yamlv3.Node{}, error
+	}
+	err = yamlv3.Unmarshal([]byte(yaml), &node)
 	return node, err
 }

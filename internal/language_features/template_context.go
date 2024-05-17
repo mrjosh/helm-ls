@@ -3,6 +3,7 @@ package languagefeatures
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	lsp "go.lsp.dev/protocol"
 
@@ -107,7 +108,9 @@ func (f *TemplateContextFeature) valuesHover(templateContext lsplocal.TemplateCo
 	)
 	for _, valuesFiles := range valuesFiles {
 		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
+			logger.Debug(fmt.Sprintf("Looking for selector: %s in values %v", strings.Join(valuesFiles.Selector, "."), valuesFile.Values))
 			result, err := util.GetTableOrValueForSelector(valuesFile.Values, valuesFiles.Selector)
+
 			if err == nil {
 				hoverResults = append(hoverResults, protocol.HoverResultWithFile{URI: valuesFile.URI, Value: result})
 			}

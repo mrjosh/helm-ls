@@ -90,6 +90,9 @@ func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Locati
 		for _, referenceRange := range referenceRanges {
 			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
 		}
+		if len(locations) > 0 {
+			doc.SyncToDisk()
+		}
 	}
 
 	return locations
@@ -101,6 +104,9 @@ func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Locat
 		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
 		for _, referenceRange := range referenceRanges {
 			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
+		}
+		if len(locations) > 0 {
+			doc.SyncToDisk()
 		}
 	}
 
@@ -117,7 +123,7 @@ func (f *IncludesFeature) getDefinitionsHover(includeName string) protocol.Hover
 				result = append(result, protocol.HoverResultWithFile{
 					Value: node.Content([]byte(doc.Content)),
 					URI:   doc.URI,
-				})
+				}.AsHelmCode())
 			}
 		}
 	}
