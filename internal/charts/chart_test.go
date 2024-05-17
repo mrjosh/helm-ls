@@ -7,8 +7,8 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
-	"github.com/mrjosh/helm-ls/pkg/chart"
 	"go.lsp.dev/uri"
+	"helm.sh/helm/v3/pkg/chart"
 
 	"github.com/stretchr/testify/assert"
 )

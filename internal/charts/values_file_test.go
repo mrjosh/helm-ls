@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
+	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 func TestNewValuesFile(t *testing.T) {

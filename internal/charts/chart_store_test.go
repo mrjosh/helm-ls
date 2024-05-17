@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/util"
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
 	"gopkg.in/yaml.v3"
+	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 func TestSetValuesFilesConfigOverwrites(t *testing.T) {

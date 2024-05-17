@@ -5,18 +5,6 @@ import (
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
-func GetVariableDefinitionOfNode(node *sitter.Node, template string) *sitter.Node {
-	if node == nil {
-		return nil
-	}
-	if node.Type() != gotemplate.NodeTypeVariable {
-		return nil
-	}
-	variableName := node.Child(1).Content([]byte(template))
-
-	return GetVariableDefinition(variableName, node, template)
-}
-
 func GetVariableDefinition(variableName string, node *sitter.Node, template string) *sitter.Node {
 	if node == nil {
 		return nil

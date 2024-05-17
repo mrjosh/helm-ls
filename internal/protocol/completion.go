@@ -33,12 +33,12 @@ func (c CompletionResults) WithDocs(docs []helmdocs.HelmDocumentation, kind lsp.
 func (c CompletionResults) WithSnippets(snippets []godocs.GoTemplateSnippet) CompletionResults {
 	items := c.Items
 	for _, snippet := range snippets {
-		items = append(items, textCompletionItem(snippet))
+		items = append(items, snippetCompletionItem(snippet))
 	}
 	return CompletionResults{Items: items}
 }
 
-func textCompletionItem(gotemplateSnippet godocs.GoTemplateSnippet) lsp.CompletionItem {
+func snippetCompletionItem(gotemplateSnippet godocs.GoTemplateSnippet) lsp.CompletionItem {
 	return lsp.CompletionItem{
 		Label:            gotemplateSnippet.Name,
 		InsertText:       gotemplateSnippet.Snippet,
@@ -47,11 +47,4 @@ func textCompletionItem(gotemplateSnippet godocs.GoTemplateSnippet) lsp.Completi
 		Kind:             lsp.CompletionItemKindText,
 		InsertTextFormat: lsp.InsertTextFormatSnippet,
 	}
-}
-
-func GetTextCompletionItems(gotemplateSnippet []godocs.GoTemplateSnippet) (result []lsp.CompletionItem) {
-	for _, item := range gotemplateSnippet {
-		result = append(result, textCompletionItem(item))
-	}
-	return result
 }

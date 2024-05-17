@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	"github.com/mrjosh/helm-ls/pkg/chart"
+
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 func TestGetValuesCompletions(t *testing.T) {

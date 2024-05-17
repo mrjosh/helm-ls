@@ -29,16 +29,6 @@ func NestedNodeAtPositionForCompletion(tree *sitter.Tree, position lsp.Position)
 	return FindRelevantChildNodeCompletion(currentNode, pointToLoopUp)
 }
 
-func FindDirectChildNodeByStart(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
-	for i := 0; i < int(currentNode.ChildCount()); i++ {
-		child := currentNode.Child(i)
-		if child.StartPoint().Column == pointToLookUp.Column && child.StartPoint().Row == pointToLookUp.Row {
-			return child
-		}
-	}
-	return currentNode
-}
-
 func FindRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
 	for i := 0; i < int(currentNode.ChildCount()); i++ {
 		child := currentNode.Child(i)

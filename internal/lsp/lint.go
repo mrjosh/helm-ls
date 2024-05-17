@@ -2,136 +2,142 @@ package lsp
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/util"
-	"github.com/mrjosh/helm-ls/pkg/action"
-	"github.com/mrjosh/helm-ls/pkg/chartutil"
-	"github.com/mrjosh/helm-ls/pkg/lint/support"
 	"github.com/pkg/errors"
 
-	"github.com/mrjosh/helm-ls/pkg/lint/rules"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
+	"helm.sh/helm/v3/pkg/action"
+
+	"helm.sh/helm/v3/pkg/chartutil"
+	"helm.sh/helm/v3/pkg/lint/support"
 )
 
 var logger = log.GetLogger()
 
-func GetDiagnosticsNotification(chart *charts.Chart, doc *Document) *lsp.PublishDiagnosticsParams {
+func GetDiagnosticsNotifications(chart *charts.Chart, doc *Document) []lsp.PublishDiagnosticsParams {
 	vals := chart.ValuesFiles.MainValuesFile.Values
 	if chart.ValuesFiles.OverlayValuesFile != nil {
 		vals = chartutil.CoalesceTables(chart.ValuesFiles.OverlayValuesFile.Values, chart.ValuesFiles.MainValuesFile.Values)
 	}
 
-	diagnostics := GetDiagnostics(doc.URI, vals)
-	doc.DiagnosticsCache.HelmDiagnostics = diagnostics
+	diagnostics := GetDiagnostics(chart.RootURI, vals)
 
-	return &lsp.PublishDiagnosticsParams{
-		URI:         doc.URI,
-		Diagnostics: doc.DiagnosticsCache.GetMergedDiagnostics(),
+	// Update the diagnostics cache only for the currently opened document
+	// as it will also get diagnostics from yamlls
+	// if currentDocDiagnostics is empty it means that all issues in that file have been fixed
+	// we need to send this to the client
+	currentDocDiagnostics := diagnostics[string(doc.URI.Filename())]
+	doc.DiagnosticsCache.HelmDiagnostics = currentDocDiagnostics
+	diagnostics[string(doc.URI.Filename())] = doc.DiagnosticsCache.GetMergedDiagnostics()
+
+	result := []lsp.PublishDiagnosticsParams{}
+
+	for diagnosticsURI, diagnostics := range diagnostics {
+		result = append(result,
+			lsp.PublishDiagnosticsParams{
+				URI:         uri.File(diagnosticsURI),
+				Diagnostics: diagnostics,
+			},
+		)
 	}
+
+	return result
 }
 
-// GetDiagnostics will run helm linter against the currect document URI using the given values
+// GetDiagnostics will run helm linter against the chart root URI using the given values
 // and converts the helm.support.Message to lsp.Diagnostics
-func GetDiagnostics(uri uri.URI, vals chartutil.Values) []lsp.Diagnostic {
-	var (
-		filename    = uri.Filename()
-		paths       = strings.Split(filename, "/")
-		dir         = strings.Join(paths, "/")
-		diagnostics = make([]lsp.Diagnostic, 0)
-	)
-
-	pathfile := ""
-
-	for i, p := range paths {
-		if p == "templates" {
-			dir = strings.Join(paths[0:i], "/")
-			pathfile = strings.Join(paths[i:], "/")
-		}
-	}
+func GetDiagnostics(rootURI uri.URI, vals chartutil.Values) map[string][]lsp.Diagnostic {
+	diagnostics := map[string][]lsp.Diagnostic{}
 
 	client := action.NewLint()
 
-	result := client.Run([]string{dir}, vals)
-	logger.Println(fmt.Sprintf("helm lint: result for file %s : %s", uri, result.Messages))
+	result := client.Run([]string{rootURI.Filename()}, vals)
 
 	for _, msg := range result.Messages {
-		d, filename, err := GetDiagnosticFromLinterErr(msg)
-		if err != nil {
-			continue
+		d, relativeFilePath, _ := GetDiagnosticFromLinterErr(msg)
+		absoluteFilePath := filepath.Join(rootURI.Filename(), string(relativeFilePath))
+		if d != nil {
+			diagnostics[absoluteFilePath] = append(diagnostics[absoluteFilePath], *d)
 		}
-		if filename != pathfile {
-			continue
-		}
-		diagnostics = append(diagnostics, *d)
 	}
+	logger.Println(fmt.Sprintf("helm lint: result for chart %s : %v", rootURI.Filename(), diagnostics))
 
 	return diagnostics
 }
 
 func GetDiagnosticFromLinterErr(supMsg support.Message) (*lsp.Diagnostic, string, error) {
-	var (
-		err      error
-		msg      string
-		line     = 1
-		severity lsp.DiagnosticSeverity
-		filename = getFilePathFromLinterErr(supMsg)
-	)
+	severity := parseSeverity(supMsg)
 
-	switch supMsg.Severity {
-	case support.ErrorSev:
-
-		severity = lsp.DiagnosticSeverityError
-
-		if superr, ok := supMsg.Err.(*rules.YAMLToJSONParseError); ok {
-
-			line = superr.Line
-			msg = superr.Error()
-
-		} else {
-
-			fileLine := util.BetweenStrings(supMsg.Error(), "(", ")")
-			fileLineArr := strings.Split(fileLine, ":")
-			if len(fileLineArr) < 2 {
-				return nil, filename, errors.Errorf("linter Err contains no position information")
-			}
-			lineStr := fileLineArr[1]
-			line, err = strconv.Atoi(lineStr)
-			if err != nil {
-				return nil, filename, err
-			}
-			msgStr := util.AfterStrings(supMsg.Error(), "):")
-			msg = strings.TrimSpace(msgStr)
-
+	if strings.HasPrefix(supMsg.Path, "templates") {
+		message, err := parseTemplatesMessage(supMsg, severity)
+		path := getFilePathFromLinterErr(supMsg)
+		if err != nil {
+			return nil, "", err
 		}
-
-	case support.WarningSev:
-
-		severity = lsp.DiagnosticSeverityWarning
-		if err, ok := supMsg.Err.(*rules.MetadataError); ok {
-			line = 1
-			msg = err.Details().Error()
-		}
-
-	case support.InfoSev:
-
-		severity = lsp.DiagnosticSeverityInformation
-		msg = supMsg.Err.Error()
-
+		return &message, path, nil
 	}
 
-	return &lsp.Diagnostic{
+	message := string(supMsg.Err.Error())
+	// NOTE: The diagnostics may not be shown correctly in the Chart.yaml file in neovim
+	// because the lsp is not active for that file
+	if supMsg.Path == "Chart.yaml" || strings.Contains(message, "chart metadata") {
+		return &lsp.Diagnostic{
+			Severity: severity,
+			Source:   "Helm lint",
+			Message:  message,
+		}, "Chart.yaml", nil
+	}
+
+	return nil, "", nil
+}
+
+func parseTemplatesMessage(supMsg support.Message, severity lsp.DiagnosticSeverity) (lsp.Diagnostic, error) {
+	var (
+		err         error
+		line        int
+		fileLine    = util.BetweenStrings(supMsg.Error(), "(", ")")
+		fileLineArr = strings.Split(fileLine, ":")
+	)
+	if len(fileLineArr) < 2 {
+		return lsp.Diagnostic{}, errors.Errorf("linter Err contains no position information")
+	}
+	lineStr := fileLineArr[1]
+	line, err = strconv.Atoi(lineStr)
+	if err != nil {
+		return lsp.Diagnostic{}, err
+	}
+	msgStr := util.AfterStrings(supMsg.Error(), "):")
+	msg := strings.TrimSpace(msgStr)
+
+	return lsp.Diagnostic{
 		Range: lsp.Range{
 			Start: lsp.Position{Line: uint32(line - 1)},
 			End:   lsp.Position{Line: uint32(line - 1)},
 		},
 		Severity: severity,
+		Source:   "Helm lint",
 		Message:  msg,
-	}, filename, nil
+	}, nil
+}
+
+func parseSeverity(supMsg support.Message) lsp.DiagnosticSeverity {
+	var severity lsp.DiagnosticSeverity
+	switch supMsg.Severity {
+	case support.ErrorSev:
+		severity = lsp.DiagnosticSeverityError
+	case support.WarningSev:
+		severity = lsp.DiagnosticSeverityWarning
+	case support.InfoSev:
+		severity = lsp.DiagnosticSeverityInformation
+	}
+	return severity
 }
 
 func getFilePathFromLinterErr(msg support.Message) string {

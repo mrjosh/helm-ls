@@ -28,12 +28,14 @@ func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocume
 	if err != nil {
 		logger.Error("Error getting chart info for file", doc.URI, err)
 	}
-	notification := lsplocal.GetDiagnosticsNotification(chart, doc)
+	notifications := lsplocal.GetDiagnosticsNotifications(chart, doc)
 
-	return h.client.PublishDiagnostics(ctx, notification)
+	defer h.publishDiagnostics(ctx, notifications)
+
+	return nil
 }
 
-func (h *langHandler) DidClose(ctx context.Context, params *lsp.DidCloseTextDocumentParams) (err error) {
+func (h *langHandler) DidClose(_ context.Context, _ *lsp.DidCloseTextDocumentParams) (err error) {
 	return nil
 }
 
@@ -48,9 +50,11 @@ func (h *langHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocume
 	}
 
 	h.yamllsConnector.DocumentDidSave(doc, *params)
-	notification := lsplocal.GetDiagnosticsNotification(chart, doc)
+	notifications := lsplocal.GetDiagnosticsNotifications(chart, doc)
 
-	return h.client.PublishDiagnostics(ctx, notification)
+	defer h.publishDiagnostics(ctx, notifications)
+
+	return nil
 }
 
 func (h *langHandler) DidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
