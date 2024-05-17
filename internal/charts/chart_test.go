@@ -129,3 +129,10 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 	assert.Equal(t, 2, len(valueFiles))
 	assert.Contains(t, valueFiles, &charts.QueriedValuesFiles{Selector: []string{"subchart", "foo"}, ValuesFiles: parentChart.ValuesFiles})
 }
+
+func TestLoadsHelmChartWithDependecies(t *testing.T) {
+	chart := charts.NewChart(uri.File("../../testdata/dependeciesExample/"), util.ValuesFilesConfig{})
+
+	dependecyTemplates := chart.GetDependeciesTemplates()
+	assert.Len(t, dependecyTemplates, 21)
+}

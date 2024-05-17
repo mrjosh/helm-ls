@@ -1,6 +1,8 @@
 package languagefeatures
 
 import (
+	"fmt"
+
 	lsp "go.lsp.dev/protocol"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
@@ -115,8 +117,12 @@ func (f *IncludesFeature) getDefinitionsHover(includeName string) protocol.Hover
 			node := doc.Ast.RootNode().NamedDescendantForPointRange(referenceRange.StartPoint, referenceRange.EndPoint)
 			if node != nil {
 				result = append(result, protocol.HoverResultWithFile{
-					Value: node.Content([]byte(doc.Content)),
-					URI:   doc.URI,
+					Value: fmt.Sprintf(
+						`%shelm
+%s
+%s`,
+						"```", node.Content([]byte(doc.Content)), "```"),
+					URI: doc.URI,
 				})
 			}
 		}

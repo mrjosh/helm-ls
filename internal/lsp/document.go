@@ -3,6 +3,8 @@ package lsp
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -76,4 +78,16 @@ func (d *Document) getLines() []string {
 		d.lines = strings.Split(d.Content, "\n")
 	}
 	return d.lines
+}
+
+func (d *Document) SyncToDisk() error {
+	err := os.MkdirAll(filepath.Dir(d.Path), 0o755)
+	if err == nil {
+		err = os.WriteFile(d.Path, []byte(d.Content), 0o444)
+	}
+	if err != nil {
+		logger.Error(err.Error())
+	}
+
+	return err
 }

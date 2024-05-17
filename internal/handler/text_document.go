@@ -3,12 +3,10 @@ package handler
 import (
 	"context"
 	"errors"
-	"io/fs"
-	"path/filepath"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	lsp "go.lsp.dev/protocol"
-	"go.lsp.dev/uri"
 )
 
 func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
@@ -102,14 +100,17 @@ func (h *langHandler) DidRenameFiles(ctx context.Context, params *lsp.RenameFile
 	return nil
 }
 
-// TODO: maybe use the helm implementation of this once https://github.com/mrjosh/helm-ls/pull/77 is resolved
-func (h *langHandler) LoadDocsOnNewChart(rootURI uri.URI) {
-	_ = filepath.WalkDir(filepath.Join(rootURI.Filename(), "templates"),
-		func(path string, d fs.DirEntry, err error) error {
-			if !d.IsDir() {
-				return h.documents.Store(uri.File(path), h.helmlsConfig)
-			}
-			return nil
-		},
-	)
+func (h *langHandler) LoadDocsOnNewChart(chart *charts.Chart) {
+	for _, file := range chart.HelmChart.Templates {
+		h.documents.Store(file.Name, file.Data, h.helmlsConfig)
+	}
+	for _, file := range chart.GetDependeciesTemplates() {
+		// TODO: for dependency files we must somehow dump the file content to /tmp (make sure they are readyonly) when
+		// the user wants to use go-to-definition or something like this
+		// gopls for example uses the files in ~/go/...
+		// but we cant do that because we don't have such files
+
+		// logger.Println("Loading chart", dependency.ChartPath())
+		h.documents.Store(file.Path, file.Content, h.helmlsConfig)
+	}
 }
