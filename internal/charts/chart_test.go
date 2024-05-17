@@ -9,6 +9,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
 	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/chartutil"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -76,16 +77,17 @@ func TestResolvesValuesFileOfParent(t *testing.T) {
 	err = os.WriteFile(subChartChartFile, []byte{}, 0o644)
 	assert.NoError(t, err)
 
-	chart := charts.NewChart(uri.File(filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
+	sut := charts.NewChart(uri.File(filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
 
 	expectedChart := &charts.Chart{
 		RootURI:       uri.File(tempDir),
 		ChartMetadata: &charts.ChartMetadata{},
+		HelmChart:     &chart.Chart{},
 	}
 	newChartFunc := func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
 	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc)
 
-	valueFiles := chart.ResolveValueFiles([]string{"global", "foo"}, chartStore)
+	valueFiles := sut.ResolveValueFiles([]string{"global", "foo"}, chartStore)
 
 	assert.Equal(t, 2, len(valueFiles))
 }
@@ -117,6 +119,7 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 				Name: "parent",
 			},
 		},
+		HelmChart: &chart.Chart{},
 	}
 	newChartFunc := func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
 	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc)
@@ -126,6 +129,78 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 	parentChart, err := chartStore.GetChartForURI(uri.File(tempDir))
 	assert.NoError(t, err)
 
-	assert.Equal(t, 2, len(valueFiles))
+	assert.Len(t, valueFiles, 2)
 	assert.Contains(t, valueFiles, &charts.QueriedValuesFiles{Selector: []string{"subchart", "foo"}, ValuesFiles: parentChart.ValuesFiles})
+}
+
+func TestResolvesValuesFileOfDependencyWithGlobal(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
+		valueFiles = chart.ResolveValueFiles([]string{"global"}, chartStore)
+	)
+
+	assert.NoError(t, err)
+	assert.Len(t, valueFiles, 3)
+
+	selectors := [][]string{}
+	for _, valueFile := range valueFiles {
+		selectors = append(selectors, valueFile.Selector)
+	}
+	assert.Equal(t, selectors, [][]string{{"global"}, {"global"}, {"global"}})
+}
+
+func TestResolvesValuesFileOfDependencyWithChartName(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
+		valueFiles = chart.ResolveValueFiles([]string{"subchartexample", "foo"}, chartStore)
+	)
+
+	assert.NoError(t, err)
+	assert.Len(t, valueFiles, 2)
+
+	selectors := [][]string{}
+	for _, valueFile := range valueFiles {
+		selectors = append(selectors, valueFile.Selector)
+	}
+	assert.Contains(t, selectors, []string{"subchartexample", "foo"})
+	assert.Contains(t, selectors, []string{"foo"})
+}
+
+func TestResolvesValuesFileOfDependencyWithChartNameForPackedDependency(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
+		valueFiles = chart.ResolveValueFiles([]string{"common", "exampleValue"}, chartStore)
+	)
+
+	assert.NoError(t, err)
+	assert.Len(t, valueFiles, 2)
+
+	selectors := [][]string{}
+	for _, valueFile := range valueFiles {
+		selectors = append(selectors, valueFile.Selector)
+	}
+	assert.Contains(t, selectors, []string{"common", "exampleValue"})
+	assert.Contains(t, selectors, []string{"exampleValue"})
+
+	var commonValueFile *charts.ValuesFiles
+	for _, valueFile := range valueFiles {
+		if valueFile.Selector[0] == "exampleValue" {
+			commonValueFile = valueFile.ValuesFiles
+		}
+	}
+	assert.NotNil(t, commonValueFile)
+	assert.Equal(t, chartutil.Values{"exampleValue": "common-chart"}, commonValueFile.MainValuesFile.Values)
+}
+
+func TestLoadsHelmChartWithDependecies(t *testing.T) {
+	chart := charts.NewChart(uri.File("../../testdata/dependenciesExample/"), util.ValuesFilesConfig{})
+
+	dependecyTemplates := chart.GetDependeciesTemplates()
+	assert.Len(t, dependecyTemplates, 21)
 }

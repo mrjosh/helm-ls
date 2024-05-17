@@ -45,7 +45,7 @@ func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	d.Content = string(content)
 
 	d.ApplyChangesToAst(d.Content)
-	d.SymbolTable = NewSymbolTable(d.Ast, []byte(d.Content))
+	d.SymbolTable = NewSymbolTable(d.Ast, content)
 
 	d.lines = nil
 }
@@ -77,4 +77,14 @@ func (d *Document) getLines() []string {
 		d.lines = strings.Split(d.Content, "\n")
 	}
 	return d.lines
+}
+
+// GetContent implements PossibleDependencyFile.
+func (d *Document) GetContent() string {
+	return d.Content
+}
+
+// GetPath implements PossibleDependencyFile.
+func (d *Document) GetPath() string {
+	return d.Path
 }

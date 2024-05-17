@@ -45,3 +45,11 @@ func TestReload(t *testing.T) {
 	assert.Equal(t, "baz", valuesFile.Values["foo"])
 	assert.NotEqual(t, yaml.Node{}, valuesFile.ValueNode)
 }
+
+func TestGetContent(t *testing.T) {
+	tempDir := t.TempDir()
+	valuesContent := "foo: bar"
+	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0o644)
+	valuesFile := charts.NewValuesFile(filepath.Join(tempDir, "values.yaml"))
+	assert.Equal(t, valuesContent+"\n", valuesFile.GetContent())
+}

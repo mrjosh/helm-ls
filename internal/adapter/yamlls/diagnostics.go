@@ -2,6 +2,7 @@ package yamlls
 
 import (
 	"context"
+	"fmt"
 	"runtime"
 	"strings"
 
@@ -15,6 +16,7 @@ func (c Connector) PublishDiagnostics(ctx context.Context, params *protocol.Publ
 	doc, ok := c.documents.Get(params.URI)
 	if !ok {
 		logger.Println("Error handling diagnostic. Could not get document: " + params.URI.Filename())
+		return fmt.Errorf("Could not get document: %s", params.URI.Filename())
 	}
 
 	doc.DiagnosticsCache.SetYamlDiagnostics(filterDiagnostics(params.Diagnostics, doc.Ast.Copy(), doc.Content))

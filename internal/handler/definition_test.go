@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
@@ -10,9 +11,11 @@ import (
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
+	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 	yamlv3 "gopkg.in/yaml.v3"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 var testFileContent = `
@@ -56,7 +59,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 	fileURI := testDocumentTemplateURI
 	rootUri := uri.File("/")
 
-	chart := &charts.Chart{
+	testChart := &charts.Chart{
 		ChartMetadata: &charts.ChartMetadata{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
@@ -66,7 +69,8 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 			},
 			AdditionalValuesFiles: []*charts.ValuesFile{},
 		},
-		RootURI: "",
+		RootURI:   "",
+		HelmChart: &chart.Chart{},
 	}
 	d := lsp.DidOpenTextDocumentParams{
 		TextDocument: lsp.TextDocumentItem{
@@ -78,7 +82,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 	}
 	documents.DidOpen(&d, util.DefaultConfig)
 	chartStore := charts.NewChartStore(rootUri, charts.NewChart)
-	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: chart}
+	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: testChart}
 	h := &langHandler{
 		chartStore:      chartStore,
 		documents:       documents,
@@ -326,4 +330,71 @@ func TestDefinitionValueFileMulitpleValues(t *testing.T) {
 			},
 		},
 	}, nil)
+}
+
+func TestDefinitionSingleLine(t *testing.T) {
+	testCases := []struct {
+		// defines a definition test where ^ is the position where the defintion is triggered
+		// and §result§ marks the range of the result
+		templateWithMarks string
+	}{
+		{"{{ §$test := 1§ }} {{ $te^st }}"},
+		{"{{ §$test := .Values.test§ }} {{ $te^st.with.selectorexpression }}"},
+		{"{{ §$test := $.Values.test§ }} {{ $te^st.with.selectorexpression. }}"},
+		{"{{ §$test := .Values.test§ }} {{ $te^st }}"},
+		{"{{ range §$test := .Values.test§ }} {{ $te^st }} {{ end }}"},
+		{"{{ range §$test := $.Values.test§ }} {{ $te^st.something }} {{ end }}"},
+		{"{{ range §$test := $.Values.test§ }} {{ $te^st. }} {{ end }}"},
+		{"{{ range §$test := $.Values.test§ }} {{ if not $te^st }} y {{ else }} n {{ end }}"},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.templateWithMarks, func(t *testing.T) {
+			col := strings.Index(tc.templateWithMarks, "^")
+			buf := strings.Replace(tc.templateWithMarks, "^", "", 1)
+			pos := protocol.Position{Line: 0, Character: uint32(col - 3)}
+			expectedColStart := strings.Index(buf, "§")
+			buf = strings.Replace(buf, "§", "", 1)
+			expectedColEnd := strings.Index(buf, "§")
+			buf = strings.Replace(buf, "§", "", 1)
+
+			documents := lsplocal.NewDocumentStore()
+			fileURI := testDocumentTemplateURI
+			rootUri := uri.File("/")
+
+			d := lsp.DidOpenTextDocumentParams{
+				TextDocument: lsp.TextDocumentItem{
+					URI:  fileURI,
+					Text: buf,
+				},
+			}
+			documents.DidOpen(&d, util.DefaultConfig)
+			h := &langHandler{
+				chartStore: charts.NewChartStore(rootUri, charts.NewChart),
+				documents:  documents,
+			}
+
+			locations, err := h.Definition(context.TODO(), &lsp.DefinitionParams{
+				TextDocumentPositionParams: lsp.TextDocumentPositionParams{
+					TextDocument: lsp.TextDocumentIdentifier{URI: fileURI},
+					Position:     pos,
+				},
+			})
+
+			assert.NoError(t, err)
+
+			assert.Contains(t, locations, lsp.Location{
+				URI: testDocumentTemplateURI,
+				Range: lsp.Range{
+					Start: lsp.Position{
+						Line:      0,
+						Character: uint32(expectedColStart),
+					},
+					End: lsp.Position{
+						Line:      0,
+						Character: uint32(expectedColEnd),
+					},
+				},
+			})
+		})
+	}
 }

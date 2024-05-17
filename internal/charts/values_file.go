@@ -1,6 +1,8 @@
 package charts
 
 import (
+	"fmt"
+
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -24,6 +26,19 @@ func NewValuesFile(filePath string) *ValuesFile {
 	}
 }
 
+func NewValuesFileFromValues(uri uri.URI, values chartutil.Values) *ValuesFile {
+	valueNode, error := util.ValuesToYamlNode(values)
+	if error != nil {
+		logger.Error(fmt.Sprintf("Could not load values for file %s", uri.Filename()), error)
+		return &ValuesFile{}
+	}
+	return &ValuesFile{
+		ValueNode: valueNode,
+		Values:    values,
+		URI:       uri,
+	}
+}
+
 func (v *ValuesFile) Reload() {
 	vals, valueNodes := readInValuesFile(v.URI.Filename())
 
@@ -43,4 +58,19 @@ func readInValuesFile(filePath string) (chartutil.Values, yaml.Node) {
 		logger.Error("Error loading values file ", filePath, err)
 	}
 	return vals, valueNodes
+}
+
+// GetContent implements PossibleDependencyFile.
+func (d *ValuesFile) GetContent() string {
+	yaml, err := yaml.Marshal(d.Values)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Could not load values for file %s", d.URI.Filename()), err)
+		return ""
+	}
+	return string(yaml)
+}
+
+// GetPath implements PossibleDependencyFile.
+func (d *ValuesFile) GetPath() string {
+	return d.URI.Filename()
 }

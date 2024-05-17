@@ -3,6 +3,7 @@ package languagefeatures
 import (
 	lsp "go.lsp.dev/protocol"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
@@ -90,6 +91,9 @@ func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Locati
 		for _, referenceRange := range referenceRanges {
 			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
 		}
+		if len(locations) > 0 {
+			charts.SyncToDisk(doc)
+		}
 	}
 
 	return locations
@@ -101,6 +105,9 @@ func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Locat
 		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
 		for _, referenceRange := range referenceRanges {
 			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
+		}
+		if len(locations) > 0 {
+			charts.SyncToDisk(doc)
 		}
 	}
 
@@ -117,7 +124,7 @@ func (f *IncludesFeature) getDefinitionsHover(includeName string) protocol.Hover
 				result = append(result, protocol.HoverResultWithFile{
 					Value: node.Content([]byte(doc.Content)),
 					URI:   doc.URI,
-				})
+				}.AsHelmCode())
 			}
 		}
 	}
