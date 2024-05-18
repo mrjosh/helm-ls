@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "dependeciesExample.fullname" . }}
+  name: {{ include "common.names.name" . }}
   labels:
     {{- include "dependeciesExample.labels" . | nindent 4 }}
 spec:
@@ -66,3 +66,6 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      example: {{ .Values.common.exampleValue }}
+      example2: {{ .Values.global }} # todo fix this: missing hover, completion etc.
+      example3: {{ .Values.subchartexample.subchartWithoutGlobal }} # todo fix this: missing hover, completion etc.

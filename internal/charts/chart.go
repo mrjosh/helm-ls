@@ -100,10 +100,12 @@ func (c *Chart) GetValueLocation(templateContext []string) (lsp.Location, error)
 
 func (c *Chart) GetDependeciesTemplates() []*DependencyTemplateFile {
 	result := []*DependencyTemplateFile{}
+	if c.HelmChart == nil {
+		return result
+	}
 	for _, dependency := range c.HelmChart.Dependencies() {
 		for _, file := range dependency.Templates {
-			dependencyTemplate := c.NewDeDependencyTemplateFile(dependency.Name(), file)
-			_ = dependencyTemplate.SyncToDisk()
+			dependencyTemplate := c.NewDependencyTemplateFile(dependency.Name(), file)
 			result = append(result, dependencyTemplate)
 		}
 	}

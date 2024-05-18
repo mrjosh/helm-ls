@@ -131,7 +131,7 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 }
 
 func TestLoadsHelmChartWithDependecies(t *testing.T) {
-	chart := charts.NewChart(uri.File("../../testdata/dependeciesExample/"), util.ValuesFilesConfig{})
+	chart := charts.NewChart(uri.File("../../testdata/dependenciesExample/"), util.ValuesFilesConfig{})
 
 	dependecyTemplates := chart.GetDependeciesTemplates()
 	assert.Len(t, dependecyTemplates, 21)
