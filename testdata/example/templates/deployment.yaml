@@ -70,3 +70,14 @@ spec:
         {{- end }}
       {{- end }}
       hosts: {{ .Values.ingress.hosts }}
+
+      {{- $root := . -}}
+      {{- range $type, $config := $root.Values.deployments }}
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: my-app-{{ $type }}
+      spec:
+        replicas: {{ $config.hpa.minReplicas }}
+      ---
+      {{- end }}

@@ -35,7 +35,7 @@ func (f *TemplateContextFeature) AppropriateForNode() bool {
 
 func (f *TemplateContextFeature) References() (result []lsp.Location, err error) {
 	templateContext, err := f.getTemplateContext()
-	if err != nil {
+	if err != nil || len(templateContext) == 0 {
 		return []lsp.Location{}, err
 	}
 
@@ -45,7 +45,7 @@ func (f *TemplateContextFeature) References() (result []lsp.Location, err error)
 
 func (f *TemplateContextFeature) Definition() (result []lsp.Location, err error) {
 	templateContext, err := f.getTemplateContext()
-	if err != nil {
+	if err != nil || len(templateContext) == 0 {
 		return []lsp.Location{}, err
 	}
 	return f.getDefinitionLocations(templateContext), nil
@@ -81,6 +81,9 @@ func (f *TemplateContextFeature) getDefinitionLocations(templateContext lsplocal
 
 func (f *TemplateContextFeature) Hover() (string, error) {
 	templateContext, err := f.getTemplateContext()
+	if err != nil || len(templateContext) == 0 {
+		return "", err
+	}
 
 	switch templateContext[0] {
 	case "Values":
