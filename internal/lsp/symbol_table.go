@@ -18,7 +18,7 @@ func (t TemplateContext) Tail() TemplateContext {
 }
 
 func (t TemplateContext) IsVariable() bool {
-	return len(t) > 0 && t[0] == "$"
+	return len(t) > 0 && strings.HasPrefix(t[0], "$")
 }
 
 func (t TemplateContext) AppendSuffix(suffix string) TemplateContext {

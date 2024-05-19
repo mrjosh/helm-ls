@@ -224,6 +224,28 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 
 	testCases := []testCase{
 		{
+			template: `
+      {{- $root := . -}}
+      {{- range $type, $config := $root.Values.deployments }}
+				{{- .InLoop }}
+			{{- end }}
+			{{ .Values.test }}
+`,
+			path: []string{"$root", "Values"},
+			startPoint: sitter.Point{
+				Row:    2,
+				Column: 40,
+			},
+		},
+		{
+			template: `{{ $x := .Values }}{{ $x.test }}{{ .Values.test }}`,
+			path:     []string{"$x", "test"},
+			startPoint: sitter.Point{
+				Row:    0,
+				Column: 25,
+			},
+		},
+		{
 			template: `{{ if (and .Values. ) }} {{ end }} `,
 			path:     []string{"Values"},
 			startPoint: sitter.Point{

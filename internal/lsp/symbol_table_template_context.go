@@ -67,8 +67,12 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 			GetRangeForNode(node.Child(int(node.ChildCount())-1)))
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
-		if operandNode.Type() == gotemplate.NodeTypeVariable && operandNode.Content(v.content) == "$" {
+		if operandNode.Type() == gotemplate.NodeTypeVariable {
 			v.StashContext()
+			if operandNode.Content(v.content) != "$" {
+				v.symbolTable.AddTemplateContext(append(v.currentContext, operandNode.Content(v.content)), GetRangeForNode(operandNode))
+				v.PushContext(operandNode.Content(v.content))
+			}
 		}
 	}
 }
@@ -77,7 +81,10 @@ func (v *TemplateContextVisitor) Exit(node *sitter.Node) {
 	switch node.Type() {
 	case gotemplate.NodeTypeSelectorExpression, gotemplate.NodeTypeUnfinishedSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
-		if operandNode.Type() == gotemplate.NodeTypeVariable && operandNode.Content(v.content) == "$" {
+		if operandNode.Type() == gotemplate.NodeTypeVariable {
+			if operandNode.Content(v.content) != "$" {
+				v.PopContext()
+			}
 			v.RestoreStashedContext()
 		}
 	}
@@ -97,7 +104,9 @@ func (v *TemplateContextVisitor) EnterContextShift(node *sitter.Node, suffix str
 			s = s.AppendSuffix(suffix)
 			if s.IsVariable() {
 				v.StashContext()
-				s = s.Tail()
+				if s[0] == "$" {
+					s = s.Tail()
+				}
 			}
 		}
 		v.PushContextMany(s)
