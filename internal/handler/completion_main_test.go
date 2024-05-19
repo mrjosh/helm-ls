@@ -176,6 +176,7 @@ func TestCompletionMainSingleLines(t *testing.T) {
 		{`Test completion on {{ range .Values.ingress.hosts }} {{ .^ }} {{ end }}`, []string{"host", "paths"}, []string{}, nil},
 		{`Test completion on {{ range .Values.ingress.hosts }} {{ .ho^  }} {{ end }}`, []string{"host", "paths"}, []string{}, nil},
 		{`Test completion on {{ range .Values.ingress.hosts }} {{ range .paths 	}} {{ .^ }} {{ end }} {{ end }}`, []string{"pathType", "path"}, []string{}, nil},
+		{`Test completion on {{ root := . }} {{ $root.test.^ }}`, []string{}, []string{}, errors.New("[$root test ] is no valid template context for helm")},
 	}
 
 	for _, tt := range testCases {
