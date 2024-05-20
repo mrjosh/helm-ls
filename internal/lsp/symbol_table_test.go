@@ -217,9 +217,10 @@ func TestSymbolTableForValuesTestFile(t *testing.T) {
 
 func TestSymbolTableForValuesSingleTests(t *testing.T) {
 	type testCase struct {
-		template   string
-		path       []string
-		startPoint sitter.Point
+		template         string
+		path             []string
+		startPoint       sitter.Point
+		foundContextsLen int
 	}
 
 	testCases := []testCase{
@@ -236,6 +237,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    2,
 				Column: 40,
 			},
+			foundContextsLen: 6,
 		},
 		{
 			template: `{{ $x := .Values }}{{ $x.test }}{{ .Values.test }}`,
@@ -244,6 +246,25 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 25,
 			},
+			foundContextsLen: 3,
+		},
+		{
+			template: `{{ $x.test }}`,
+			path:     []string{"$x", "test"},
+			startPoint: sitter.Point{
+				Row:    0,
+				Column: 6,
+			},
+			foundContextsLen: 1,
+		},
+		{
+			template: `{{ $x.test. }}`,
+			path:     []string{"$x", "test", ""},
+			startPoint: sitter.Point{
+				Row:    0,
+				Column: 10,
+			},
+			foundContextsLen: 2,
 		},
 		{
 			template: `{{ if (and .Values. ) }} {{ end }} `,
@@ -252,6 +273,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 12,
 			},
+			foundContextsLen: 2,
 		},
 		{
 			template: `{{ if (and .Values. ) }} {{ end }} `,
@@ -260,17 +282,21 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 18,
 			},
+			foundContextsLen: 2,
 		},
 	}
 
 	for _, v := range testCases {
-		ast := ParseAst(nil, v.template)
-		symbolTable := NewSymbolTable(ast, []byte(v.template))
-		values := symbolTable.GetTemplateContextRanges(v.path)
-		points := []sitter.Point{}
-		for _, v := range values {
-			points = append(points, v.StartPoint)
-		}
-		assert.Contains(t, points, v.startPoint)
+		t.Run(v.template, func(t *testing.T) {
+			ast := ParseAst(nil, v.template)
+			symbolTable := NewSymbolTable(ast, []byte(v.template))
+			values := symbolTable.GetTemplateContextRanges(v.path)
+			points := []sitter.Point{}
+			for _, v := range values {
+				points = append(points, v.StartPoint)
+			}
+			assert.Contains(t, points, v.startPoint)
+			assert.Len(t, symbolTable.contexts, v.foundContextsLen)
+		})
 	}
 }

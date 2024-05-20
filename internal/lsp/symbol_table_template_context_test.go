@@ -14,15 +14,39 @@ func TestGetContextForSelectorExpression(t *testing.T) {
 		expected    TemplateContext
 	}{
 		{
-			desc:        "Selects single selector expression correctly",
+			desc:        "Selects simple selector expression correctly",
 			template:    `{{ .Values.test }}`,
 			nodeContent: ".Values.test",
 			expected:    TemplateContext{"Values", "test"},
 		},
 		{
+			desc:        "Selects unfinished selector expression correctly",
+			template:    `{{ .Values.test. }}`,
+			nodeContent: ".Values.test.",
+			expected:    TemplateContext{"Values", "test"},
+		},
+		{
+			desc:        "Selects selector expression with $ correctly",
+			template:    `{{ $.Values.test }}`,
+			nodeContent: "$.Values.test",
+			expected:    TemplateContext{"$", "Values", "test"},
+		},
+		{
+			desc:        "Selects unfinished selector expression with $ correctly",
+			template:    `{{ $.Values.test. }}`,
+			nodeContent: "$.Values.test.",
+			expected:    TemplateContext{"$", "Values", "test"},
+		},
+		{
 			desc:        "Selects selector expression with variable correctly",
 			template:    `{{ $x.test }}`,
 			nodeContent: "$x.test",
+			expected:    TemplateContext{"$x", "test"},
+		},
+		{
+			desc:        "Selects unfinished selector expression with variable correctly",
+			template:    `{{ $x.test. }}`,
+			nodeContent: "$x.test.",
 			expected:    TemplateContext{"$x", "test"},
 		},
 	}

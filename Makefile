@@ -68,7 +68,7 @@ test:
 	@$(GO) test ./... -v -race -tags=integration
 
 coverage:
-	@$(GO) test -coverprofile=.coverage -tags=integration ./internal/... && go tool cover -html=.coverage
+	@$(GO) test -coverprofile=.coverage -tags=integration -coverpkg=./internal/... ./internal/... && go tool cover -html=.coverage
 
 .PHONY: build-release
 build-release:
