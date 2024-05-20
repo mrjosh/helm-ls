@@ -110,6 +110,21 @@ func arrayLookup(v chartutil.Values, path []string) (interface{}, error) {
 		}
 		return chartutil.Values{}, chartutil.ErrNoTable{Key: path[0]}
 	}
+	if nestedValues, ok := v2.(map[string]interface{}); ok {
+		if len(nestedValues) == 0 {
+			return chartutil.Values{}, ErrEmpytMapping{path[0]}
+		}
+
+		for k := range nestedValues {
+			if len(path) == 1 {
+				return nestedValues[k], nil
+			}
+			if nestedValues, ok := (nestedValues[k]).(map[string]interface{}); ok {
+				return pathLookup(nestedValues, path[1:])
+			}
+		}
+		return chartutil.Values{}, chartutil.ErrNoTable{Key: path[0]}
+	}
 
 	return chartutil.Values{}, chartutil.ErrNoTable{Key: path[0]}
 }
@@ -117,8 +132,12 @@ func arrayLookup(v chartutil.Values, path []string) (interface{}, error) {
 type ErrEmpytArray struct {
 	Key string
 }
+type ErrEmpytMapping struct {
+	Key string
+}
 
-func (e ErrEmpytArray) Error() string { return fmt.Sprintf("%q is an empyt array", e.Key) }
+func (e ErrEmpytArray) Error() string   { return fmt.Sprintf("%q is an empyt array", e.Key) }
+func (e ErrEmpytMapping) Error() string { return fmt.Sprintf("%q is an empyt mapping", e.Key) }
 
 func builCompletionItem(value interface{}, variable string) lsp.CompletionItem {
 	var (
