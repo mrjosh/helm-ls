@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,6 +23,24 @@ func TestHoverMain(t *testing.T) {
 		expected      string
 		expectedError error
 	}{
+		{
+			desc: "Test hover on template context with variables",
+			position: lsp.Position{
+				Line:      74,
+				Character: 50,
+			},
+			expected:      "$root.Values.deployments",
+			expectedError: nil,
+		},
+		{
+			desc: "Test hover on template context with variables in range loop",
+			position: lsp.Position{
+				Line:      80,
+				Character: 35,
+			},
+			expected:      "$config.hpa.minReplicas",
+			expectedError: nil,
+		},
 		{
 			desc: "Test hover on dot",
 			position: lsp.Position{
@@ -113,15 +130,6 @@ func TestHoverMain(t *testing.T) {
 			},
 			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "1"),
 			expectedError: nil,
-		},
-		{
-			desc: "Test hover on template context with variables",
-			position: lsp.Position{
-				Line:      74,
-				Character: 50,
-			},
-			expected:      "",
-			expectedError: errors.New("no template context found"),
 		},
 	}
 	for _, tt := range testCases {

@@ -43,7 +43,13 @@ func (v *Visitors) visitNodesRecursiveWithScopeShift(node *sitter.Node) {
 	case gotemplate.NodeTypeRangeAction:
 		rangeNode := node.ChildByFieldName("range")
 		if rangeNode == nil {
-			break // range is optional (e.g. {{ range $index, $element := pipeline }})
+			// for {{- range $type, $config := $root.Values.deployments }} the range node is in the
+			// range_variable_definition node an not in the range_action node
+			rangeNode = node.NamedChild(0).ChildByFieldName("range")
+			if rangeNode == nil {
+				logger.Error("Could not find range node")
+				break
+			}
 		}
 		v.visitNodesRecursiveWithScopeShift(rangeNode)
 		for _, visitor := range v.visitors {

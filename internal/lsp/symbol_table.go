@@ -18,7 +18,7 @@ func (t TemplateContext) Tail() TemplateContext {
 }
 
 func (t TemplateContext) IsVariable() bool {
-	return len(t) > 0 && t[0] == "$"
+	return len(t) > 0 && strings.HasPrefix(t[0], "$")
 }
 
 func (t TemplateContext) AppendSuffix(suffix string) TemplateContext {
@@ -45,7 +45,12 @@ func NewSymbolTable(ast *sitter.Tree, content []byte) *SymbolTable {
 }
 
 func (s *SymbolTable) AddTemplateContext(templateContext TemplateContext, pointRange sitter.Range) {
-	s.contexts[templateContext.Format()] = append(s.contexts[strings.Join(templateContext, ".")], pointRange)
+	if templateContext.IsVariable() && templateContext[0] == "$" {
+		// $ is a special variable that resolves to the root context
+		// we can just remove it from the template context
+		templateContext = templateContext.Tail()
+	}
+	s.contexts[templateContext.Format()] = append(s.contexts[templateContext.Format()], pointRange)
 	sliceCopy := make(TemplateContext, len(templateContext))
 	copy(sliceCopy, templateContext)
 	s.contextsReversed[pointRange] = sliceCopy
