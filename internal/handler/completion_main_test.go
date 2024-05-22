@@ -177,6 +177,8 @@ func TestCompletionMainSingleLines(t *testing.T) {
 		{`Test completion on {{ range .Values.ingress.hosts }} {{ .ho^  }} {{ end }}`, []string{"host", "paths"}, []string{}, nil},
 		{`Test completion on {{ range .Values.ingress.hosts }} {{ range .paths 	}} {{ .^ }} {{ end }} {{ end }}`, []string{"pathType", "path"}, []string{}, nil},
 		{`Test completion on {{ root := . }} {{ $root.test.^ }}`, []string{}, []string{}, errors.New("[$root test ] is no valid template context for helm")},
+		{`Test completion on {{ range $type, $config := $.Values.deployments }} {{ .^ }} {{ end }}`, []string{"some"}, []string{}, nil},
+		{`Test completion on {{ range $type, $config := $.Values.deployments }} {{ .s^ }} {{ end }}`, []string{"some"}, []string{}, nil},
 	}
 
 	for _, tt := range testCases {
@@ -200,10 +202,10 @@ func TestCompletionMainSingleLines(t *testing.T) {
 			for _, item := range result.Items {
 				insertTexts = append(insertTexts, item.InsertText)
 			}
+
 			for _, expectedInsertText := range tt.expectedInsertTexts {
 				assert.Contains(t, insertTexts, expectedInsertText)
 			}
-
 			for _, notExpectedInsertText := range tt.notExpectedInsertTexts {
 				assert.NotContains(t, insertTexts, notExpectedInsertText)
 			}

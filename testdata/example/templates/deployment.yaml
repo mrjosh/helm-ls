@@ -82,3 +82,6 @@ spec:
         test:  {{ $.Values.ingress.hosts }}
       ---
       {{- end }}
+      {{- range $type, $config := $.Values.deployments }}
+      test: {{ toYaml .some | nindent 4}}
+      {{- end }}

@@ -24,6 +24,15 @@ func TestHoverMain(t *testing.T) {
 		expectedError error
 	}{
 		{
+			desc: "Test hover on template context in range over mapping",
+			position: lsp.Position{
+				Line:      85,
+				Character: 26,
+			},
+			expected:      "### ../../testdata/example/values.yaml\nvalue\n\n",
+			expectedError: nil,
+		},
+		{
 			desc: "Test hover on template context with variables",
 			position: lsp.Position{
 				Line:      74,

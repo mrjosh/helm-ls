@@ -105,3 +105,10 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+
+deployments:
+  first:
+    some: value
+  second:
+    some: value
