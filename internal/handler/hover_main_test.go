@@ -29,7 +29,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      85,
 				Character: 26,
 			},
-			expected:      "### ../../testdata/example/values.yaml\nvalue\n\n",
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "value"),
 			expectedError: nil,
 		},
 		{

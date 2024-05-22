@@ -28,6 +28,7 @@ func GetPositionOfNode(node *yamlv3.Node, query []string) (lsp.Position, error) 
 	isRange := false
 
 	if strings.HasSuffix(query[0], "[]") {
+		query = append([]string{}, query...)
 		query[0] = strings.TrimSuffix(query[0], "[]")
 		isRange = true
 	}
@@ -48,10 +49,10 @@ func GetPositionOfNode(node *yamlv3.Node, query []string) (lsp.Position, error) 
 				return GetPositionOfNode(nestedNode, query[1:])
 			}
 			if len(node.Content) < index+1 {
-				return lsp.Position{}, fmt.Errorf("could not find Position of %s in values.", query)
+				return lsp.Position{}, fmt.Errorf("could not find Position of %s in values", query)
 			}
 			if isRange {
-				return getPositionOfNodeAfterMapping(node.Content[index+1], query[1:])
+				return getPositionOfNodeAfterRange(node.Content[index+1], query[1:])
 			}
 			return GetPositionOfNode(node.Content[index+1], query[1:])
 		}
@@ -59,13 +60,8 @@ func GetPositionOfNode(node *yamlv3.Node, query []string) (lsp.Position, error) 
 	return lsp.Position{}, fmt.Errorf("could not find Position of %s in values.yaml. Found no match. Possible values %v. Kind is %d", query, checkNested, kind)
 }
 
-func getPositionOfNodeAfterMapping(node *yamlv3.Node, query []string) (lsp.Position, error) {
-	kind := node.Kind
-
-	println(fmt.Sprintf("Kind is %d, len %d", kind, len(node.Content)))
-	println(fmt.Sprintf("ChildKind is %d, len %d", node.Content[0].Kind, len(node.Content[0].Content)))
-
-	switch kind {
+func getPositionOfNodeAfterRange(node *yamlv3.Node, query []string) (lsp.Position, error) {
+	switch node.Kind {
 	case yamlv3.SequenceNode:
 		if len(node.Content) > 0 {
 			return GetPositionOfNode(node.Content[0], query)

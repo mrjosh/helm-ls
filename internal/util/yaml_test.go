@@ -41,7 +41,7 @@ func TestGetPositionOfNodeInEmptyDocument(t *testing.T) {
 func TestGetPositionOfNodeTable(t *testing.T) {
 	tests := []struct {
 		name      string
-		keys      []string
+		query     []string
 		expected  lsp.Position
 		expectErr bool
 	}{
@@ -68,7 +68,9 @@ func TestGetPositionOfNodeTable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := GetPositionOfNode(&node, tt.keys)
+			queryCopy := append([]string{}, tt.query...)
+
+			result, err := GetPositionOfNode(&node, tt.query)
 
 			if tt.expectErr {
 				assert.Error(t, err)
@@ -76,6 +78,7 @@ func TestGetPositionOfNodeTable(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
 			}
+			assert.Equal(t, queryCopy, tt.query)
 		})
 	}
 }
