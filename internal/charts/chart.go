@@ -60,24 +60,52 @@ type QueriedValuesFiles struct {
 // ResolveValueFiles returns a list of all values files in the chart
 // and all parent charts if the query tries to access global values
 func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*QueriedValuesFiles {
-	ownResult := []*QueriedValuesFiles{{Selector: query, ValuesFiles: c.ValuesFiles}}
+	logger.Debug(fmt.Sprintf("Resolving values files for %s with query %s", c.HelmChart.Name(), query))
+	result := []*QueriedValuesFiles{{Selector: query, ValuesFiles: c.ValuesFiles}}
 	if len(query) == 0 {
-		return ownResult
+		return result
+	}
+
+	for _, dependency := range c.HelmChart.Dependencies() {
+		logger.Debug(fmt.Sprintf("Resolving dependency %s with query %s", dependency.Name(), query))
+		if dependency.Name() == query[0] {
+
+			subQuery := []string{}
+			if len(query) > 1 {
+				subQuery = query[1:]
+			}
+
+			valueNode, error := util.ValuesToYamlNode(dependency.Values)
+			if error != nil {
+				logger.Error(fmt.Sprintf("Error loading values file %s: %s", dependency.Name(), error.Error()))
+				continue
+			}
+
+			result = append(result,
+				// TODO: should we do this now? or should we create a chart in the store for each dependency
+				&QueriedValuesFiles{Selector: subQuery, ValuesFiles: &ValuesFiles{
+					MainValuesFile: &ValuesFile{
+						Values:    dependency.Values,
+						ValueNode: valueNode,
+						URI:       uri.File(dependency.ChartPath()), // TODO: Fix this, chartPath is not a file path but something like chartNameA.common
+					},
+				}})
+		}
 	}
 
 	parentChart := c.ParentChart.GetParentChart(chartStore)
 	if parentChart == nil {
-		return ownResult
+		return result
 	}
 
 	if query[0] == "global" {
-		return append(ownResult,
+		return append(result,
 			parentChart.ResolveValueFiles(query, chartStore)...)
 	}
 
 	chartName := c.ChartMetadata.Metadata.Name
 	extendedQuery := append([]string{chartName}, query...)
-	return append(ownResult,
+	return append(result,
 		parentChart.ResolveValueFiles(extendedQuery, chartStore)...)
 }
 

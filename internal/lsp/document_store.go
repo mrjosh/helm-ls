@@ -49,7 +49,7 @@ func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsCon
 	return doc, nil
 }
 
-func (s *DocumentStore) Store(filename string, content []byte, helmlsConfig util.HelmlsConfiguration) error {
+func (s *DocumentStore) Store(filename string, content []byte, helmlsConfig util.HelmlsConfiguration) {
 	ast := ParseAst(nil, string(content))
 	s.documents.Store(filename,
 		&Document{
@@ -62,7 +62,6 @@ func (s *DocumentStore) Store(filename string, content []byte, helmlsConfig util
 			SymbolTable:      NewSymbolTable(ast, content),
 		},
 	)
-	return nil
 }
 
 func (s *DocumentStore) Get(docuri uri.URI) (*Document, bool) {

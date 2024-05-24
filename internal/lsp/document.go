@@ -47,7 +47,7 @@ func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	d.Content = string(content)
 
 	d.ApplyChangesToAst(d.Content)
-	d.SymbolTable = NewSymbolTable(d.Ast, []byte(d.Content))
+	d.SymbolTable = NewSymbolTable(d.Ast, content)
 
 	d.lines = nil
 }

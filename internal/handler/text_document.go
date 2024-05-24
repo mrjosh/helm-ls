@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
@@ -106,6 +107,7 @@ func (h *langHandler) LoadDocsOnNewChart(chart *charts.Chart) {
 		h.documents.Store(filepath.Join(chart.RootURI.Filename(), file.Name), file.Data, h.helmlsConfig)
 	}
 	for _, file := range chart.GetDependeciesTemplates() {
+		logger.Debug(fmt.Sprintf("Storing dependency %s", file.Path))
 		h.documents.Store(file.Path, file.Content, h.helmlsConfig)
 	}
 }
