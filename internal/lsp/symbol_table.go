@@ -13,6 +13,10 @@ func (t TemplateContext) Format() string {
 	return strings.Join(t, ".")
 }
 
+func (t TemplateContext) Copy() TemplateContext {
+	return append(TemplateContext{}, t...)
+}
+
 func (t TemplateContext) Tail() TemplateContext {
 	return t[1:]
 }
@@ -65,7 +69,8 @@ func (s *SymbolTable) GetTemplateContext(pointRange sitter.Range) (TemplateConte
 	if !ok {
 		return result, fmt.Errorf("no template context found")
 	}
-	return result, nil
+	// return a copy to never modify the original
+	return result.Copy(), nil
 }
 
 func (s *SymbolTable) AddIncludeDefinition(symbol string, pointRange sitter.Range) {

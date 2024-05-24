@@ -64,3 +64,16 @@ func TestValuesListNested(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "1", result)
 }
+
+func TestValuesRangeLookupOnMapping(t *testing.T) {
+	doubleNested := map[string]interface{}{"a": 1}
+	nested := map[string]interface{}{"nested": doubleNested, "other": doubleNested}
+	values := map[string]interface{}{"global": nested}
+
+	input := []string{"global[]"}
+	inputCopy := append([]string{}, input...)
+	result, err := GetTableOrValueForSelector(values, input)
+	assert.NoError(t, err)
+	assert.Equal(t, "a: 1\n", result)
+	assert.Equal(t, inputCopy, input)
+}

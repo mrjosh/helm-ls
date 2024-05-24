@@ -35,3 +35,9 @@ list:
       nested: 1
   - second:
       nested: 2
+
+mapping:
+  a: 
+    something: value
+  b: 
+    something: value

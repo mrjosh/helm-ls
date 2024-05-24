@@ -1,6 +1,7 @@
 package charts
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -69,11 +70,14 @@ func (v *ValuesFiles) AllValuesFiles() []*ValuesFile {
 }
 
 func (v *ValuesFiles) GetPositionsForValue(query []string) []lsp.Location {
+	logger.Debug(fmt.Sprintf("GetPositionsForValue with query %v", query))
 	result := []lsp.Location{}
 	for _, value := range v.AllValuesFiles() {
-		pos, err := util.GetPositionOfNode(&value.ValueNode, query)
+		queryCopy := append([]string{}, query...)
+		pos, err := util.GetPositionOfNode(&value.ValueNode, queryCopy)
 		if err != nil {
-			logger.Error("Error getting position for value", value, query, err)
+			yaml, _ := value.Values.YAML()
+			logger.Error(fmt.Sprintf("Error getting position for value in yaml file %s with query %v ", yaml, query), err)
 			continue
 		}
 		result = append(result, lsp.Location{URI: value.URI, Range: lsp.Range{Start: pos, End: pos}})

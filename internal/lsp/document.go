@@ -2,6 +2,7 @@ package lsp
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -24,6 +25,12 @@ type Document struct {
 
 // ApplyChanges updates the content of the document from LSP textDocument/didChange events.
 func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error(fmt.Sprintf("Recovered in ApplyChanges for %s, the document may be corrupted ", d.URI), r)
+		}
+	}()
+
 	content := []byte(d.Content)
 	for _, change := range changes {
 		start, end := util.PositionToIndex(change.Range.Start, content), util.PositionToIndex(change.Range.End, content)

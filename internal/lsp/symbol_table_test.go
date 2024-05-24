@@ -284,6 +284,15 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 			},
 			foundContextsLen: 2,
 		},
+		{
+			template: `{{- range $type, $config := .Values.deployments }} {{ .test }} {{ end }} `,
+			path:     []string{"Values", "deployments[]", "test"},
+			startPoint: sitter.Point{
+				Row:    0,
+				Column: 55,
+			},
+			foundContextsLen: 3,
+		},
 	}
 
 	for _, v := range testCases {

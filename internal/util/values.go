@@ -64,7 +64,7 @@ func valuesLookup(values chartutil.Values, splittedVar []string) (chartutil.Valu
 	return chartutil.Values{}, chartutil.ErrNoTable{Key: splittedVar[0]}
 }
 
-// PathValue takes a path that traverses a YAML structure and returns the value at the end of that path.
+// pathLookup takes a path that traverses a YAML structure and returns the value at the end of that path.
 // The path starts at the root of the YAML structure and is comprised of YAML keys separated by periods.
 // Given the following YAML data the value at path "chapter.one.title" is "Loomings". The path can also
 // include array indexes as in "chapters[].title" which will use the first element of the array.
@@ -77,7 +77,7 @@ func pathLookup(v chartutil.Values, path []string) (interface{}, error) {
 		return v, nil
 	}
 	if strings.HasSuffix(path[0], "[]") {
-		return arrayLookup(v, path)
+		return rangePathLookup(v, path)
 	}
 	// if exists must be root key not table
 	value, ok := v[path[0]]
@@ -93,32 +93,59 @@ func pathLookup(v chartutil.Values, path []string) (interface{}, error) {
 	return nil, chartutil.ErrNoTable{Key: path[0]}
 }
 
-func arrayLookup(v chartutil.Values, path []string) (interface{}, error) {
+func rangePathLookup(v chartutil.Values, path []string) (interface{}, error) {
 	v2, ok := v[path[0][:(len(path[0])-2)]]
 	if !ok {
 		return v, chartutil.ErrNoTable{Key: fmt.Sprintf("Yaml key %s does not exist", path[0])}
 	}
 	if v3, ok := v2.([]interface{}); ok {
-		if len(v3) == 0 {
-			return chartutil.Values{}, ErrEmpytArray{path[0]}
-		}
-		if len(path) == 1 {
-			return v3[0], nil
-		}
-		if vv, ok := v3[0].(map[string]interface{}); ok {
-			return pathLookup(vv, path[1:])
-		}
-		return chartutil.Values{}, chartutil.ErrNoTable{Key: path[0]}
+		return rangeArrayLookup(v3, path)
+	}
+	if nestedValues, ok := v2.(map[string]interface{}); ok {
+		return rangeMappingLookup(nestedValues, path)
 	}
 
+	return chartutil.Values{}, chartutil.ErrNoTable{Key: path[0]}
+}
+
+func rangeArrayLookup(v3 []interface{}, path []string) (interface{}, error) {
+	if len(v3) == 0 {
+		return chartutil.Values{}, ErrEmpytArray{path[0]}
+	}
+	if len(path) == 1 {
+		return v3[0], nil
+	}
+	if vv, ok := v3[0].(map[string]interface{}); ok {
+		return pathLookup(vv, path[1:])
+	}
+	return chartutil.Values{}, chartutil.ErrNoTable{Key: path[0]}
+}
+
+func rangeMappingLookup(nestedValues map[string]interface{}, path []string) (interface{}, error) {
+	if len(nestedValues) == 0 {
+		return chartutil.Values{}, ErrEmpytMapping{path[0]}
+	}
+
+	for k := range nestedValues {
+		if len(path) == 1 {
+			return nestedValues[k], nil
+		}
+		if nestedValues, ok := (nestedValues[k]).(map[string]interface{}); ok {
+			return pathLookup(nestedValues, path[1:])
+		}
+	}
 	return chartutil.Values{}, chartutil.ErrNoTable{Key: path[0]}
 }
 
 type ErrEmpytArray struct {
 	Key string
 }
+type ErrEmpytMapping struct {
+	Key string
+}
 
-func (e ErrEmpytArray) Error() string { return fmt.Sprintf("%q is an empyt array", e.Key) }
+func (e ErrEmpytArray) Error() string   { return fmt.Sprintf("%q is an empyt array", e.Key) }
+func (e ErrEmpytMapping) Error() string { return fmt.Sprintf("%q is an empyt mapping", e.Key) }
 
 func builCompletionItem(value interface{}, variable string) lsp.CompletionItem {
 	var (
