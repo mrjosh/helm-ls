@@ -31,18 +31,20 @@ func (t TemplateContext) AppendSuffix(suffix string) TemplateContext {
 }
 
 type SymbolTable struct {
-	contexts           map[string][]sitter.Range
-	contextsReversed   map[sitter.Range]TemplateContext
-	includeDefinitions map[string][]sitter.Range
-	includeUseages     map[string][]sitter.Range
+	contexts            map[string][]sitter.Range
+	contextsReversed    map[sitter.Range]TemplateContext
+	includeDefinitions  map[string][]sitter.Range
+	includeUseages      map[string][]sitter.Range
+	variableDefinitions map[string][]VariableDefinition
 }
 
 func NewSymbolTable(ast *sitter.Tree, content []byte) *SymbolTable {
 	s := &SymbolTable{
-		contexts:           map[string][]sitter.Range{},
-		contextsReversed:   map[sitter.Range]TemplateContext{},
-		includeDefinitions: map[string][]sitter.Range{},
-		includeUseages:     map[string][]sitter.Range{},
+		contexts:            map[string][]sitter.Range{},
+		contextsReversed:    map[sitter.Range]TemplateContext{},
+		includeDefinitions:  map[string][]sitter.Range{},
+		includeUseages:      map[string][]sitter.Range{},
+		variableDefinitions: map[string][]VariableDefinition{},
 	}
 	s.parseTree(ast, content)
 	return s
@@ -105,6 +107,7 @@ func (s *SymbolTable) parseTree(ast *sitter.Tree, content []byte) {
 		visitors: []Visitor{
 			NewTemplateContextVisitor(s, content),
 			NewIncludeDefinitionsVisitor(s, content),
+			NewVariablesVisitor(s, content),
 		},
 	}
 
