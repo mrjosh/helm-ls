@@ -27,6 +27,10 @@ func (s *SymbolTable) AddVariableDefinition(symbol string, variableDefinition Va
 	s.variableDefinitions[symbol] = append(s.variableDefinitions[symbol], variableDefinition)
 }
 
+func (s *SymbolTable) AddVariableUsage(symbol string, pointRange sitter.Range) {
+	s.variableUsages[symbol] = append(s.variableUsages[symbol], pointRange)
+}
+
 func (s *SymbolTable) getVariableDefinition(name string, accessRange sitter.Range) (VariableDefinition, error) {
 	definitions, ok := s.variableDefinitions[name]
 	if !ok || len(definitions) == 0 {
@@ -41,19 +45,45 @@ func (s *SymbolTable) getVariableDefinition(name string, accessRange sitter.Rang
 }
 
 func (s *SymbolTable) GetVariableDefinitionForNode(node *sitter.Node, content []byte) (VariableDefinition, error) {
-	if node == nil {
-		return VariableDefinition{}, fmt.Errorf("Cannot get variable definition for node")
+	name, err := getVariableName(node, content)
+	if err != nil {
+		return VariableDefinition{}, err
 	}
-	if node.Type() == gotemplate.NodeTypeIdentifier {
-		node = node.Parent()
-	}
-	if node.Type() != gotemplate.NodeTypeVariable {
-		return VariableDefinition{}, fmt.Errorf("Node is not a variable but is of type %s", node.Type())
-	}
-	return s.getVariableDefinition(node.Content(content), sitter.Range{
+	return s.getVariableDefinition(name, sitter.Range{
 		StartPoint: node.StartPoint(),
 		EndPoint:   node.EndPoint(),
 		StartByte:  node.StartByte(),
 		EndByte:    node.EndByte(),
 	})
+}
+
+func (s *SymbolTable) GetVariableReferencesForNode(node *sitter.Node, content []byte) (ranges []sitter.Range, err error) {
+	name, err := getVariableName(node, content)
+	if err != nil {
+		return []sitter.Range{}, err
+	}
+	definition, err := s.GetVariableDefinitionForNode(node, content)
+	if err != nil {
+		return []sitter.Range{}, err
+	}
+	usages := s.variableUsages[name]
+	for _, usage := range usages {
+		if util.RangeContainsRange(definition.Scope, usage) {
+			ranges = append(ranges, usage)
+		}
+	}
+	return append(ranges, definition.Range), nil
+}
+
+func getVariableName(node *sitter.Node, content []byte) (string, error) {
+	if node == nil {
+		return "", fmt.Errorf("Cannot get variable definition for node")
+	}
+	if node.Type() == gotemplate.NodeTypeIdentifier {
+		node = node.Parent()
+	}
+	if node.Type() != gotemplate.NodeTypeVariable {
+		return "", fmt.Errorf("Node is not a variable but is of type %s", node.Type())
+	}
+	return node.Content(content), nil
 }

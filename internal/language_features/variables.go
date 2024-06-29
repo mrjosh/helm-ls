@@ -29,3 +29,15 @@ func (f *VariablesFeature) Definition() (result []lsp.Location, err error) {
 
 	return []lsp.Location{util.RangeToLocation(f.Document.URI, variableDefinition.Range)}, nil
 }
+
+func (f *VariablesFeature) References() (result []lsp.Location, err error) {
+	variableReferences, err := f.Document.SymbolTable.GetVariableReferencesForNode(f.GenericDocumentUseCase.Node, []byte(f.Document.Content))
+	if err != nil {
+		return []lsp.Location{}, err
+	}
+
+	for _, reference := range variableReferences {
+		result = append(result, util.RangeToLocation(f.Document.URI, reference))
+	}
+	return result, nil
+}

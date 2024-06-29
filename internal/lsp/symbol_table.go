@@ -34,8 +34,9 @@ type SymbolTable struct {
 	contexts            map[string][]sitter.Range
 	contextsReversed    map[sitter.Range]TemplateContext
 	includeDefinitions  map[string][]sitter.Range
-	includeUseages      map[string][]sitter.Range
+	includeUsages       map[string][]sitter.Range
 	variableDefinitions map[string][]VariableDefinition
+	variableUsages      map[string][]sitter.Range
 }
 
 func NewSymbolTable(ast *sitter.Tree, content []byte) *SymbolTable {
@@ -43,8 +44,9 @@ func NewSymbolTable(ast *sitter.Tree, content []byte) *SymbolTable {
 		contexts:            map[string][]sitter.Range{},
 		contextsReversed:    map[sitter.Range]TemplateContext{},
 		includeDefinitions:  map[string][]sitter.Range{},
-		includeUseages:      map[string][]sitter.Range{},
+		includeUsages:       map[string][]sitter.Range{},
 		variableDefinitions: map[string][]VariableDefinition{},
+		variableUsages:      map[string][]sitter.Range{},
 	}
 	s.parseTree(ast, content)
 	return s
@@ -80,7 +82,7 @@ func (s *SymbolTable) AddIncludeDefinition(symbol string, pointRange sitter.Rang
 }
 
 func (s *SymbolTable) AddIncludeReference(symbol string, pointRange sitter.Range) {
-	s.includeUseages[symbol] = append(s.includeUseages[symbol], pointRange)
+	s.includeUsages[symbol] = append(s.includeUsages[symbol], pointRange)
 }
 
 func (s *SymbolTable) GetIncludeDefinitions(symbol string) []sitter.Range {
@@ -95,7 +97,7 @@ func (s *SymbolTable) GetAllIncludeDefinitionsNames() (result []string) {
 }
 
 func (s *SymbolTable) GetIncludeReference(symbol string) []sitter.Range {
-	result := s.includeUseages[symbol]
+	result := s.includeUsages[symbol]
 	definitions := s.includeDefinitions[symbol]
 	return append(result, definitions...)
 }

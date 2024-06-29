@@ -51,6 +51,7 @@ func (v *VariablesVisitor) Enter(node *sitter.Node) {
 		if v.insideDefinition {
 			return
 		}
+		v.addVariableUsage(node)
 	case gotemplate.NodeTypeIfAction,
 		gotemplate.NodeTypeWithAction,
 		gotemplate.NodeTypeBlockAction,
@@ -109,6 +110,15 @@ func (v *VariablesVisitor) addVariableDefinition(variableType VariableType, defi
 			StartByte:  variableNameNode.StartByte(),
 			EndByte:    variableValueNode.EndByte(),
 		},
+	})
+}
+
+func (v *VariablesVisitor) addVariableUsage(node *sitter.Node) {
+	v.symbolTable.AddVariableUsage(node.Content(v.content), sitter.Range{
+		StartPoint: node.StartPoint(),
+		EndPoint:   node.EndPoint(),
+		StartByte:  node.StartByte(),
+		EndByte:    node.EndByte(),
 	})
 }
 

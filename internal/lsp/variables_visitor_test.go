@@ -77,3 +77,30 @@ func TestSymbolTableForVariableDefinitions(t *testing.T) {
 		})
 	}
 }
+
+func TestSymbolTableForVariableUsages(t *testing.T) {
+	type testCase struct {
+		template               string
+		expectedVariableUsages map[string][]sitter.Range
+	}
+
+	testCases := []testCase{
+		{
+			template: `{{ $x := .Values }}{{ $x.test }}{{ .Values.test }}`,
+			expectedVariableUsages: map[string][]sitter.Range{
+				"$x": {
+					sitter.Range{StartPoint: sitter.Point{Row: 0, Column: 22}, EndPoint: sitter.Point{Row: 0, Column: 24}, StartByte: 22, EndByte: 24},
+				},
+			},
+		},
+	}
+
+	for _, v := range testCases {
+		t.Run(v.template, func(t *testing.T) {
+			ast := ParseAst(nil, v.template)
+			symbolTable := NewSymbolTable(ast, []byte(v.template))
+			assert.Equal(t, v.expectedVariableUsages, symbolTable.variableUsages,
+				fmt.Sprintf("Ast was %s", ast.RootNode()))
+		})
+	}
+}

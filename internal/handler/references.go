@@ -18,6 +18,7 @@ func (h *langHandler) References(_ context.Context, params *lsp.ReferenceParams)
 		languagefeatures.NewIncludesDefinitionFeature(genericDocumentUseCase),
 		languagefeatures.NewIncludesCallFeature(genericDocumentUseCase),
 		languagefeatures.NewTemplateContextFeature(genericDocumentUseCase),
+		languagefeatures.NewVariablesFeature(genericDocumentUseCase),
 	}
 
 	for _, usecase := range usecases {
