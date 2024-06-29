@@ -98,10 +98,16 @@ func (v *VariablesVisitor) addVariableDefinition(variableType VariableType, defi
 		Value:        variableValueNode.Content(v.content),
 		VariableType: variableType,
 		Scope: sitter.Range{
-			StartPoint: definitionNode.EndPoint(),
+			StartPoint: definitionNode.StartPoint(),
 			EndPoint:   v.currentScope().EndPoint(),
-			StartByte:  definitionNode.EndByte(),
+			StartByte:  definitionNode.StartByte(),
 			EndByte:    v.currentScope().EndByte(),
+		},
+		Range: sitter.Range{
+			StartPoint: variableNameNode.StartPoint(),
+			EndPoint:   variableValueNode.EndPoint(),
+			StartByte:  variableNameNode.StartByte(),
+			EndByte:    variableValueNode.EndByte(),
 		},
 	})
 }

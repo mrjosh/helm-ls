@@ -22,18 +22,8 @@ func TestSymbolTableForVariableDefinitions(t *testing.T) {
 					{
 						Value:        ".",
 						VariableType: VariableTypeAssigment,
-						Scope: sitter.Range{
-							StartPoint: sitter.Point{
-								Row:    0,
-								Column: 14,
-							},
-							EndPoint: sitter.Point{
-								Row:    0,
-								Column: 19,
-							},
-							StartByte: 14,
-							EndByte:   19,
-						},
+						Scope:        sitter.Range{StartPoint: sitter.Point{Row: 0, Column: 4}, EndPoint: sitter.Point{Row: 0, Column: 19}, StartByte: 4, EndByte: 19},
+						Range:        sitter.Range{StartPoint: sitter.Point{Row: 0, Column: 4}, EndPoint: sitter.Point{Row: 0, Column: 14}, StartByte: 4, EndByte: 14},
 					},
 				},
 			},
@@ -49,36 +39,16 @@ func TestSymbolTableForVariableDefinitions(t *testing.T) {
 					{
 						Value:        "$root.Values.deployments",
 						VariableType: VariableTypeRangeKeyOrIndex,
-						Scope: sitter.Range{
-							StartPoint: sitter.Point{
-								Row:    1,
-								Column: 60,
-							},
-							EndPoint: sitter.Point{
-								Row:    3,
-								Column: 15,
-							},
-							StartByte: 61,
-							EndByte:   101,
-						},
+						Scope:        sitter.Range{StartPoint: sitter.Point{Row: 1, Column: 18}, EndPoint: sitter.Point{Row: 3, Column: 15}, StartByte: 19, EndByte: 101},
+						Range:        sitter.Range{StartPoint: sitter.Point{Row: 1, Column: 18}, EndPoint: sitter.Point{Row: 1, Column: 60}, StartByte: 19, EndByte: 61},
 					},
 				},
 				"$config": {
 					{
 						Value:        "$root.Values.deployments",
 						VariableType: VariableTypeRangeValue,
-						Scope: sitter.Range{
-							StartPoint: sitter.Point{
-								Row:    1,
-								Column: 60,
-							},
-							EndPoint: sitter.Point{
-								Row:    3,
-								Column: 15,
-							},
-							StartByte: 61,
-							EndByte:   101,
-						},
+						Scope:        sitter.Range{StartPoint: sitter.Point{Row: 1, Column: 18}, EndPoint: sitter.Point{Row: 3, Column: 15}, StartByte: 19, EndByte: 101},
+						Range:        sitter.Range{StartPoint: sitter.Point{Row: 1, Column: 25}, EndPoint: sitter.Point{Row: 1, Column: 60}, StartByte: 26, EndByte: 61},
 					},
 				},
 			},
@@ -90,18 +60,8 @@ func TestSymbolTableForVariableDefinitions(t *testing.T) {
 					{
 						Value:        ".Values",
 						VariableType: VariableTypeAssigment,
-						Scope: sitter.Range{
-							StartPoint: sitter.Point{
-								Row:    0,
-								Column: 16,
-							},
-							EndPoint: sitter.Point{
-								Row:    0,
-								Column: 50,
-							},
-							StartByte: 16,
-							EndByte:   50,
-						},
+						Scope:        sitter.Range{StartPoint: sitter.Point{Row: 0, Column: 3}, EndPoint: sitter.Point{Row: 0, Column: 50}, StartByte: 3, EndByte: 50},
+						Range:        sitter.Range{StartPoint: sitter.Point{Row: 0, Column: 3}, EndPoint: sitter.Point{Row: 0, Column: 16}, StartByte: 3, EndByte: 16},
 					},
 				},
 			},
