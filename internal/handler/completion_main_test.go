@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
@@ -13,7 +12,6 @@ import (
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
-	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
@@ -176,17 +174,20 @@ func TestCompletionMainSingleLines(t *testing.T) {
 		{`Test completion on {{ range .Values.ingress.hosts }} {{ .^ }} {{ end }}`, []string{"host", "paths"}, []string{}, nil},
 		{`Test completion on {{ range .Values.ingress.hosts }} {{ .ho^  }} {{ end }}`, []string{"host", "paths"}, []string{}, nil},
 		{`Test completion on {{ range .Values.ingress.hosts }} {{ range .paths 	}} {{ .^ }} {{ end }} {{ end }}`, []string{"pathType", "path"}, []string{}, nil},
-		{`Test completion on {{ root := . }} {{ $root.test.^ }}`, []string{}, []string{}, errors.New("[$root test ] is no valid template context for helm")},
+		{`Test completion on {{ $root := . }} {{ $root.test.^ }}`, []string{}, []string{}, errors.New("[test ] is no valid template context for helm")},
 		{`Test completion on {{ range $type, $config := $.Values.deployments }} {{ .^ }} {{ end }}`, []string{"some"}, []string{}, nil},
 		{`Test completion on {{ range $type, $config := $.Values.deployments }} {{ .s^ }} {{ end }}`, []string{"some"}, []string{}, nil},
+		{`Test completion on {{ range $type, $config := $.Values.deployments }} {{ $config.^ }} {{ end }}`, []string{"some"}, []string{}, nil},
+		{`Test completion on {{ range .Values.deploymentsWithNestedStuff }} {{ .hpa.cpuUtilization.^ }} {{ end }}`, []string{"targetAverageUtilization", "enabled"}, []string{}, nil},
+		{`Test completion on {{ range $type, $config := .Values.deploymentsWithNestedStuff }} {{ .hpa.cpuUtilization.^ }} {{ end }}`, []string{"targetAverageUtilization", "enabled"}, []string{}, nil},
+		{`Test completion on {{ range $type, $config := .Values.deploymentsWithNestedStuff }} {{ $config.hpa.cpuUtilization.^ }} {{ end }}`, []string{"targetAverageUtilization", "enabled"}, []string{}, nil},
+		{`Test completion on {{ range $type, $config := $.Values.deployments }} {{ $config.s^ }} {{ end }}`, []string{"some"}, []string{}, nil},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.templateWithMark, func(t *testing.T) {
-			// seen chars up to ^
-			col := strings.Index(tt.templateWithMark, "^")
-			buf := strings.Replace(tt.templateWithMark, "^", "", 1)
-			pos := protocol.Position{Line: 0, Character: uint32(col)}
+			pos, buf := getPositionForMarkedTestLine(tt.templateWithMark)
+
 			// to get the correct values file ../../testdata/example/values.yaml
 			fileURI := uri.File("../../testdata/example/templates/completion-test.yaml")
 

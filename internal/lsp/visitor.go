@@ -55,10 +55,12 @@ func (v *Visitors) visitNodesRecursiveWithScopeShift(node *sitter.Node) {
 		for _, visitor := range v.visitors {
 			visitor.EnterContextShift(rangeNode, "[]")
 		}
+
 		for i := uint32(1); i < node.NamedChildCount(); i++ {
 			body := node.NamedChild(int(i))
 			v.visitNodesRecursiveWithScopeShift(body)
 		}
+
 		for _, visitor := range v.visitors {
 			visitor.ExitContextShift(rangeNode)
 		}

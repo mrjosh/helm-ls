@@ -36,12 +36,13 @@ func (s *SymbolTable) getVariableDefinition(name string, accessRange sitter.Rang
 	if !ok || len(definitions) == 0 {
 		return VariableDefinition{}, fmt.Errorf("variable %s not found", name)
 	}
-	for _, definition := range definitions {
-		if util.RangeContainsRange(definition.Scope, accessRange) {
-			return definition, nil
-		}
+
+	definition, err := findDefinitionForRange(definitions, accessRange)
+	if err != nil {
+		return VariableDefinition{}, fmt.Errorf("variable %s not found: %s", name, err.Error())
 	}
-	return VariableDefinition{}, fmt.Errorf("variable %s not found", name)
+
+	return definition, nil
 }
 
 func (s *SymbolTable) GetVariableDefinitionForNode(node *sitter.Node, content []byte) (VariableDefinition, error) {
@@ -67,6 +68,7 @@ func (s *SymbolTable) GetVariableReferencesForNode(node *sitter.Node, content []
 		return []sitter.Range{}, err
 	}
 	usages := s.variableUsages[name]
+
 	for _, usage := range usages {
 		if util.RangeContainsRange(definition.Scope, usage) {
 			ranges = append(ranges, usage)
@@ -86,4 +88,13 @@ func getVariableName(node *sitter.Node, content []byte) (string, error) {
 		return "", fmt.Errorf("Node is not a variable but is of type %s", node.Type())
 	}
 	return node.Content(content), nil
+}
+
+func findDefinitionForRange(definitions []VariableDefinition, accessRange sitter.Range) (VariableDefinition, error) {
+	for _, definition := range definitions {
+		if util.RangeContainsRange(definition.Scope, accessRange) {
+			return definition, nil
+		}
+	}
+	return VariableDefinition{}, fmt.Errorf("variable not found")
 }

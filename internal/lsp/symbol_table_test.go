@@ -293,6 +293,33 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 			},
 			foundContextsLen: 3,
 		},
+		{
+			template: `{{- range $type, $config := .Values.deployments }} {{ .test.nested }} {{ end }} `,
+			path:     []string{"Values", "deployments[]", "test", "nested"},
+			startPoint: sitter.Point{
+				Row:    0,
+				Column: 60,
+			},
+			foundContextsLen: 4,
+		},
+		{
+			template: `{{- range $type, $config := .Values.deployments }} {{ .test.nested. }} {{ end }} `,
+			path:     []string{"Values", "deployments[]", "test", "nested", ""},
+			startPoint: sitter.Point{
+				Row:    0,
+				Column: 66,
+			},
+			foundContextsLen: 5,
+		},
+		{
+			template: `{{- range $type, $config := .Values.deployments }} {{ $config.test.nested. }} {{ end }} `,
+			path:     []string{"$config", "test", "nested", ""},
+			startPoint: sitter.Point{
+				Row:    0,
+				Column: 73,
+			},
+			foundContextsLen: 5,
+		},
 	}
 
 	for _, v := range testCases {
@@ -304,7 +331,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 			for _, v := range values {
 				points = append(points, v.StartPoint)
 			}
-			assert.Contains(t, points, v.startPoint)
+			assert.Contains(t, points, v.startPoint, "Ast was %s", ast.RootNode())
 			assert.Len(t, symbolTable.contexts, v.foundContextsLen)
 		})
 	}

@@ -19,6 +19,7 @@ func (f *GenericTemplateContextFeature) getTemplateContext() (lsplocal.TemplateC
 
 func (f *GenericTemplateContextFeature) getReferencesFromSymbolTable(templateContext lsplocal.TemplateContext) []lsp.Location {
 	locations := []lsp.Location{}
+
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
 		referenceRanges := doc.SymbolTable.GetTemplateContextRanges(templateContext)
 		for _, referenceRange := range referenceRanges {
@@ -35,5 +36,6 @@ func (f *GenericTemplateContextFeature) builtInOjectDocsLookup(key string, docs 
 			return item, nil
 		}
 	}
+
 	return helmdocs.HelmDocumentation{}, fmt.Errorf("key %s not found on built-in object", key)
 }

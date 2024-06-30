@@ -38,16 +38,16 @@ func TestHoverMain(t *testing.T) {
 				Line:      74,
 				Character: 50,
 			},
-			expected:      "$root.Values.deployments",
+			expected:      fmt.Sprintf("### %s\n%s\n\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "first:\n  some: value\nsecond:\n  some: value"),
 			expectedError: nil,
 		},
 		{
 			desc: "Test hover on template context with variables in range loop",
 			position: lsp.Position{
 				Line:      80,
-				Character: 35,
+				Character: 31,
 			},
-			expected:      "$config.hpa.minReplicas",
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "value"),
 			expectedError: nil,
 		},
 		{

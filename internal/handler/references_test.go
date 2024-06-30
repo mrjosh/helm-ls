@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
@@ -240,12 +239,4 @@ func TestRefercesSingleLines(t *testing.T) {
 			assert.ElementsMatch(t, tt.expectedReferencesStartChars, startPointChars)
 		})
 	}
-}
-
-// Takes a string with a mark (^) in it and returns the position and the string without the mark
-func getPositionForMarkedTestLine(buf string) (protocol.Position, string) {
-	col := strings.Index(buf, "^")
-	buf = strings.Replace(buf, "^", "", 1)
-	pos := protocol.Position{Line: 0, Character: uint32(col)}
-	return pos, buf
 }

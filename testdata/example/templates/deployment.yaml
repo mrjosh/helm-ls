@@ -78,7 +78,7 @@ spec:
       metadata:
         name: my-app-{{ $type }}
       spec:
-        replicas: {{ $config.hpa.minReplicas }}
+        replicas: {{ $config.some }}
         test:  {{ $.Values.ingress.hosts }}
       ---
       {{- end }}

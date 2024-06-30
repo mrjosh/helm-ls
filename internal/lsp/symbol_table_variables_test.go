@@ -72,7 +72,7 @@ func TestGetVariableDefinition(t *testing.T) {
 				EndByte:   68,
 			},
 			expectedValue: ``,
-			expectedError: fmt.Errorf("variable $x not found"),
+			expectedError: fmt.Errorf("variable $x not found: variable not found"),
 		},
 	}
 	for _, tC := range testCases {
