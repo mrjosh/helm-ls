@@ -103,6 +103,9 @@ func (h *langHandler) DidRenameFiles(ctx context.Context, params *lsp.RenameFile
 }
 
 func (h *langHandler) LoadDocsOnNewChart(chart *charts.Chart) {
+	if chart.HelmChart == nil {
+		return
+	}
 	for _, file := range chart.HelmChart.Templates {
 		h.documents.Store(filepath.Join(chart.RootURI.Filename(), file.Name), file.Data, h.helmlsConfig)
 	}

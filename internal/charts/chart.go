@@ -2,6 +2,7 @@ package charts
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/log"
@@ -37,6 +38,25 @@ func NewChart(rootURI uri.URI, valuesFilesConfig util.ValuesFilesConfig) *Chart 
 	}
 }
 
+func NewChartFromHelmChart(helmChart *chart.Chart, rootURI uri.URI) *Chart {
+	valuesFile := NewValuesFileFromValues(uri.File(filepath.Join(rootURI.Filename(), "values.yaml")), helmChart.Values)
+	return &Chart{
+		ValuesFiles: &ValuesFiles{
+			MainValuesFile:        valuesFile,
+			OverlayValuesFile:     &ValuesFile{},
+			AdditionalValuesFiles: []*ValuesFile{},
+		},
+		ChartMetadata: &ChartMetadata{}, // TODO: there is no usecase for this currently
+		RootURI:       rootURI,
+		ParentChart:   ParentChart{},
+		HelmChart:     helmChart,
+	}
+}
+
+func (c *Chart) GetDependecyUri(dependencyName string) uri.URI {
+	return uri.File(filepath.Join(c.RootURI.Filename(), "charts", DependencyCacheFolder, dependencyName))
+}
+
 func loadHelmChart(rootURI uri.URI) *chart.Chart {
 	var helmChart *chart.Chart
 	loader, err := loader.Loader(rootURI.Filename())
@@ -66,6 +86,28 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 		return result
 	}
 
+	if c.HelmChart != nil {
+		result = c.resolveValuesFilesOfDependencies(query, chartStore, result)
+	}
+
+	parentChart := c.ParentChart.GetParentChart(chartStore)
+	if parentChart == nil {
+		return result
+	}
+
+	if query[0] == "global" {
+		// TODO: add dependency support
+		return append(result,
+			parentChart.ResolveValueFiles(query, chartStore)...)
+	}
+
+	chartName := c.ChartMetadata.Metadata.Name
+	extendedQuery := append([]string{chartName}, query...)
+	return append(result,
+		parentChart.ResolveValueFiles(extendedQuery, chartStore)...)
+}
+
+func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *ChartStore, result []*QueriedValuesFiles) []*QueriedValuesFiles {
 	for _, dependency := range c.HelmChart.Dependencies() {
 		logger.Debug(fmt.Sprintf("Resolving dependency %s with query %s", dependency.Name(), query))
 		if dependency.Name() == query[0] {
@@ -75,38 +117,19 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 				subQuery = query[1:]
 			}
 
-			valueNode, error := util.ValuesToYamlNode(dependency.Values)
-			if error != nil {
-				logger.Error(fmt.Sprintf("Error loading values file %s: %s", dependency.Name(), error.Error()))
+			dependencyChart := chartStore.Charts[c.GetDependecyUri(dependency.Name())]
+			if dependencyChart == nil {
+				logger.Error(fmt.Sprintf("Could not find dependency %s", dependency.Name()))
 				continue
 			}
 
+			// TODO: could call this recursively
+
 			result = append(result,
-				// TODO: should we do this now? or should we create a chart in the store for each dependency
-				&QueriedValuesFiles{Selector: subQuery, ValuesFiles: &ValuesFiles{
-					MainValuesFile: &ValuesFile{
-						Values:    dependency.Values,
-						ValueNode: valueNode,
-						URI:       uri.File(dependency.ChartPath()), // TODO: Fix this, chartPath is not a file path but something like chartNameA.common
-					},
-				}})
+				&QueriedValuesFiles{Selector: subQuery, ValuesFiles: dependencyChart.ValuesFiles})
 		}
 	}
-
-	parentChart := c.ParentChart.GetParentChart(chartStore)
-	if parentChart == nil {
-		return result
-	}
-
-	if query[0] == "global" {
-		return append(result,
-			parentChart.ResolveValueFiles(query, chartStore)...)
-	}
-
-	chartName := c.ChartMetadata.Metadata.Name
-	extendedQuery := append([]string{chartName}, query...)
-	return append(result,
-		parentChart.ResolveValueFiles(extendedQuery, chartStore)...)
+	return result
 }
 
 func (c *Chart) GetValueLocation(templateContext []string) (lsp.Location, error) {

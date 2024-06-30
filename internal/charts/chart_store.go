@@ -70,3 +70,13 @@ func (s *ChartStore) ReloadValuesFile(file uri.URI) {
 		}
 	}
 }
+
+func (s *ChartStore) loadChartDependencies(chart *Chart) {
+	for _, dependency := range chart.HelmChart.Dependencies() {
+		dependencyUri := chart.GetDependecyUri(dependency.Name())
+		chart := NewChartFromHelmChart(dependency, dependencyUri)
+
+		s.Charts[dependencyUri] = chart
+		s.loadChartDependencies(chart)
+	}
+}
