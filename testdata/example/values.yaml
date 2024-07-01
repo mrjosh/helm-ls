@@ -112,3 +112,21 @@ deployments:
     some: value
   second:
     some: value
+
+deploymentsWithNestedStuff:
+  spot:
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization:
+        enabled: true
+        targetAverageUtilization: 80
+  ondemand:
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 4
+      cpuUtilization:
+        enabled: true
+        targetAverageUtilization: 80

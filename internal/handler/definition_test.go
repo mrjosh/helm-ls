@@ -29,6 +29,7 @@ var testFileContent = `
 {{ range .Values.list }}
 {{ . }} # line 12
 {{ end }}
+{{ range $index, $element := pipeline }}{{ $index }}{{ $element }}{{ end }} # line 14
 `
 
 var (
@@ -97,16 +98,14 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 
 // Input:
 // {{ $variable }}           # line 2
-// -----|                    # this line incides the coursor position for the test
+// -----|                    # this line indicates the cursor position for the test
 func TestDefinitionVariable(t *testing.T) {
 	genericDefinitionTest(t, lsp.Position{Line: 2, Character: 8}, []lsp.Location{
 		{
 			URI: testDocumentTemplateURI,
 			Range: lsp.Range{
-				Start: lsp.Position{
-					Line:      1,
-					Character: 3,
-				},
+				Start: lsp.Position{Line: 1, Character: 3},
+				End:   lsp.Position{Line: 1, Character: 22},
 			},
 		},
 	}, nil)
@@ -127,10 +126,26 @@ func TestDefinitionRange(t *testing.T) {
 		{
 			URI: testDocumentTemplateURI,
 			Range: lsp.Range{
-				Start: lsp.Position{
-					Line:      7,
-					Character: 17,
-				},
+				Start: lsp.Position{Line: 7, Character: 17},
+				End:   lsp.Position{Line: 7, Character: 37},
+			},
+		},
+	}, nil)
+}
+
+// Input:
+// {{ range $index, $element := pipeline }}{{ $index }}{{ $element }}{{ end }} # line 14
+// ---------------------|
+// Expected:
+// {{ range $index, $element := pipeline }}{{ $index }}{{ $element }}{{ end }} # line 14
+// -----------------|
+func TestDefinitionRangeOnRedeclaration(t *testing.T) {
+	genericDefinitionTest(t, lsp.Position{Line: 14, Character: 23}, []lsp.Location{
+		{
+			URI: testDocumentTemplateURI,
+			Range: lsp.Range{
+				Start: lsp.Position{Line: 14, Character: 17},
+				End:   lsp.Position{Line: 14, Character: 37},
 			},
 		},
 	}, nil)

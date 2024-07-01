@@ -27,11 +27,11 @@ func (v *IncludeDefinitionsVisitor) Enter(node *sitter.Node) {
 	}
 
 	if node.Type() == gotemplate.NodeTypeFunctionCall {
-		v.EnterFunctionCall(node)
+		v.enterFunctionCall(node)
 	}
 }
 
-func (v *IncludeDefinitionsVisitor) EnterFunctionCall(node *sitter.Node) {
+func (v *IncludeDefinitionsVisitor) enterFunctionCall(node *sitter.Node) {
 	includeName, err := ParseIncludeFunctionCall(node, v.content)
 	if err != nil {
 		return

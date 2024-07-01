@@ -30,6 +30,9 @@ func (v *TemplateContextVisitor) PushContextMany(context []string) {
 }
 
 func (v *TemplateContextVisitor) PopContext() {
+	if len(v.currentContext) == 0 {
+		return
+	}
 	v.currentContext = v.currentContext[:len(v.currentContext)-1]
 }
 
@@ -60,10 +63,11 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 		v.symbolTable.AddTemplateContext(append(v.currentContext, content), GetRangeForNode(node.ChildByFieldName("name")))
 	case gotemplate.NodeTypeUnfinishedSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
-		if operandNode.Type() == gotemplate.NodeTypeVariable {
-			v.StashContext()
+		content := getContextForSelectorExpression(operandNode, v.content)
+		if !content.IsVariable() {
+			content = append(v.currentContext, content...)
 		}
-		v.symbolTable.AddTemplateContext(append(getContextForSelectorExpression(operandNode, v.content), ""),
+		v.symbolTable.AddTemplateContext(append(content, ""),
 			GetRangeForNode(node.Child(int(node.ChildCount())-1)))
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
@@ -76,7 +80,7 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 
 func (v *TemplateContextVisitor) Exit(node *sitter.Node) {
 	switch node.Type() {
-	case gotemplate.NodeTypeSelectorExpression, gotemplate.NodeTypeUnfinishedSelectorExpression:
+	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
 		if operandNode.Type() == gotemplate.NodeTypeVariable {
 			v.PopContext()

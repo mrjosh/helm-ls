@@ -32,18 +32,24 @@ func (f *BuiltInObjectsFeature) AppropriateForNode() bool {
 	if err != nil || len(templateContext) != 1 {
 		return false
 	}
+
 	for _, allowedBuiltIn := range allowedBuiltIns {
 		if templateContext[0] == allowedBuiltIn {
 			return true
 		}
 	}
+
 	return false
 }
 
 func (f *BuiltInObjectsFeature) References() (result []lsp.Location, err error) {
-	templateContext, _ := f.getTemplateContext()
+	templateContext, err := f.getTemplateContext()
+	if err != nil {
+		return []lsp.Location{}, err
+	}
 
 	locations := f.getReferencesFromSymbolTable(templateContext)
+
 	return append(locations, f.getDefinitionLocations(templateContext)...), err
 }
 
@@ -55,6 +61,7 @@ func (f *BuiltInObjectsFeature) getDefinitionLocations(templateContext lsplocal.
 		for _, valueFile := range f.Chart.ValuesFiles.AllValuesFiles() {
 			locations = append(locations, lsp.Location{URI: valueFile.URI})
 		}
+
 		return locations
 	case "Chart":
 		return []lsp.Location{{URI: f.Chart.ChartMetadata.URI}}
@@ -64,9 +71,13 @@ func (f *BuiltInObjectsFeature) getDefinitionLocations(templateContext lsplocal.
 }
 
 func (f *BuiltInObjectsFeature) Hover() (string, error) {
-	templateContext, _ := f.getTemplateContext()
+	templateContext, err := f.getTemplateContext()
+	if err != nil {
+		return "", err
+	}
 
 	docs, err := f.builtInOjectDocsLookup(templateContext[0], helmdocs.BuiltInObjects)
+
 	return docs.Doc, err
 }
 
@@ -75,5 +86,6 @@ func (f *BuiltInObjectsFeature) Definition() (result []lsp.Location, err error) 
 	if err != nil {
 		return []lsp.Location{}, err
 	}
+
 	return f.getDefinitionLocations(templateContext), nil
 }
