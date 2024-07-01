@@ -76,16 +76,17 @@ func TestResolvesValuesFileOfParent(t *testing.T) {
 	err = os.WriteFile(subChartChartFile, []byte{}, 0o644)
 	assert.NoError(t, err)
 
-	chart := charts.NewChart(uri.File(filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
+	sut := charts.NewChart(uri.File(filepath.Join(tempDir, "charts", "subchart")), util.ValuesFilesConfig{})
 
 	expectedChart := &charts.Chart{
 		RootURI:       uri.File(tempDir),
 		ChartMetadata: &charts.ChartMetadata{},
+		HelmChart:     &chart.Chart{},
 	}
 	newChartFunc := func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
 	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc)
 
-	valueFiles := chart.ResolveValueFiles([]string{"global", "foo"}, chartStore)
+	valueFiles := sut.ResolveValueFiles([]string{"global", "foo"}, chartStore)
 
 	assert.Equal(t, 2, len(valueFiles))
 }
@@ -117,6 +118,7 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 				Name: "parent",
 			},
 		},
+		HelmChart: &chart.Chart{},
 	}
 	newChartFunc := func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
 	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc)

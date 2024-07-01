@@ -13,6 +13,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 	yamlv3 "gopkg.in/yaml.v3"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 var testFileContent = `
@@ -56,7 +57,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 	fileURI := testDocumentTemplateURI
 	rootUri := uri.File("/")
 
-	chart := &charts.Chart{
+	testChart := &charts.Chart{
 		ChartMetadata: &charts.ChartMetadata{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
@@ -66,7 +67,8 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 			},
 			AdditionalValuesFiles: []*charts.ValuesFile{},
 		},
-		RootURI: "",
+		RootURI:   "",
+		HelmChart: &chart.Chart{},
 	}
 	d := lsp.DidOpenTextDocumentParams{
 		TextDocument: lsp.TextDocumentItem{
@@ -78,7 +80,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 	}
 	documents.DidOpen(&d, util.DefaultConfig)
 	chartStore := charts.NewChartStore(rootUri, charts.NewChart)
-	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: chart}
+	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: testChart}
 	h := &langHandler{
 		chartStore:      chartStore,
 		documents:       documents,

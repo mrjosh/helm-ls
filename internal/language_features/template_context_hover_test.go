@@ -35,6 +35,7 @@ func Test_langHandler_getValueHover(t *testing.T) {
 							URI: "file://tmp/values.yaml",
 						},
 					},
+					HelmChart: &chart.Chart{},
 				},
 				splittedVar: []string{"key"},
 			},
@@ -53,6 +54,7 @@ value
 						MainValuesFile:        &charts.ValuesFile{Values: map[string]interface{}{"key": "value"}, URI: "file://tmp/values.yaml"},
 						AdditionalValuesFiles: []*charts.ValuesFile{{Values: map[string]interface{}{"key": ""}, URI: "file://tmp/values.other.yaml"}},
 					},
+					HelmChart: &chart.Chart{},
 				},
 				splittedVar: []string{"key"},
 			},
@@ -73,6 +75,7 @@ value
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"key": map[string]interface{}{"nested": "value"}}, URI: "file://tmp/values.yaml"},
 					},
+					HelmChart: &chart.Chart{},
 				},
 				splittedVar: []string{"key"},
 			},
@@ -91,6 +94,7 @@ nested: value
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"key": []map[string]interface{}{{"nested": "value"}}}, URI: "file://tmp/values.yaml"},
 					},
+					HelmChart: &chart.Chart{},
 				},
 				splittedVar: []string{"key"},
 			},
@@ -114,6 +118,7 @@ key:
 						ParentChartURI: uri.New("file://tmp/"),
 						HasParent:      true,
 					},
+					HelmChart: &chart.Chart{},
 				},
 				parentCharts: map[uri.URI]*charts.Chart{
 					uri.New("file://tmp/"): {
@@ -121,6 +126,7 @@ key:
 						ValuesFiles: &charts.ValuesFiles{
 							MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"global": map[string]interface{}{"key": "parentValue"}}, URI: "file://tmp/values.yaml"},
 						},
+						HelmChart: &chart.Chart{},
 					},
 				},
 				splittedVar: []string{"global", "key"},
@@ -148,6 +154,7 @@ value
 						ParentChartURI: uri.New("file://tmp/"),
 						HasParent:      true,
 					},
+					HelmChart: &chart.Chart{},
 				},
 				parentCharts: map[uri.URI]*charts.Chart{
 					uri.New("file://tmp/"): {
@@ -155,6 +162,7 @@ value
 						ValuesFiles: &charts.ValuesFiles{
 							MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"subchart": map[string]interface{}{"key": "parentValue"}}, URI: "file://tmp/values.yaml"},
 						},
+						HelmChart: &chart.Chart{},
 					},
 				},
 				splittedVar: []string{"key"},
@@ -180,6 +188,7 @@ value
 						ParentChartURI: uri.New("file://tmp/charts/subchart"),
 						HasParent:      true,
 					},
+					HelmChart: &chart.Chart{},
 				},
 				parentCharts: map[uri.URI]*charts.Chart{
 					uri.New("file://tmp/charts/subchart"): {
@@ -191,6 +200,7 @@ value
 							ParentChartURI: uri.New("file://tmp/"),
 							HasParent:      true,
 						},
+						HelmChart: &chart.Chart{},
 					},
 					uri.New("file://tmp/"): {
 						ChartMetadata: &charts.ChartMetadata{
@@ -199,6 +209,7 @@ value
 						ValuesFiles: &charts.ValuesFiles{
 							MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"subchart": map[string]interface{}{"subsubchart": map[string]interface{}{"key": "parentValue"}}}, URI: "file://tmp/values.yaml"},
 						},
+						HelmChart: &chart.Chart{},
 					},
 				},
 				splittedVar: []string{"key"},
@@ -228,6 +239,7 @@ value
 							URI: "file://tmp/values.yaml",
 						},
 					},
+					HelmChart: &chart.Chart{},
 				},
 				splittedVar: []string{"key"},
 			},
@@ -250,6 +262,7 @@ value
 							URI: "file://tmp/values.yaml",
 						},
 					},
+					HelmChart: &chart.Chart{},
 				},
 				splittedVar: []string{"key[]"},
 			},

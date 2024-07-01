@@ -18,13 +18,14 @@ func (s *ChartStore) GetChartForDoc(uri lsp.DocumentURI) (*Chart, error) {
 	}
 
 	chart, err := s.getChartFromFilesystemForTemplates(uri.Filename())
-	s.Charts[chart.RootURI] = chart
-	s.loadChartDependencies(chart)
 	if err != nil {
 		return chart, ErrChartNotFound{
 			URI: uri,
 		}
 	}
+	s.Charts[chart.RootURI] = chart
+	s.loadChartDependencies(chart)
+
 	return chart, nil
 }
 

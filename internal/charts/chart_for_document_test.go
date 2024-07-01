@@ -10,6 +10,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 func TestGetChartForDocumentWorksForAlreadyAddedCharts(t *testing.T) {
@@ -53,7 +54,8 @@ func TestGetChartForDocumentWorksForNewToAddChart(t *testing.T) {
 		rootDir                = t.TempDir()
 		expectedChartDirectory = filepath.Join(rootDir, "chart")
 		expectedChart          = &charts.Chart{
-			RootURI: uri.File(expectedChartDirectory),
+			RootURI:   uri.File(expectedChartDirectory),
+			HelmChart: &chart.Chart{},
 		}
 		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
 		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc)
@@ -78,7 +80,8 @@ func TestGetChartForDocumentWorksForNewToAddChartWithNestedFile(t *testing.T) {
 		rootDir                = t.TempDir()
 		expectedChartDirectory = filepath.Join(rootDir, "chart")
 		expectedChart          = &charts.Chart{
-			RootURI: uri.File(expectedChartDirectory),
+			RootURI:   uri.File(expectedChartDirectory),
+			HelmChart: &chart.Chart{},
 		}
 		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
 		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc)

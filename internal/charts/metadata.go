@@ -30,6 +30,15 @@ func NewChartMetadata(rootURI uri.URI) *ChartMetadata {
 	}
 }
 
+// Create a new ChartMetadata for a dependency chart, omitting the YamlNode since this is
+// likely not required for dependency charts
+func NewChartMetadataForDependencyChart(metadata *chart.Metadata, URI uri.URI) *ChartMetadata {
+	return &ChartMetadata{
+		Metadata: *metadata,
+		URI:      URI,
+	}
+}
+
 func loadChartMetadata(filePath string) chart.Metadata {
 	chartMetadata, err := chartutil.LoadChartfile(filePath)
 	if err != nil {

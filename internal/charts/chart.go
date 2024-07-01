@@ -40,20 +40,21 @@ func NewChart(rootURI uri.URI, valuesFilesConfig util.ValuesFilesConfig) *Chart 
 
 func NewChartFromHelmChart(helmChart *chart.Chart, rootURI uri.URI) *Chart {
 	valuesFile := NewValuesFileFromValues(uri.File(filepath.Join(rootURI.Filename(), "values.yaml")), helmChart.Values)
+
 	return &Chart{
 		ValuesFiles: &ValuesFiles{
 			MainValuesFile:        valuesFile,
 			OverlayValuesFile:     &ValuesFile{},
 			AdditionalValuesFiles: []*ValuesFile{},
 		},
-		ChartMetadata: &ChartMetadata{}, // TODO: there is no usecase for this currently
+		ChartMetadata: NewChartMetadataForDependencyChart(helmChart.Metadata, rootURI),
 		RootURI:       rootURI,
 		ParentChart:   ParentChart{},
 		HelmChart:     helmChart,
 	}
 }
 
-func (c *Chart) GetDependecyUri(dependencyName string) uri.URI {
+func (c *Chart) GetDependecyURI(dependencyName string) uri.URI {
 	return uri.File(filepath.Join(c.RootURI.Filename(), "charts", DependencyCacheFolder, dependencyName))
 }
 
@@ -117,7 +118,7 @@ func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *Cha
 				subQuery = query[1:]
 			}
 
-			dependencyChart := chartStore.Charts[c.GetDependecyUri(dependency.Name())]
+			dependencyChart := chartStore.Charts[c.GetDependecyURI(dependency.Name())]
 			if dependencyChart == nil {
 				logger.Error(fmt.Sprintf("Could not find dependency %s", dependency.Name()))
 				continue
