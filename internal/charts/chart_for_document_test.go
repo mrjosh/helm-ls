@@ -138,3 +138,20 @@ func TestGetChartOrParentForDocWorks(t *testing.T) {
 	assert.Error(t, error)
 	assert.Equal(t, &charts.Chart{RootURI: uri.File("/tmp")}, result5)
 }
+
+func TestGetChartForDocumentWorksForChartWithDependencies(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample/"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+	)
+
+	result1, error := chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
+	assert.NoError(t, error)
+
+	assert.Len(t, result1.HelmChart.Dependencies(), 2)
+	assert.Len(t, chartStore.Charts, 3)
+
+	assert.NotNil(t, chartStore.Charts[uri.File(rootDir)])
+	assert.NotNil(t, chartStore.Charts[uri.File(filepath.Join(rootDir, "charts", "subchartexample"))])
+	assert.NotNil(t, chartStore.Charts[uri.File(filepath.Join(rootDir, "charts", charts.DependencyCacheFolder, "common"))])
+}

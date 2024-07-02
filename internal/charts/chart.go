@@ -2,6 +2,7 @@ package charts
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -55,6 +56,13 @@ func NewChartFromHelmChart(helmChart *chart.Chart, rootURI uri.URI) *Chart {
 }
 
 func (c *Chart) GetDependecyURI(dependencyName string) uri.URI {
+	unpackedPath := filepath.Join(c.RootURI.Filename(), "charts", dependencyName)
+	fileInfo, err := os.Stat(unpackedPath)
+
+	if err == nil && fileInfo.IsDir() {
+		return uri.File(unpackedPath)
+	}
+
 	return uri.File(filepath.Join(c.RootURI.Filename(), "charts", DependencyCacheFolder, dependencyName))
 }
 
@@ -81,8 +89,13 @@ type QueriedValuesFiles struct {
 // ResolveValueFiles returns a list of all values files in the chart
 // and all parent charts if the query tries to access global values
 func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*QueriedValuesFiles {
-	logger.Debug(fmt.Sprintf("Resolving values files for %s with query %s", c.HelmChart.Name(), query))
+	if c == nil {
+		logger.Error("Could not resolve values files for nil chart")
+		return []*QueriedValuesFiles{}
+	}
+	// logger.Debug(fmt.Sprintf("Resolving values files for %s with query %s", c.HelmChart.Name(), query))
 	result := []*QueriedValuesFiles{{Selector: query, ValuesFiles: c.ValuesFiles}}
+
 	if len(query) == 0 {
 		return result
 	}
@@ -92,14 +105,19 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 	}
 
 	parentChart := c.ParentChart.GetParentChart(chartStore)
-	if parentChart == nil {
-		return result
-	}
 
 	if query[0] == "global" {
-		// TODO: add dependency support
+
+		if parentChart == nil {
+			return result
+		}
+
 		return append(result,
 			parentChart.ResolveValueFiles(query, chartStore)...)
+	}
+
+	if parentChart == nil {
+		return result
 	}
 
 	chartName := c.ChartMetadata.Metadata.Name
@@ -111,11 +129,13 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *ChartStore, result []*QueriedValuesFiles) []*QueriedValuesFiles {
 	for _, dependency := range c.HelmChart.Dependencies() {
 		logger.Debug(fmt.Sprintf("Resolving dependency %s with query %s", dependency.Name(), query))
-		if dependency.Name() == query[0] {
+		if dependency.Name() == query[0] || query[0] == "global" {
 
-			subQuery := []string{}
-			if len(query) > 1 {
-				subQuery = query[1:]
+			subQuery := query
+			if dependency.Name() == query[0] {
+				if len(query) > 1 {
+					subQuery = query[1:]
+				}
 			}
 
 			dependencyChart := chartStore.Charts[c.GetDependecyURI(dependency.Name())]
@@ -124,7 +144,8 @@ func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *Cha
 				continue
 			}
 
-			// TODO: could call this recursively
+			// TODO: why does this cause infinite recursion?
+			// result = append(result, dependencyChart.ResolveValueFiles(subQuery, chartStore)...)
 
 			result = append(result,
 				&QueriedValuesFiles{Selector: subQuery, ValuesFiles: dependencyChart.ValuesFiles})
@@ -155,6 +176,7 @@ func (c *Chart) GetDependeciesTemplates() []*DependencyTemplateFile {
 	if c.HelmChart == nil {
 		return result
 	}
+
 	for _, dependency := range c.HelmChart.Dependencies() {
 		for _, file := range dependency.Templates {
 			dependencyTemplate := c.NewDependencyTemplateFile(dependency.Name(), file)

@@ -128,8 +128,32 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 	parentChart, err := chartStore.GetChartForURI(uri.File(tempDir))
 	assert.NoError(t, err)
 
-	assert.Equal(t, 2, len(valueFiles))
+	assert.Len(t, valueFiles, 2)
 	assert.Contains(t, valueFiles, &charts.QueriedValuesFiles{Selector: []string{"subchart", "foo"}, ValuesFiles: parentChart.ValuesFiles})
+}
+
+func TestResolvesValuesFileOfDependencyWithGlobal(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
+		valueFiles = chart.ResolveValueFiles([]string{"global"}, chartStore)
+	)
+
+	assert.NoError(t, err)
+	assert.Len(t, valueFiles, 3)
+}
+
+func TestResolvesValuesFileOfDependencyWithChartName(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
+		valueFiles = chart.ResolveValueFiles([]string{"subchartexample"}, chartStore)
+	)
+
+	assert.NoError(t, err)
+	assert.Len(t, valueFiles, 2)
 }
 
 func TestLoadsHelmChartWithDependecies(t *testing.T) {
