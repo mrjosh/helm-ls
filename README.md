@@ -78,6 +78,8 @@ You can install it from the [aur](https://aur.archlinux.org/packages/helm-ls/) u
 
 ```bash
 yay -S helm-ls
+# or 
+yay -S helm-ls-bin
 ```
 
 #### Windows
