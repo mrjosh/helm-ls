@@ -33,7 +33,7 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
   * [yaml-language-server config](#yaml-language-server-config)
   * [Default Configuration](#default-configuration)
 * [Editor Config examples](#editor-config-examples)
-  * [Neovim (using nvim-lspconfig)](#neovim-using-nvim-lspconfig)
+  * [Neovim](#neovim-using-nvim-lspconfig)
     * [Vim Helm Plugin](#vim-helm-plugin)
     * [nvim-lspconfig setup](#nvim-lspconfig-setup)
     * [coc.nvim setup](#cocnvim-setup)
@@ -199,7 +199,7 @@ settings = {
 
 ## Editor Config examples
 
-### Neovim (using nvim-lspconfig)
+### Neovim
 
 #### Vim Helm Plugin
 
@@ -217,13 +217,13 @@ Add the following to your neovim lua config:
 local lspconfig = require('lspconfig')
 
 lspconfig.helm_ls.setup {
-settings = {
-  ['helm-ls'] = {
-    yamlls = {
-      path = "yaml-language-server",
+  settings = {
+    ['helm-ls'] = {
+      yamlls = {
+        path = "yaml-language-server",
+      }
     }
   }
-}
 }
 ```
 
