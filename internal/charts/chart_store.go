@@ -64,9 +64,20 @@ func (s *ChartStore) ReloadValuesFile(file uri.URI) {
 		logger.Error("Error reloading values file", file, err)
 		return
 	}
+
 	for _, valuesFile := range chart.ValuesFiles.AllValuesFiles() {
 		if valuesFile.URI == file {
 			valuesFile.Reload()
 		}
+	}
+}
+
+func (s *ChartStore) loadChartDependencies(chart *Chart) {
+	for _, dependency := range chart.HelmChart.Dependencies() {
+		dependencyURI := chart.GetDependecyURI(dependency.Name())
+		chart := NewChartFromHelmChart(dependency, dependencyURI)
+
+		s.Charts[dependencyURI] = chart
+		s.loadChartDependencies(chart)
 	}
 }

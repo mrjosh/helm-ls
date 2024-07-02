@@ -3,8 +3,11 @@ package lsp
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
@@ -44,7 +47,7 @@ func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	d.Content = string(content)
 
 	d.ApplyChangesToAst(d.Content)
-	d.SymbolTable = NewSymbolTable(d.Ast, []byte(d.Content))
+	d.SymbolTable = NewSymbolTable(d.Ast, content)
 
 	d.lines = nil
 }
@@ -76,4 +79,24 @@ func (d *Document) getLines() []string {
 		d.lines = strings.Split(d.Content, "\n")
 	}
 	return d.lines
+}
+
+// SyncToDisk writes the content of the document to disk if it is a dependency file.
+// If it is a dependency file, it was read from a archive, so we need to write it back,
+// to be able to open it in a editor when using go-to-definition or go-to-reference.
+func (d *Document) SyncToDisk() {
+	if !d.IsDependencyFile() {
+		return
+	}
+	err := os.MkdirAll(filepath.Dir(d.Path), 0o755)
+	if err == nil {
+		err = os.WriteFile(d.Path, []byte(d.Content), 0o444)
+	}
+	if err != nil {
+		logger.Error(err.Error())
+	}
+}
+
+func (d *Document) IsDependencyFile() bool {
+	return strings.Contains(d.Path, charts.DependencyCacheFolder)
 }
