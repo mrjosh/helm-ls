@@ -105,3 +105,11 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+global:
+  subchart: works
+
+subchartWithoutGlobal: works
+
+subchartexample:
+  subchartWithoutGlobal: worksToo

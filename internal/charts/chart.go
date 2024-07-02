@@ -68,6 +68,7 @@ func (c *Chart) GetDependecyURI(dependencyName string) uri.URI {
 
 func loadHelmChart(rootURI uri.URI) *chart.Chart {
 	var helmChart *chart.Chart
+
 	loader, err := loader.Loader(rootURI.Filename())
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error loading chart %s: %s", rootURI.Filename(), err.Error()))
@@ -78,6 +79,7 @@ func loadHelmChart(rootURI uri.URI) *chart.Chart {
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error loading chart %s: %s", rootURI.Filename(), err.Error()))
 	}
+
 	return helmChart
 }
 
@@ -107,7 +109,6 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 	parentChart := c.ParentChart.GetParentChart(chartStore)
 
 	if query[0] == "global" {
-
 		if parentChart == nil {
 			return result
 		}
@@ -122,6 +123,7 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 
 	chartName := c.ChartMetadata.Metadata.Name
 	extendedQuery := append([]string{chartName}, query...)
+
 	return append(result,
 		parentChart.ResolveValueFiles(extendedQuery, chartStore)...)
 }
@@ -129,9 +131,10 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *ChartStore, result []*QueriedValuesFiles) []*QueriedValuesFiles {
 	for _, dependency := range c.HelmChart.Dependencies() {
 		logger.Debug(fmt.Sprintf("Resolving dependency %s with query %s", dependency.Name(), query))
-		if dependency.Name() == query[0] || query[0] == "global" {
 
+		if dependency.Name() == query[0] || query[0] == "global" {
 			subQuery := query
+
 			if dependency.Name() == query[0] {
 				if len(query) > 1 {
 					subQuery = query[1:]
@@ -151,6 +154,7 @@ func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *Cha
 				&QueriedValuesFiles{Selector: subQuery, ValuesFiles: dependencyChart.ValuesFiles})
 		}
 	}
+
 	return result
 }
 
@@ -163,9 +167,11 @@ func (c *Chart) GetValueLocation(templateContext []string) (lsp.Location, error)
 		if (len(value)) > 1 {
 			restOfString = value[1:]
 		}
+
 		firstLetterLowercase := strings.ToLower(string(value[0])) + restOfString
 		modifyedVar = append(modifyedVar, firstLetterLowercase)
 	}
+
 	position, err := util.GetPositionOfNode(&c.ChartMetadata.YamlNode, modifyedVar)
 
 	return lsp.Location{URI: c.ChartMetadata.URI, Range: lsp.Range{Start: position}}, err
@@ -183,5 +189,6 @@ func (c *Chart) GetDependeciesTemplates() []*DependencyTemplateFile {
 			result = append(result, dependencyTemplate)
 		}
 	}
+
 	return result
 }

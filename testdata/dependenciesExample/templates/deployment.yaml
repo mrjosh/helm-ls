@@ -67,5 +67,5 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       example: {{ .Values.common.exampleValue }}
-      example2: {{ .Values.global }} 
+      example2: {{ .Values.global.subchart }} 
       example3: {{ .Values.subchartexample.subchartWithoutGlobal }} # todo fix this: missing hover, completion etc.

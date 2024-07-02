@@ -9,6 +9,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
 	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/chartutil"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -142,6 +143,12 @@ func TestResolvesValuesFileOfDependencyWithGlobal(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, valueFiles, 3)
+
+	selectors := [][]string{}
+	for _, valueFile := range valueFiles {
+		selectors = append(selectors, valueFile.Selector)
+	}
+	assert.Equal(t, selectors, [][]string{{"global"}, {"global"}, {"global"}})
 }
 
 func TestResolvesValuesFileOfDependencyWithChartName(t *testing.T) {
@@ -149,11 +156,46 @@ func TestResolvesValuesFileOfDependencyWithChartName(t *testing.T) {
 		rootDir    = "../../testdata/dependenciesExample"
 		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
 		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
-		valueFiles = chart.ResolveValueFiles([]string{"subchartexample"}, chartStore)
+		valueFiles = chart.ResolveValueFiles([]string{"subchartexample", "foo"}, chartStore)
 	)
 
 	assert.NoError(t, err)
 	assert.Len(t, valueFiles, 2)
+
+	selectors := [][]string{}
+	for _, valueFile := range valueFiles {
+		selectors = append(selectors, valueFile.Selector)
+	}
+	assert.Contains(t, selectors, []string{"subchartexample", "foo"})
+	assert.Contains(t, selectors, []string{"foo"})
+}
+
+func TestResolvesValuesFileOfDependencyWithChartNameForPackedDependency(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
+		valueFiles = chart.ResolveValueFiles([]string{"common", "exampleValue"}, chartStore)
+	)
+
+	assert.NoError(t, err)
+	assert.Len(t, valueFiles, 2)
+
+	selectors := [][]string{}
+	for _, valueFile := range valueFiles {
+		selectors = append(selectors, valueFile.Selector)
+	}
+	assert.Contains(t, selectors, []string{"common", "exampleValue"})
+	assert.Contains(t, selectors, []string{"exampleValue"})
+
+	var commonValueFile *charts.ValuesFiles
+	for _, valueFile := range valueFiles {
+		if valueFile.Selector[0] == "exampleValue" {
+			commonValueFile = valueFile.ValuesFiles
+		}
+	}
+	assert.NotNil(t, commonValueFile)
+	assert.Equal(t, chartutil.Values{"exampleValue": "common-chart"}, commonValueFile.MainValuesFile.Values)
 }
 
 func TestLoadsHelmChartWithDependecies(t *testing.T) {

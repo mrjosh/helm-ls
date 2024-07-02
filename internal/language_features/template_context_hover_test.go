@@ -12,9 +12,9 @@ import (
 
 func Test_langHandler_getValueHover(t *testing.T) {
 	type args struct {
-		chart        *charts.Chart
-		parentCharts map[uri.URI]*charts.Chart
-		splittedVar  []string
+		chart         *charts.Chart
+		chartsInStore map[uri.URI]*charts.Chart
+		splittedVar   []string
 	}
 	tests := []struct {
 		name    string
@@ -120,7 +120,7 @@ key:
 					},
 					HelmChart: &chart.Chart{},
 				},
-				parentCharts: map[uri.URI]*charts.Chart{
+				chartsInStore: map[uri.URI]*charts.Chart{
 					uri.New("file://tmp/"): {
 						ChartMetadata: &charts.ChartMetadata{},
 						ValuesFiles: &charts.ValuesFiles{
@@ -156,7 +156,7 @@ value
 					},
 					HelmChart: &chart.Chart{},
 				},
-				parentCharts: map[uri.URI]*charts.Chart{
+				chartsInStore: map[uri.URI]*charts.Chart{
 					uri.New("file://tmp/"): {
 						ChartMetadata: &charts.ChartMetadata{},
 						ValuesFiles: &charts.ValuesFiles{
@@ -190,7 +190,7 @@ value
 					},
 					HelmChart: &chart.Chart{},
 				},
-				parentCharts: map[uri.URI]*charts.Chart{
+				chartsInStore: map[uri.URI]*charts.Chart{
 					uri.New("file://tmp/charts/subchart"): {
 						ChartMetadata: &charts.ChartMetadata{Metadata: chart.Metadata{Name: "subchart"}},
 						ValuesFiles: &charts.ValuesFiles{
@@ -279,9 +279,8 @@ hello
 				Chart: tt.args.chart,
 				ChartStore: &charts.ChartStore{
 					RootURI: uri.New("file://tmp/"),
-					Charts:  tt.args.parentCharts,
+					Charts:  tt.args.chartsInStore,
 				},
-				// Node: tt.args.chart.ValuesFiles.MainValuesFile.Node,
 			}
 			valuesFeature := NewTemplateContextFeature(genericDocumentUseCase)
 			got, err := valuesFeature.valuesHover(tt.args.splittedVar)
