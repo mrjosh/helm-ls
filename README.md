@@ -10,37 +10,37 @@
 \/ /_/ \___|_|_| |_| |_\____/___/
 </pre>
 
-## Helm Language Server 
+## Helm Language Server
 
 Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP](https://microsoft.github.io/language-server-protocol/) implementation.
 
 <!-- vim-markdown-toc GFM -->
 
-* [Demo](#demo)
-* [Getting Started](#getting-started)
-  * [Installation with a package manager](#installation-with-a-package-manager)
-    * [Homebrew](#homebrew)
-    * [Nix](#nix)
-    * [Arch Linux](#arch-linux)
-    * [Windows](#windows)
-    * [mason (neovim)](#mason-neovim)
-  * [Manual download](#manual-download)
-    * [Make it executable](#make-it-executable)
-  * [Integration with yaml-language-server](#integration-with-yaml-language-server)
-* [Configuration options](#configuration-options)
-  * [General](#general)
-  * [Values Files](#values-files)
-  * [yaml-language-server config](#yaml-language-server-config)
-  * [Default Configuration](#default-configuration)
-* [Editor Config examples](#editor-config-examples)
-  * [Neovim](#neovim-using-nvim-lspconfig)
-    * [Vim Helm Plugin](#vim-helm-plugin)
-    * [nvim-lspconfig setup](#nvim-lspconfig-setup)
-    * [coc.nvim setup](#cocnvim-setup)
-  * [VSCode](#vscode)
-  * [Emacs eglot setup](#emacs-eglot-setup)
-* [Contributing](#contributing)
-* [License](#license)
+- [Demo](#demo)
+- [Getting Started](#getting-started)
+  - [Installation with a package manager](#installation-with-a-package-manager)
+    - [Homebrew](#homebrew)
+    - [Nix](#nix)
+    - [Arch Linux](#arch-linux)
+    - [Windows](#windows)
+    - [mason (neovim)](#mason-neovim)
+  - [Manual download](#manual-download)
+    - [Make it executable](#make-it-executable)
+  - [Integration with yaml-language-server](#integration-with-yaml-language-server)
+- [Configuration options](#configuration-options)
+  - [General](#general)
+  - [Values Files](#values-files)
+  - [yaml-language-server config](#yaml-language-server-config)
+  - [Default Configuration](#default-configuration)
+- [Editor Config examples](#editor-config-examples)
+  - [Neovim](#neovim)
+    - [Vim Helm Plugin](#vim-helm-plugin)
+    - [nvim-lspconfig setup](#nvim-lspconfig-setup)
+    - [coc.nvim setup](#cocnvim-setup)
+  - [VSCode](#vscode)
+  - [Emacs eglot setup](#emacs-eglot-setup)
+- [Contributing](#contributing)
+- [License](#license)
 
 <!-- vim-markdown-toc -->
 
@@ -78,7 +78,7 @@ You can install it from the [aur](https://aur.archlinux.org/packages/helm-ls/) u
 
 ```bash
 yay -S helm-ls
-# or 
+# or
 yay -S helm-ls-bin
 ```
 
@@ -157,6 +157,7 @@ You can configure helm-ls with lsp workspace configurations.
 ### yaml-language-server config
 
 - **Enable yaml-language-server**: Toggle support of this feature.
+- **EnabledForFilesGlob**: A glob pattern defining for which files yaml-language-server should be enabled.
 - **Path to yaml-language-server**: Specify the executable location.
 - **Diagnostics Settings**:
 
@@ -181,6 +182,7 @@ settings = {
     },
     yamlls = {
       enabled = true,
+      enabledForFilesGlob = "*.{yaml,yml}",
       diagnosticsLimit = 50,
       showDiagnosticsDirectly = false,
       path = "yaml-language-server",

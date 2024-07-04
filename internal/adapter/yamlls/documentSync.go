@@ -13,10 +13,17 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Doc
 	if yamllsConnector.server == nil {
 		return
 	}
+
 	for _, doc := range docs {
 		if !doc.IsOpen {
 			continue
 		}
+
+		doc.IsYaml = lsplocal.IsYamlDocument(doc.URI, yamllsConnector.config)
+		if !yamllsConnector.isRelevantFile(doc.URI) {
+			continue
+		}
+
 		yamllsConnector.DocumentDidOpen(doc.Ast, lsp.DidOpenTextDocumentParams{
 			TextDocument: lsp.TextDocumentItem{
 				URI:  doc.URI,
@@ -28,7 +35,8 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Doc
 
 func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.DidOpenTextDocumentParams) {
 	logger.Debug("YamllsConnector DocumentDidOpen", params.TextDocument.URI)
-	if yamllsConnector.server == nil {
+
+	if !yamllsConnector.shouldRun(params.TextDocument.URI) {
 		return
 	}
 	params.TextDocument.Text = lsplocal.TrimTemplate(ast, params.TextDocument.Text)
@@ -40,9 +48,10 @@ func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.Di
 }
 
 func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params lsp.DidSaveTextDocumentParams) {
-	if yamllsConnector.server == nil {
+	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
+
 	params.Text = lsplocal.TrimTemplate(doc.Ast, doc.Content)
 
 	err := yamllsConnector.server.DidSave(context.Background(), &params)
@@ -58,7 +67,7 @@ func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params 
 }
 
 func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
-	if yamllsConnector.server == nil {
+	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
 	trimmedText := lsplocal.TrimTemplate(doc.Ast, doc.Content)
@@ -87,7 +96,7 @@ func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, param
 }
 
 func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
-	if yamllsConnector.server == nil {
+	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
 

@@ -7,7 +7,7 @@ import (
 )
 
 func (yamllsConnector Connector) CallCompletion(ctx context.Context, params *lsp.CompletionParams) (*lsp.CompletionList, error) {
-	if yamllsConnector.server == nil {
+	if !yamllsConnector.shouldRun(params.TextDocumentPositionParams.TextDocument.URI) {
 		return &lsp.CompletionList{}, nil
 	}
 

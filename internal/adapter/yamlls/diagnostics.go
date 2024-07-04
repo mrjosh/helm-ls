@@ -32,23 +32,28 @@ func (c Connector) PublishDiagnostics(ctx context.Context, params *protocol.Publ
 
 func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content string) (filtered []lsp.Diagnostic) {
 	filtered = []lsp.Diagnostic{}
+
 	for _, diagnostic := range diagnostics {
 		node := lsplocal.NodeAtPosition(ast, diagnostic.Range.Start)
 		childNode := lsplocal.FindRelevantChildNode(ast.RootNode(), lsplocal.GetSitterPointForLspPos(diagnostic.Range.Start))
+
 		if node.Type() == "text" && childNode.Type() == "text" {
 			logger.Debug("Diagnostic", diagnostic)
 			logger.Debug("Node", node.Content([]byte(content)))
+
 			if diagnisticIsRelevant(diagnostic, childNode) {
 				diagnostic.Message = "Yamlls: " + diagnostic.Message
 				filtered = append(filtered, diagnostic)
 			}
 		}
 	}
+
 	return filtered
 }
 
 func diagnisticIsRelevant(diagnostic lsp.Diagnostic, node *sitter.Node) bool {
 	logger.Debug("Checking if diagnostic is relevant", diagnostic.Message)
+
 	switch diagnostic.Message {
 	case "Map keys must be unique":
 		return !lsplocal.IsInElseBranch(node)

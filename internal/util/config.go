@@ -1,5 +1,7 @@
 package util
 
+import "github.com/gobwas/glob"
+
 type HelmlsConfiguration struct {
 	YamllsConfiguration YamllsConfiguration `json:"yamlls,omitempty"`
 	ValuesFilesConfig   ValuesFilesConfig   `json:"valuesFiles,omitempty"`
@@ -13,8 +15,10 @@ type ValuesFilesConfig struct {
 }
 
 type YamllsConfiguration struct {
-	Enabled bool   `json:"enabled,omitempty"`
-	Path    string `json:"path,omitempty"`
+	Enabled                   bool   `json:"enabled,omitempty"`
+	EnabledForFilesGlob       string `json:"enabledForFilesGlob,omitempty"`
+	EnabledForFilesGlobObject glob.Glob
+	Path                      string `json:"path,omitempty"`
 	// max diagnostics from yamlls that are shown for a single file
 	DiagnosticsLimit int `json:"diagnosticsLimit,omitempty"`
 	// if set to false diagnostics will only be shown after saving the file
@@ -32,11 +36,13 @@ var DefaultConfig = HelmlsConfiguration{
 		AdditionalValuesFilesGlobPattern: "values*.yaml",
 	},
 	YamllsConfiguration: YamllsConfiguration{
-		Enabled:                 true,
-		Path:                    "yaml-language-server",
-		DiagnosticsLimit:        50,
-		ShowDiagnosticsDirectly: false,
-		YamllsSettings:          DefaultYamllsSettings,
+		Enabled:                   true,
+		EnabledForFilesGlob:       "*.{yaml,yml}",
+		EnabledForFilesGlobObject: glob.MustCompile("*.{yaml,yml}"),
+		Path:                      "yaml-language-server",
+		DiagnosticsLimit:          50,
+		ShowDiagnosticsDirectly:   false,
+		YamllsSettings:            DefaultYamllsSettings,
 	},
 }
 

@@ -13,7 +13,7 @@ import (
 // Yamlls can not handle hover if the schema validation returns error,
 // thats why we fall back to calling completion
 func (yamllsConnector Connector) CallHover(ctx context.Context, params lsp.HoverParams, word string) (*lsp.Hover, error) {
-	if yamllsConnector.server == nil {
+	if !yamllsConnector.shouldRun(params.TextDocumentPositionParams.TextDocument.URI) {
 		return &lsp.Hover{}, nil
 	}
 
