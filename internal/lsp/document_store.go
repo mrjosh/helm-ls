@@ -53,7 +53,7 @@ func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsCon
 func (s *DocumentStore) Store(filename string, content []byte, helmlsConfig util.HelmlsConfiguration) {
 	ast := ParseAst(nil, string(content))
 	fileUri := uri.File(filename)
-	s.documents.Store(filename,
+	s.documents.Store(fileUri,
 		&Document{
 			URI:              fileUri,
 			Path:             filename,
