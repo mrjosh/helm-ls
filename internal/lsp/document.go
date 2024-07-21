@@ -21,6 +21,7 @@ type Document struct {
 	DiagnosticsCache        DiagnosticsCache
 	IsOpen                  bool
 	SymbolTable             *SymbolTable
+	IsYaml                  bool
 }
 
 // ApplyChanges updates the content of the document from LSP textDocument/didChange events.

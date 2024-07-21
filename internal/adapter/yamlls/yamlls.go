@@ -11,6 +11,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
+	lsp "go.lsp.dev/protocol"
 	"go.uber.org/zap"
 )
 
@@ -74,4 +75,20 @@ func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfigurat
 
 	yamllsConnector.server = server
 	return &yamllsConnector
+}
+
+func (yamllsConnector *Connector) isRelevantFile(uri lsp.URI) bool {
+	doc, ok := yamllsConnector.documents.Get(uri)
+	if !ok {
+		logger.Error("Could not find document", uri)
+		return true
+	}
+	return doc.IsYaml
+}
+
+func (yamllsConnector *Connector) shouldRun(uri lsp.DocumentURI) bool {
+	if yamllsConnector.server == nil {
+		return false
+	}
+	return yamllsConnector.isRelevantFile(uri)
 }

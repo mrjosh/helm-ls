@@ -44,6 +44,7 @@ func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsCon
 		DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
 		IsOpen:           true,
 		SymbolTable:      NewSymbolTable(ast, []byte(params.TextDocument.Text)),
+		IsYaml:           IsYamlDocument(uri, helmlsConfig.YamllsConfiguration),
 	}
 	logger.Debug("Storing doc ", path)
 	s.documents.Store(path, doc)
@@ -51,6 +52,11 @@ func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsCon
 }
 
 func (s *DocumentStore) Store(uri uri.URI, helmlsConfig util.HelmlsConfiguration) error {
+	_, ok := s.documents.Load(uri.Filename())
+	if ok {
+		return nil
+	}
+
 	content, err := os.ReadFile(uri.Filename())
 	if err != nil {
 		logger.Error("Could not open file ", uri.Filename(), " ", err)
@@ -67,6 +73,7 @@ func (s *DocumentStore) Store(uri uri.URI, helmlsConfig util.HelmlsConfiguration
 			DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
 			IsOpen:           false,
 			SymbolTable:      NewSymbolTable(ast, content),
+			IsYaml:           IsYamlDocument(uri, helmlsConfig.YamllsConfiguration),
 		},
 	)
 	return nil
@@ -75,8 +82,13 @@ func (s *DocumentStore) Store(uri uri.URI, helmlsConfig util.HelmlsConfiguration
 func (s *DocumentStore) Get(docuri uri.URI) (*Document, bool) {
 	path := docuri.Filename()
 	d, ok := s.documents.Load(path)
+
 	if !ok {
 		return nil, false
 	}
 	return d.(*Document), ok
+}
+
+func IsYamlDocument(uri lsp.URI, yamllsConfiguration util.YamllsConfiguration) bool {
+	return yamllsConfiguration.EnabledForFilesGlobObject.Match(uri.Filename())
 }
