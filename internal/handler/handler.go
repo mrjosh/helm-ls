@@ -130,12 +130,6 @@ func (h *langHandler) DocumentLinkResolve(ctx context.Context, params *lsp.Docum
 	return nil, nil
 }
 
-// DocumentSymbol implements protocol.Server.
-func (h *langHandler) DocumentSymbol(ctx context.Context, params *lsp.DocumentSymbolParams) (result []interface{}, err error) {
-	logger.Error("Document symbol unimplemented")
-	return nil, nil
-}
-
 // ExecuteCommand implements protocol.Server.
 func (h *langHandler) ExecuteCommand(ctx context.Context, params *lsp.ExecuteCommandParams) (result interface{}, err error) {
 	logger.Error("Execute command unimplemented")
