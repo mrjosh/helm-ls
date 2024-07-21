@@ -1,0 +1,9 @@
+dependencies:
+- name: common
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 2.20.3
+- name: subchartexample
+  repository: ""
+  version: x.x.x
+digest: sha256:17700eb1463d461f8c1a70e1ab96fadd0749adccf9970b6acb5b8c791374ac8a
+generated: "2024-07-02T11:38:56.75677057Z"

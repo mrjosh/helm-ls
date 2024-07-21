@@ -1,0 +1,4 @@
+global:
+  subchart: works
+
+subchartWithoutGlobal: works

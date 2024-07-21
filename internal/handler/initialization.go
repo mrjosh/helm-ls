@@ -97,6 +97,7 @@ func configureLogLevel(helmlsConfig util.HelmlsConfiguration) {
 }
 
 func (h *langHandler) NewChartWithInitActions(rootURI uri.URI, valuesFilesConfig util.ValuesFilesConfig) *charts.Chart {
-	go h.LoadDocsOnNewChart(rootURI)
-	return h.NewChartWithWatchedFiles(rootURI, valuesFilesConfig)
+	chart := h.NewChartWithWatchedFiles(rootURI, valuesFilesConfig)
+	go h.LoadDocsOnNewChart(chart)
+	return chart
 }

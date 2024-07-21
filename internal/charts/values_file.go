@@ -1,6 +1,8 @@
 package charts
 
 import (
+	"fmt"
+
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -21,6 +23,19 @@ func NewValuesFile(filePath string) *ValuesFile {
 		ValueNode: valueNodes,
 		Values:    vals,
 		URI:       uri.File(filePath),
+	}
+}
+
+func NewValuesFileFromValues(uri uri.URI, values chartutil.Values) *ValuesFile {
+	valueNode, error := util.ValuesToYamlNode(values)
+	if error != nil {
+		logger.Error(fmt.Sprintf("Could not load values for file %s", uri.Filename()), error)
+		return &ValuesFile{}
+	}
+	return &ValuesFile{
+		ValueNode: valueNode,
+		Values:    values,
+		URI:       uri,
 	}
 }
 
