@@ -1,0 +1,95 @@
+package handler
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/util"
+	"github.com/stretchr/testify/assert"
+	lsp "go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
+)
+
+func TestLoadDocsOnNewChart(t *testing.T) {
+	tempDir := t.TempDir()
+	rootURI := uri.File(tempDir)
+
+	templateDir := filepath.Join(tempDir, "templates")
+	err := os.MkdirAll(templateDir, 0o755)
+	assert.NoError(t, err)
+
+	templateFiles := []string{
+		filepath.Join(templateDir, "template1.txt"),
+		filepath.Join(templateDir, "template2.txt"),
+	}
+
+	for _, file := range templateFiles {
+		err = os.WriteFile(file, []byte("This is a template file"), 0o644)
+		assert.NoError(t, err)
+	}
+
+	h := &langHandler{
+		documents:    lsplocal.NewDocumentStore(),
+		helmlsConfig: util.DefaultConfig,
+	}
+
+	h.LoadDocsOnNewChart(rootURI)
+
+	for _, file := range templateFiles {
+		doc, ok := h.documents.Get(uri.File(file))
+		assert.True(t, ok)
+		assert.NotNil(t, doc)
+		assert.False(t, doc.IsOpen)
+	}
+}
+
+func TestLoadDocsOnNewChartDoesNotOverwrite(t *testing.T) {
+	tempDir := t.TempDir()
+	rootURI := uri.File(tempDir)
+
+	templateDir := filepath.Join(tempDir, "templates")
+	err := os.MkdirAll(templateDir, 0o755)
+	assert.NoError(t, err)
+
+	templateFile := filepath.Join(templateDir, "template1.txt")
+
+	err = os.WriteFile(templateFile, []byte("This is a template file"), 0o644)
+	assert.NoError(t, err)
+
+	docs := lsplocal.NewDocumentStore()
+	h := &langHandler{
+		documents:    docs,
+		helmlsConfig: util.DefaultConfig,
+	}
+
+	docs.DidOpen(&lsp.DidOpenTextDocumentParams{
+		TextDocument: lsp.TextDocumentItem{
+			URI: uri.File(templateFile),
+		},
+	}, util.DefaultConfig)
+
+	h.LoadDocsOnNewChart(rootURI)
+
+	doc, ok := h.documents.Get(uri.File(templateFile))
+	assert.True(t, ok)
+	assert.NotNil(t, doc)
+	// The document should still be open because it's already in the store
+	assert.True(t, doc.IsOpen)
+}
+
+func TestLoadDocsOnNewChartWorksForMissingTemplateDir(t *testing.T) {
+	tempDir := t.TempDir()
+	rootURI := uri.File(tempDir)
+
+	docs := lsplocal.NewDocumentStore()
+	h := &langHandler{
+		documents:    docs,
+		helmlsConfig: util.DefaultConfig,
+	}
+
+	h.LoadDocsOnNewChart(rootURI)
+
+	h.LoadDocsOnNewChart(uri.File("non-existent-dir/hkjgfdshgkjfd"))
+}
