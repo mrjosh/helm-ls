@@ -106,6 +106,9 @@ func (h *langHandler) DidRenameFiles(ctx context.Context, params *lsp.RenameFile
 func (h *langHandler) LoadDocsOnNewChart(rootURI uri.URI) {
 	_ = filepath.WalkDir(filepath.Join(rootURI.Filename(), "templates"),
 		func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
 			if !d.IsDir() {
 				return h.documents.Store(uri.File(path), h.helmlsConfig)
 			}
