@@ -29,7 +29,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      85,
 				Character: 26,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "value"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nvalue\n```"),
 			expectedError: nil,
 		},
 		{
@@ -38,7 +38,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      74,
 				Character: 50,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "first:\n  some: value\nsecond:\n  some: value"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nfirst:\n  some: value\nsecond:\n  some: value\n\n```"),
 			expectedError: nil,
 		},
 		{
@@ -47,7 +47,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      80,
 				Character: 31,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "value"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nvalue\n```"),
 			expectedError: nil,
 		},
 		{
@@ -56,7 +56,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      17,
 				Character: 19,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "{}"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\n{}\n\n```"),
 			expectedError: nil,
 		},
 		{
@@ -83,7 +83,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      25,
 				Character: 28,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "imagePullSecrets: []"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nimagePullSecrets: []\n\n```"),
 			expectedError: nil,
 		},
 		{
@@ -128,7 +128,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      71,
 				Character: 35,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "ingress.hosts:\n- host: chart-example.local\n  paths:\n  - path: /\n    pathType: ImplementationSpecific\n"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\ningress.hosts:\n- host: chart-example.local\n  paths:\n  - path: /\n    pathType: ImplementationSpecific\n\n```"),
 			expectedError: nil,
 		},
 		{
@@ -137,7 +137,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      8,
 				Character: 28,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "1"),
+			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\n1\n```"),
 			expectedError: nil,
 		},
 	}
