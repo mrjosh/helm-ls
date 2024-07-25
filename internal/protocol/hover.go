@@ -26,6 +26,8 @@ func (h HoverResultsWithFiles) Format(rootURI uri.URI) string {
 		value := result.Value
 		if value == "" {
 			value = "\"\""
+		} else {
+			value = fmt.Sprintf("```yaml\n%s\n```", value)
 		}
 		filepath, err := filepath.Rel(rootURI.Filename(), result.URI.Filename())
 		if err != nil {

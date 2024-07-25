@@ -1,6 +1,7 @@
 package languagefeatures
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -38,10 +39,12 @@ func Test_langHandler_getValueHover(t *testing.T) {
 				},
 				splittedVar: []string{"key"},
 			},
-			want: `### values.yaml
+			want: fmt.Sprintf(`### values.yaml
+%s
 value
+%s
 
-`,
+`, "```yaml", "```"),
 			wantErr: false,
 		},
 		{
@@ -56,13 +59,15 @@ value
 				},
 				splittedVar: []string{"key"},
 			},
-			want: `### values.yaml
+			want: fmt.Sprintf(`### values.yaml
+%s
 value
+%s
 
 ### values.other.yaml
 ""
 
-`,
+`, "```yaml", "```"),
 			wantErr: false,
 		},
 		{
@@ -76,11 +81,13 @@ value
 				},
 				splittedVar: []string{"key"},
 			},
-			want: `### values.yaml
+			want: fmt.Sprintf(`### values.yaml
+%s
 nested: value
 
+%s
 
-`,
+`, "```yaml", "```"),
 			wantErr: false,
 		},
 		{
@@ -94,12 +101,14 @@ nested: value
 				},
 				splittedVar: []string{"key"},
 			},
-			want: `### values.yaml
+			want: fmt.Sprintf(`### values.yaml
+%s
 key:
 - nested: value
 
+%s
 
-`,
+`, "```yaml", "```"),
 			wantErr: false,
 		},
 		{
@@ -125,13 +134,17 @@ key:
 				},
 				splittedVar: []string{"global", "key"},
 			},
-			want: `### values.yaml
+			want: fmt.Sprintf(`### values.yaml
+%s
 parentValue
+%s
 
-### ` + filepath.Join("charts", "subchart", "values.yaml") + `
+### `+filepath.Join("charts", "subchart", "values.yaml")+`
+%s
 value
+%s
 
-`,
+`, "```yaml", "```", "```yaml", "```"),
 			wantErr: false,
 		},
 		{
@@ -159,13 +172,17 @@ value
 				},
 				splittedVar: []string{"key"},
 			},
-			want: `### values.yaml
+			want: fmt.Sprintf(`### values.yaml
+%s
 parentValue
+%s
 
-### ` + filepath.Join("charts", "subchart", "values.yaml") + `
+### `+filepath.Join("charts", "subchart", "values.yaml")+`
+%s
 value
+%s
 
-`,
+`, "```yaml", "```", "```yaml", "```"),
 			wantErr: false,
 		},
 		{
@@ -203,16 +220,22 @@ value
 				},
 				splittedVar: []string{"key"},
 			},
-			want: `### values.yaml
+			want: fmt.Sprintf(`### values.yaml
+%s
 parentValue
+%s
 
-### ` + filepath.Join("charts", "subchart", "values.yaml") + `
+### `+filepath.Join("charts", "subchart", "values.yaml")+`
+%s
 middleValue
+%s
 
-### ` + filepath.Join("charts", "subchart", "charts", "subsubchart", "values.yaml") + `
+### `+filepath.Join("charts", "subchart", "charts", "subsubchart", "values.yaml")+`
+%s
 value
+%s
 
-`,
+`, "```yaml", "```", "```yaml", "```", "```yaml", "```"),
 			wantErr: false,
 		},
 		{
@@ -231,10 +254,12 @@ value
 				},
 				splittedVar: []string{"key"},
 			},
-			want: `### values.yaml
+			want: fmt.Sprintf(`### values.yaml
+%s
 1.2345
+%s
 
-`,
+`, "```yaml", "```"),
 			wantErr: false,
 		},
 		{
@@ -253,10 +278,12 @@ value
 				},
 				splittedVar: []string{"key[]"},
 			},
-			want: `### values.yaml
+			want: fmt.Sprintf(`### values.yaml
+%s
 hello
+%s
 
-`,
+`, "```yaml", "```"),
 			wantErr: false,
 		},
 	}
