@@ -26,7 +26,10 @@ func (f *BuiltInObjectsFeature) AppropriateForNode() bool {
 		return false
 	}
 
-	allowedBuiltIns := []string{"Chart", "Values", "Files", "Template", "Release"}
+	allowedBuiltIns := []string{}
+	for _, allowedBuiltIn := range helmdocs.BuiltInObjects {
+		allowedBuiltIns = append(allowedBuiltIns, allowedBuiltIn.Name)
+	}
 
 	templateContext, err := f.getTemplateContext()
 	if err != nil || len(templateContext) != 1 {
@@ -61,8 +64,8 @@ func (f *BuiltInObjectsFeature) getDefinitionLocations(templateContext lsplocal.
 		for _, valueFile := range f.Chart.ValuesFiles.AllValuesFiles() {
 			locations = append(locations, lsp.Location{URI: valueFile.URI})
 		}
-
 		return locations
+
 	case "Chart":
 		return []lsp.Location{{URI: f.Chart.ChartMetadata.URI}}
 	}
