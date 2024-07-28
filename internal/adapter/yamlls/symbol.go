@@ -7,7 +7,7 @@ import (
 )
 
 func (yamllsConnector Connector) CallDocumentSymbol(ctx context.Context, params *lsp.DocumentSymbolParams) (result []interface{}, err error) {
-	if yamllsConnector.server == nil {
+	if !yamllsConnector.shouldRun(params.TextDocument.URI) {
 		return []interface{}{}, nil
 	}
 	return yamllsConnector.server.DocumentSymbol(ctx, params)
