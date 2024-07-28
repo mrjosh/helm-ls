@@ -3,6 +3,7 @@ module github.com/mrjosh/helm-ls
 go 1.21
 
 require (
+	github.com/gobwas/glob v0.2.3
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240214120134-1f283e24f560
@@ -55,7 +56,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
-	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/btree v1.0.1 // indirect

@@ -36,23 +36,21 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 			TextDocumentSync: lsp.TextDocumentSyncOptions{
 				Change:    lsp.TextDocumentSyncKindIncremental,
 				OpenClose: true,
-				Save: &lsp.SaveOptions{
-					IncludeText: true,
-				},
 			},
 			CompletionProvider: &lsp.CompletionOptions{
 				TriggerCharacters: []string{".", "$."},
 				ResolveProvider:   false,
 			},
-			HoverProvider:      true,
-			DefinitionProvider: true,
-			ReferencesProvider: true,
+			HoverProvider:          true,
+			DefinitionProvider:     true,
+			ReferencesProvider:     true,
+			DocumentSymbolProvider: true,
 		},
 	}, nil
 }
 
 func (h *langHandler) Initialized(ctx context.Context, _ *lsp.InitializedParams) (err error) {
-	go h.retrieveWorkspaceConfiguration(ctx)
+	h.retrieveWorkspaceConfiguration(ctx)
 	return nil
 }
 

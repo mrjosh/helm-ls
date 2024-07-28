@@ -68,7 +68,11 @@ func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfigurat
 		io.Copy(os.Stderr, strderr)
 	}()
 
-	yamllsConnector := Connector{documents: documents, config: yamllsConfiguration, client: client}
+	yamllsConnector := Connector{
+		config:    yamllsConfiguration,
+		documents: documents,
+		client:    client,
+	}
 
 	zapLogger, _ := zap.NewProduction()
 	_, _, server := protocol.NewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)

@@ -19,6 +19,13 @@ func (yamllsConnector Connector) CallInitialize(ctx context.Context, workspaceUR
 		ClientInfo: &lsp.ClientInfo{
 			Name: "helm-ls",
 		},
+		Capabilities: lsp.ClientCapabilities{
+			TextDocument: &lsp.TextDocumentClientCapabilities{
+				DocumentSymbol: &lsp.DocumentSymbolClientCapabilities{
+					HierarchicalDocumentSymbolSupport: true,
+				},
+			},
+		},
 	}
 
 	_, err := yamllsConnector.server.Initialize(ctx, &params)
