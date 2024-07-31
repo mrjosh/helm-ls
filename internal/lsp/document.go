@@ -36,15 +36,30 @@ func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	for _, change := range changes {
 		start, end := util.PositionToIndex(change.Range.Start, content), util.PositionToIndex(change.Range.End, content)
 
+		newEnd := start + len(change.Text)
+
 		var buf bytes.Buffer
+
 		buf.Write(content[:start])
 		buf.Write([]byte(change.Text))
 		buf.Write(content[end:])
+
 		content = buf.Bytes()
+
+		editInput := sitter.EditInput{
+			StartIndex:  uint32(start),
+			OldEndIndex: uint32(end),
+			NewEndIndex: uint32(newEnd),
+			StartPoint:  util.PositionToPoint(change.Range.Start),
+			OldEndPoint: util.PositionToPoint(change.Range.End),
+			NewEndPoint: util.PositionToPoint(lsp.Position{Line: change.Range.Start.Line, Character: change.Range.Start.Character + uint32(len(change.Text))}),
+		}
+
+		d.Ast.Edit(editInput)
 	}
 	d.Content = string(content)
 
-	d.ApplyChangesToAst(d.Content)
+	d.Ast = ParseAst(d.Ast, string(content))
 	d.SymbolTable = NewSymbolTable(d.Ast, []byte(d.Content))
 
 	d.lines = nil
