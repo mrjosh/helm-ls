@@ -232,6 +232,10 @@ lspconfig.helm_ls.setup {
 See [examples/nvim/init.lua](https://github.com/mrjosh/helm-ls/blob/master/examples/nvim/init.lua) for an
 complete example, which also includes yaml-language-server.
 
+> [!TIP]
+>
+> If you are using [AstroNvim](https://github.com/AstroNvim/AstroNvim) you can just install the [astrocommunity](https://github.com/AstroNvim/astrocommunity) helm pack.
+
 #### coc.nvim setup
 
 You can also use [coc.nvim](https://github.com/neoclide/coc.nvim) to set up the language server.
