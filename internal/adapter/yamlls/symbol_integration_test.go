@@ -28,6 +28,10 @@ func TestYamllsDocumentSymoblIntegration(t *testing.T) {
 			file:        "../../../testdata/example/templates/ingress.yaml",
 			expectedLen: 6,
 		},
+		{
+			file:        "../../../testdata/example/templates/_helpers.tpl",
+			expectedLen: 0,
+		},
 	}
 	for _, tt1 := range testCases {
 		tt := tt1
