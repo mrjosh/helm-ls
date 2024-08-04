@@ -37,5 +37,5 @@ func (f *GenericTemplateContextFeature) builtInOjectDocsLookup(key string, docs 
 		}
 	}
 
-	return helmdocs.HelmDocumentation{}, fmt.Errorf("key %s not found on built-in object", key)
+	return helmdocs.HelmDocumentation{}, fmt.Errorf("key <%s> not found on built-in object", key)
 }

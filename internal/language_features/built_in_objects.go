@@ -26,18 +26,13 @@ func (f *BuiltInObjectsFeature) AppropriateForNode() bool {
 		return false
 	}
 
-	allowedBuiltIns := []string{}
-	for _, allowedBuiltIn := range helmdocs.BuiltInObjects {
-		allowedBuiltIns = append(allowedBuiltIns, allowedBuiltIn.Name)
-	}
-
 	templateContext, err := f.getTemplateContext()
 	if err != nil || len(templateContext) != 1 {
 		return false
 	}
 
-	for _, allowedBuiltIn := range allowedBuiltIns {
-		if templateContext[0] == allowedBuiltIn {
+	for _, allowedBuiltIn := range helmdocs.BuiltInObjects {
+		if templateContext[0] == allowedBuiltIn.Name {
 			return true
 		}
 	}
