@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag name for release'
+        description: "Tag name for release"
         required: true
         default: master
   push:
@@ -18,54 +18,54 @@ jobs:
     name: artifacts
     strategy:
       matrix:
-        go-version: [1.21.5]
+        go-version: [1.22.4]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ matrix.go-version }}
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: build
-      run: |
-        make build-release
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: build
+        run: |
+          make build-release
 
-    - name: 'Upload macOS-amd64 artifact'
-      uses: actions/upload-artifact@v2
-      with:
-        name: helm_ls_darwin_amd64
-        path: ./dist/darwin-amd64_darwin_amd64_v1/helm-ls
-        retention-days: 1
+      - name: "Upload macOS-amd64 artifact"
+        uses: actions/upload-artifact@v2
+        with:
+          name: helm_ls_darwin_amd64
+          path: ./dist/darwin-amd64_darwin_amd64_v1/helm-ls
+          retention-days: 1
 
-    - name: 'Upload macOS-arm64 artifact'
-      uses: actions/upload-artifact@v2
-      with:
-        name: helm_ls_darwin_arm64
-        path: ./dist/darwin-arm64_darwin_arm64/helm-ls
-        retention-days: 1
+      - name: "Upload macOS-arm64 artifact"
+        uses: actions/upload-artifact@v2
+        with:
+          name: helm_ls_darwin_arm64
+          path: ./dist/darwin-arm64_darwin_arm64/helm-ls
+          retention-days: 1
 
-    - name: 'Upload linux/amd64 artifact'
-      uses: actions/upload-artifact@v2
-      with:
-        name: helm_ls_linux_amd64
-        path: ./dist/linux-amd64_linux_amd64_v1/helm-ls
-        retention-days: 1
+      - name: "Upload linux/amd64 artifact"
+        uses: actions/upload-artifact@v2
+        with:
+          name: helm_ls_linux_amd64
+          path: ./dist/linux-amd64_linux_amd64_v1/helm-ls
+          retention-days: 1
 
-    - name: 'Upload linux/arm artifact'
-      uses: actions/upload-artifact@v2
-      with:
-        name: helm_ls_linux_arm
-        path: ./dist/linux-arm64_linux_arm64/helm-ls
-        retention-days: 1
+      - name: "Upload linux/arm artifact"
+        uses: actions/upload-artifact@v2
+        with:
+          name: helm_ls_linux_arm
+          path: ./dist/linux-arm64_linux_arm64/helm-ls
+          retention-days: 1
 
-    - name: 'Upload windows/amd64 artifact'
-      uses: actions/upload-artifact@v2
-      with:
-        name: helm_ls_windows_amd64
-        path: ./dist/windows-amd64_windows_amd64_v1/helm-ls.exe
-        retention-days: 1
+      - name: "Upload windows/amd64 artifact"
+        uses: actions/upload-artifact@v2
+        with:
+          name: helm_ls_windows_amd64
+          path: ./dist/windows-amd64_windows_amd64_v1/helm-ls.exe
+          retention-days: 1
 
   publish:
     needs: [artifacts]
@@ -73,7 +73,6 @@ jobs:
     permissions:
       contents: write
     steps:
-
       - uses: actions/download-artifact@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -157,7 +156,7 @@ jobs:
             1. Download **helm_ls_linux_arm**
             2. Run `./helm_ls_linux_arm`
             ## SHA256 Checksums
-            
+
             ```
             ${{ env.SHA_LINUX_64 }}
             ${{ env.SHA_MACOS_AMD64 }}
