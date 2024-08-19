@@ -65,7 +65,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      7,
 				Character: 10,
 			},
-			expected:      "not $x\n\nnegate the boolean value of $x",
+			expected:      "not $x\n\nNegate the boolean value of $x",
 			expectedError: nil,
 		},
 		{
@@ -110,7 +110,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      68,
 				Character: 20,
 			},
-			expected:      "access non-template files within the chart",
+			expected:      "Access non-template files within the chart",
 			expectedError: nil,
 		},
 		{

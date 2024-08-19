@@ -20,7 +20,7 @@ func (c CompletionResults) WithDocs(docs []helmdocs.HelmDocumentation, kind lsp.
 		items = append(items,
 			lsp.CompletionItem{
 				Label:            doc.Name,
-				Detail:           doc.Detail,
+				Detail:           doc.Detail + "\n\n" + doc.Doc,
 				InsertText:       doc.Name,
 				InsertTextFormat: lsp.InsertTextFormatPlainText,
 				Kind:             kind,
