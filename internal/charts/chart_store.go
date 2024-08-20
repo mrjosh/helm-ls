@@ -23,6 +23,12 @@ func NewChartStore(rootURI uri.URI, newChart func(uri.URI, util.ValuesFilesConfi
 	}
 }
 
+// AddChart adds a new chart to the store and loads its dependencies
+func (s *ChartStore) AddChart(chart *Chart) {
+	s.Charts[chart.RootURI] = chart
+	s.loadChartDependencies(chart)
+}
+
 func (s *ChartStore) SetValuesFilesConfig(valuesFilesConfig util.ValuesFilesConfig) {
 	logger.Debug("SetValuesFilesConfig", valuesFilesConfig)
 	if valuesFilesConfig.MainValuesFileName == s.valuesFilesConfig.MainValuesFileName &&
@@ -32,7 +38,7 @@ func (s *ChartStore) SetValuesFilesConfig(valuesFilesConfig util.ValuesFilesConf
 	}
 	s.valuesFilesConfig = valuesFilesConfig
 	for uri := range s.Charts {
-		s.Charts[uri] = s.newChart(uri, valuesFilesConfig)
+		s.AddChart(s.newChart(uri, valuesFilesConfig))
 	}
 }
 
@@ -48,7 +54,7 @@ func (s *ChartStore) GetChartForURI(fileURI uri.URI) (*Chart, error) {
 	}
 
 	if chart != nil {
-		s.Charts[chart.RootURI] = chart
+		s.AddChart(chart)
 		return chart, nil
 	}
 
@@ -77,7 +83,6 @@ func (s *ChartStore) loadChartDependencies(chart *Chart) {
 		dependencyURI := chart.GetDependecyURI(dependency.Name())
 		chart := NewChartFromHelmChart(dependency, dependencyURI)
 
-		s.Charts[dependencyURI] = chart
-		s.loadChartDependencies(chart)
+		s.AddChart(chart)
 	}
 }

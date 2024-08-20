@@ -39,22 +39,6 @@ func NewChart(rootURI uri.URI, valuesFilesConfig util.ValuesFilesConfig) *Chart 
 	}
 }
 
-func NewChartFromHelmChart(helmChart *chart.Chart, rootURI uri.URI) *Chart {
-	valuesFile := NewValuesFileFromValues(uri.File(filepath.Join(rootURI.Filename(), "values.yaml")), helmChart.Values)
-
-	return &Chart{
-		ValuesFiles: &ValuesFiles{
-			MainValuesFile:        valuesFile,
-			OverlayValuesFile:     &ValuesFile{},
-			AdditionalValuesFiles: []*ValuesFile{},
-		},
-		ChartMetadata: NewChartMetadataForDependencyChart(helmChart.Metadata, rootURI),
-		RootURI:       rootURI,
-		ParentChart:   ParentChart{},
-		HelmChart:     helmChart,
-	}
-}
-
 func (c *Chart) GetDependecyURI(dependencyName string) uri.URI {
 	unpackedPath := filepath.Join(c.RootURI.Filename(), "charts", dependencyName)
 	fileInfo, err := os.Stat(unpackedPath)

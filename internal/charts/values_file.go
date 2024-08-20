@@ -2,6 +2,7 @@ package charts
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
@@ -11,18 +12,29 @@ import (
 )
 
 type ValuesFile struct {
-	Values    chartutil.Values
-	ValueNode yaml.Node
-	URI       uri.URI
+	Values     chartutil.Values
+	ValueNode  yaml.Node
+	URI        uri.URI
+	rawContent []byte
 }
 
-func NewValuesFile(filePath string) *ValuesFile {
+func NewValuesFileFromPath(filePath string) *ValuesFile {
 	vals, valueNodes := readInValuesFile(filePath)
 
 	return &ValuesFile{
 		ValueNode: valueNodes,
 		Values:    vals,
 		URI:       uri.File(filePath),
+	}
+}
+
+func NewValuesFileFromContent(uri uri.URI, data []byte) *ValuesFile {
+	vals, valueNode := parseYaml(data)
+	return &ValuesFile{
+		ValueNode:  valueNode,
+		Values:     vals,
+		URI:        uri,
+		rawContent: data,
 	}
 }
 
@@ -48,26 +60,31 @@ func (v *ValuesFile) Reload() {
 }
 
 func readInValuesFile(filePath string) (chartutil.Values, yaml.Node) {
-	vals, err := chartutil.ReadValuesFile(filePath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
-		logger.Error("Error loading values file ", filePath, err)
+		logger.Error(fmt.Sprintf("Error loading values file %s ", filePath), err)
+		return chartutil.Values{}, yaml.Node{}
 	}
 
-	valueNodes, err := util.ReadYamlFileToNode(filePath)
+	return parseYaml(content)
+}
+
+func parseYaml(content []byte) (chartutil.Values, yaml.Node) {
+	vals, err := chartutil.ReadValues(content)
 	if err != nil {
-		logger.Error("Error loading values file ", filePath, err)
+		logger.Error("Error parsing values file ", err)
+	}
+
+	valueNodes, err := util.ReadYamlToNode(content)
+	if err != nil {
+		logger.Error("Error parsing values file ", err)
 	}
 	return vals, valueNodes
 }
 
 // GetContent implements PossibleDependencyFile.
 func (d *ValuesFile) GetContent() string {
-	yaml, err := yaml.Marshal(d.Values)
-	if err != nil {
-		logger.Error(fmt.Sprintf("Could not load values for file %s", d.URI.Filename()), err)
-		return ""
-	}
-	return string(yaml)
+	return string(d.rawContent)
 }
 
 // GetPath implements PossibleDependencyFile.

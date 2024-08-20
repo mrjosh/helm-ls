@@ -22,7 +22,7 @@ func NewValuesFiles(rootURI uri.URI, mainValuesFileName string, lintOverlayValue
 	overlayValuesFile := getLintOverlayValuesFile(lintOverlayValuesFile, additionalValuesFiles, rootURI)
 
 	return &ValuesFiles{
-		MainValuesFile:        NewValuesFile(filepath.Join(rootURI.Filename(), mainValuesFileName)),
+		MainValuesFile:        NewValuesFileFromPath(filepath.Join(rootURI.Filename(), mainValuesFileName)),
 		OverlayValuesFile:     overlayValuesFile,
 		AdditionalValuesFiles: additionalValuesFiles,
 	}
@@ -40,7 +40,7 @@ func getLintOverlayValuesFile(lintOverlayValuesFile string, additionalValuesFile
 			}
 		}
 		if overlayValuesFile == nil {
-			overlayValuesFile = NewValuesFile(filepath.Join(rootURI.Filename(), lintOverlayValuesFile))
+			overlayValuesFile = NewValuesFileFromPath(filepath.Join(rootURI.Filename(), lintOverlayValuesFile))
 		}
 	}
 	return overlayValuesFile
@@ -58,7 +58,7 @@ func getAdditionalValuesFiles(additionalValuesFilesGlob string, rootURI uri.URI,
 				if match == filepath.Join(rootURI.Filename(), mainValuesFileName) {
 					continue
 				}
-				additionalValuesFiles = append(additionalValuesFiles, NewValuesFile(match))
+				additionalValuesFiles = append(additionalValuesFiles, NewValuesFileFromPath(match))
 			}
 		}
 	}

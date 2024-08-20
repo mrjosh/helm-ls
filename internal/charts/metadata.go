@@ -1,6 +1,7 @@
 package charts
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -18,7 +19,13 @@ type ChartMetadata struct {
 
 func NewChartMetadata(rootURI uri.URI) *ChartMetadata {
 	filePath := filepath.Join(rootURI.Filename(), chartutil.ChartfileName)
-	chartNode, err := util.ReadYamlFileToNode(filePath)
+	contents, err := os.ReadFile(filePath)
+	if err != nil {
+		logger.Error("Error loading Chart.yaml file", filePath, err)
+		return nil
+	}
+
+	chartNode, err := util.ReadYamlToNode(contents)
 	if err != nil {
 		logger.Error("Error loading Chart.yaml file", rootURI, err)
 	}

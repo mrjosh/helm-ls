@@ -23,8 +23,7 @@ func (s *ChartStore) GetChartForDoc(uri lsp.DocumentURI) (*Chart, error) {
 			URI: uri,
 		}
 	}
-	s.Charts[chart.RootURI] = chart
-	s.loadChartDependencies(chart)
+	s.AddChart(chart)
 
 	return chart, nil
 }

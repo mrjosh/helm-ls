@@ -7,6 +7,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/stretchr/testify/assert"
+	"go.lsp.dev/uri"
 	"gopkg.in/yaml.v3"
 	"helm.sh/helm/v3/pkg/chartutil"
 )
@@ -16,7 +17,7 @@ func TestNewValuesFile(t *testing.T) {
 
 	valuesContent := `foo: bar`
 	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0o644)
-	valuesFile := charts.NewValuesFile(filepath.Join(tempDir, "values.yaml"))
+	valuesFile := charts.NewValuesFileFromPath(filepath.Join(tempDir, "values.yaml"))
 
 	assert.Equal(t, "bar", valuesFile.Values["foo"])
 	assert.NotEqual(t, yaml.Node{}, valuesFile.ValueNode)
@@ -25,7 +26,7 @@ func TestNewValuesFile(t *testing.T) {
 func TestNewValuesFileFileNotFound(t *testing.T) {
 	tempDir := t.TempDir()
 
-	valuesFile := charts.NewValuesFile(filepath.Join(tempDir, "values.yaml"))
+	valuesFile := charts.NewValuesFileFromPath(filepath.Join(tempDir, "values.yaml"))
 
 	assert.Equal(t, chartutil.Values{}, valuesFile.Values)
 	assert.Equal(t, yaml.Node{}, valuesFile.ValueNode)
@@ -35,7 +36,7 @@ func TestReload(t *testing.T) {
 	tempDir := t.TempDir()
 	valuesContent := `foo: bar`
 	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0o644)
-	valuesFile := charts.NewValuesFile(filepath.Join(tempDir, "values.yaml"))
+	valuesFile := charts.NewValuesFileFromPath(filepath.Join(tempDir, "values.yaml"))
 
 	assert.Equal(t, "bar", valuesFile.Values["foo"])
 	assert.NotEqual(t, yaml.Node{}, valuesFile.ValueNode)
@@ -49,7 +50,6 @@ func TestReload(t *testing.T) {
 func TestGetContent(t *testing.T) {
 	tempDir := t.TempDir()
 	valuesContent := "foo: bar"
-	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte(valuesContent), 0o644)
-	valuesFile := charts.NewValuesFile(filepath.Join(tempDir, "values.yaml"))
-	assert.Equal(t, valuesContent+"\n", valuesFile.GetContent())
+	valuesFile := charts.NewValuesFileFromContent(uri.File(filepath.Join(tempDir, "values.yaml")), []byte(valuesContent))
+	assert.Equal(t, valuesContent, valuesFile.GetContent())
 }

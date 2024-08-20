@@ -2,7 +2,6 @@ package util
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	lsp "go.lsp.dev/protocol"
@@ -76,13 +75,8 @@ func getPositionOfNodeAfterRange(node *yamlv3.Node, query []string) (lsp.Positio
 	return lsp.Position{}, fmt.Errorf("could not find Position of %s in values. Found no match", query)
 }
 
-// ReadYamlFileToNode will parse a YAML file into a yaml Node.
-func ReadYamlFileToNode(filename string) (node yamlv3.Node, err error) {
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return yamlv3.Node{}, err
-	}
-
+// ReadYamlToNode will parse a YAML file into a yaml Node.
+func ReadYamlToNode(data []byte) (node yamlv3.Node, err error) {
 	err = yamlv3.Unmarshal(data, &node)
 	return node, err
 }

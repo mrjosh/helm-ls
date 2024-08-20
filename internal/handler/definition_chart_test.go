@@ -26,6 +26,7 @@ type testCase struct {
 	// Must be content of a line in the file fileURI
 	templateLineWithMarker string
 	expectedFile           string
+	expectedFileCount      int
 	expectedStartPosition  lsp.Position
 	expectedError          error
 }
@@ -35,18 +36,36 @@ func TestDefinitionChart(t *testing.T) {
 		{
 			`{{ include "common.na^mes.name" . }}`,
 			"charts/.helm_ls_cache/common/templates/_names.tpl",
+			1,
 			lsp.Position{Line: 9, Character: 0},
 			nil,
 		},
 		{
 			`{{- include "dependeciesEx^ample.labels" . | nindent 4 }}`,
 			"templates/_helpers.tpl",
+			1,
 			lsp.Position{Line: 35, Character: 0},
 			nil,
 		},
 		{
 			`{{ .Values.gl^obal.subchart }}`,
 			"values.yaml",
+			2,
+			lsp.Position{Line: 7, Character: 0},
+			nil,
+		},
+		{
+			`{{ .Values.gl^obal.subchart }}`,
+			"charts/subchartexample/values.yaml",
+			2,
+			lsp.Position{Line: 0, Character: 0},
+			nil,
+		},
+		{
+			`{{ .Values.common.exa^mpleValue }}`,
+			"charts/.helm_ls_cache/common/values.yaml",
+			1,
+			// this tests, that the file also contains comments
 			lsp.Position{Line: 7, Character: 0},
 			nil,
 		},
@@ -57,11 +76,11 @@ func TestDefinitionChart(t *testing.T) {
 		t.Fatal(err)
 	}
 	lines := strings.Split(string(fileContent), "\n")
-	for _, tC := range testCases {
-		t.Run("Definition on "+tC.templateLineWithMarker, func(t *testing.T) {
-			pos, found := getPosition(tC, lines)
+	for _, tc := range testCases {
+		t.Run("Definition on "+tc.templateLineWithMarker, func(t *testing.T) {
+			pos, found := getPosition(tc, lines)
 			if !found {
-				t.Fatal(fmt.Sprintf("%s is not in the file %s", tC.templateLineWithMarker, fileURI.Filename()))
+				t.Fatal(fmt.Sprintf("%s is not in the file %s", tc.templateLineWithMarker, fileURI.Filename()))
 			}
 
 			documents := lsplocal.NewDocumentStore()
@@ -69,7 +88,7 @@ func TestDefinitionChart(t *testing.T) {
 			chart := charts.NewChart(rootUri, util.DefaultConfig.ValuesFilesConfig)
 
 			chartStore := charts.NewChartStore(rootUri, charts.NewChart)
-			chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: chart}
+			chartStore.GetChartForURI(rootUri)
 			h := &langHandler{
 				chartStore:      chartStore,
 				documents:       documents,
@@ -86,11 +105,24 @@ func TestDefinitionChart(t *testing.T) {
 				},
 			})
 
-			assert.Equal(t, tC.expectedError, err)
-			assert.Len(t, locations, 1)
+			assert.Equal(t, tc.expectedError, err)
+			assert.Len(t, locations, tc.expectedFileCount)
+
+			// find the location with the correct file path
+			foundLocation := false
+			for _, location := range locations {
+				if location.URI.Filename() == filepath.Join(rootUri.Filename(), tc.expectedFile) {
+					locations = []lsp.Location{location}
+					foundLocation = true
+					break
+				}
+			}
+
+			assert.True(t, foundLocation, fmt.Sprintf("Did not find a result with the expected file path %s ", filepath.Join(rootUri.Filename(), tc.expectedFile)))
+
 			if len(locations) > 0 {
-				assert.Equal(t, filepath.Join(rootUri.Filename(), tC.expectedFile), locations[0].URI.Filename())
-				assert.Equal(t, tC.expectedStartPosition, locations[0].Range.Start)
+				assert.Equal(t, filepath.Join(rootUri.Filename(), tc.expectedFile), locations[0].URI.Filename())
+				assert.Equal(t, tc.expectedStartPosition, locations[0].Range.Start)
 			}
 
 			for _, location := range locations {
