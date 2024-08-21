@@ -79,30 +79,27 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 		logger.Error("Could not resolve values files for nil chart")
 		return []*QueriedValuesFiles{}
 	}
-	// logger.Debug(fmt.Sprintf("Resolving values files for %s with query %s", c.HelmChart.Name(), query))
 	result := []*QueriedValuesFiles{{Selector: query, ValuesFiles: c.ValuesFiles}}
-
 	if len(query) == 0 {
 		return result
 	}
 
-	if c.HelmChart != nil {
-		result = c.resolveValuesFilesOfDependencies(query, chartStore, result)
-	}
+	result = append(result, c.resolveValuesFilesOfDependencies(query, chartStore)...)
 
+	result = append(result, c.resolveValuesFilesOfParent(chartStore, query)...)
+
+	return result
+}
+
+func (c *Chart) resolveValuesFilesOfParent(chartStore *ChartStore, query []string) (result []*QueriedValuesFiles) {
 	parentChart := c.ParentChart.GetParentChart(chartStore)
+	if parentChart == nil {
+		return []*QueriedValuesFiles{}
+	}
 
 	if query[0] == "global" {
-		if parentChart == nil {
-			return result
-		}
-
 		return append(result,
 			parentChart.ResolveValueFiles(query, chartStore)...)
-	}
-
-	if parentChart == nil {
-		return result
 	}
 
 	chartName := c.ChartMetadata.Metadata.Name
@@ -112,7 +109,10 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) []*Que
 		parentChart.ResolveValueFiles(extendedQuery, chartStore)...)
 }
 
-func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *ChartStore, result []*QueriedValuesFiles) []*QueriedValuesFiles {
+func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *ChartStore) (result []*QueriedValuesFiles) {
+	if c.HelmChart == nil {
+		return []*QueriedValuesFiles{}
+	}
 	for _, dependency := range c.HelmChart.Dependencies() {
 		logger.Debug(fmt.Sprintf("Resolving dependency %s with query %s", dependency.Name(), query))
 
@@ -120,7 +120,7 @@ func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *Cha
 			subQuery := query
 
 			if dependency.Name() == query[0] {
-				if len(query) > 1 {
+				if len(query) >= 1 {
 					subQuery = query[1:]
 				}
 			}
@@ -132,6 +132,7 @@ func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *Cha
 			}
 
 			// TODO: why does this cause infinite recursion?
+			// because dependencyChart have the parent as dependency
 			// result = append(result, dependencyChart.ResolveValueFiles(subQuery, chartStore)...)
 
 			result = append(result,

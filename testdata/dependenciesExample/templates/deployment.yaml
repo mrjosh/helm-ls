@@ -69,3 +69,4 @@ spec:
       example: {{ .Values.common.exampleValue }}
       example2: {{ .Values.global.subchart }} 
       example3: {{ .Values.subchartexample.subchartWithoutGlobal }} # todo fix this: missing hover, completion etc.
+      example4: {{ include "subchartexample.name" . }}

@@ -170,6 +170,25 @@ func TestResolvesValuesFileOfDependencyWithChartName(t *testing.T) {
 	assert.Contains(t, selectors, []string{"foo"})
 }
 
+func TestResolvesValuesFileOfDependencyWithOnlyChartName(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
+		valueFiles = chart.ResolveValueFiles([]string{"subchartexample"}, chartStore)
+	)
+
+	assert.NoError(t, err)
+	assert.Len(t, valueFiles, 2)
+
+	selectors := [][]string{}
+	for _, valueFile := range valueFiles {
+		selectors = append(selectors, valueFile.Selector)
+	}
+	assert.Contains(t, selectors, []string{"subchartexample"})
+	assert.Contains(t, selectors, []string{})
+}
+
 func TestResolvesValuesFileOfDependencyWithChartNameForPackedDependency(t *testing.T) {
 	var (
 		rootDir    = "../../testdata/dependenciesExample"
@@ -202,5 +221,14 @@ func TestLoadsHelmChartWithDependecies(t *testing.T) {
 	chart := charts.NewChart(uri.File("../../testdata/dependenciesExample/"), util.ValuesFilesConfig{})
 
 	dependecyTemplates := chart.GetDependeciesTemplates()
-	assert.Len(t, dependecyTemplates, 21)
+	assert.Len(t, dependecyTemplates, 23)
+
+	filePaths := []string{}
+	for _, dependency := range dependecyTemplates {
+		filePaths = append(filePaths, dependency.Path)
+	}
+	path, _ := filepath.Abs("../../testdata/dependenciesExample/charts/subchartexample/templates/subchart.yaml")
+	assert.Contains(t, filePaths, path)
+	path, _ = filepath.Abs("../../testdata/dependenciesExample/charts/" + charts.DependencyCacheFolder + "/common/templates/_names.tpl")
+	assert.Contains(t, filePaths, path)
 }

@@ -18,8 +18,9 @@ import (
 )
 
 var (
-	rootUri = uri.File("../../testdata/dependenciesExample/")
-	fileURI = uri.File("../../testdata/dependenciesExample/templates/deployment.yaml")
+	rootUri           = uri.File("../../testdata/dependenciesExample/")
+	fileURI           = uri.File("../../testdata/dependenciesExample/templates/deployment.yaml")
+	fileURIInSubchart = uri.File("../../testdata/dependenciesExample/charts/subchartexample/templates/subchart.yaml")
 )
 
 type testCase struct {
@@ -29,8 +30,10 @@ type testCase struct {
 	expectedFileCount      int
 	expectedStartPosition  lsp.Position
 	expectedError          error
+	inSubchart             bool
 }
 
+// Test definition on a real chart found in $rootUri
 func TestDefinitionChart(t *testing.T) {
 	testCases := []testCase{
 		{
@@ -39,6 +42,7 @@ func TestDefinitionChart(t *testing.T) {
 			1,
 			lsp.Position{Line: 9, Character: 0},
 			nil,
+			false,
 		},
 		{
 			`{{- include "dependeciesEx^ample.labels" . | nindent 4 }}`,
@@ -46,6 +50,7 @@ func TestDefinitionChart(t *testing.T) {
 			1,
 			lsp.Position{Line: 35, Character: 0},
 			nil,
+			false,
 		},
 		{
 			`{{ .Values.gl^obal.subchart }}`,
@@ -53,6 +58,7 @@ func TestDefinitionChart(t *testing.T) {
 			2,
 			lsp.Position{Line: 7, Character: 0},
 			nil,
+			false,
 		},
 		{
 			`{{ .Values.gl^obal.subchart }}`,
@@ -60,6 +66,7 @@ func TestDefinitionChart(t *testing.T) {
 			2,
 			lsp.Position{Line: 0, Character: 0},
 			nil,
+			false,
 		},
 		{
 			`{{ .Values.common.exa^mpleValue }}`,
@@ -68,16 +75,70 @@ func TestDefinitionChart(t *testing.T) {
 			// this tests, that the file also contains comments
 			lsp.Position{Line: 7, Character: 0},
 			nil,
+			false,
+		},
+		{
+			`{{ .Values.comm^on.exampleValue }}`,
+			"charts/.helm_ls_cache/common/values.yaml",
+			1,
+			lsp.Position{Line: 7, Character: 0},
+			nil,
+			false,
+		},
+		{
+			`{{ .Values.subch^artexample.subchartWithoutGlobal }}`,
+			"values.yaml",
+			2,
+			lsp.Position{Line: 49, Character: 0},
+			nil,
+			false,
+		},
+		{
+			`{{ .Values.subch^artexample.subchartWithoutGlobal }}`,
+			"charts/subchartexample/values.yaml",
+			2,
+			lsp.Position{Line: 0, Character: 0},
+			nil,
+			false,
+		},
+		{
+			`{{ .Values.subchartexample.subchartWith^outGlobal }}`,
+			"values.yaml",
+			2,
+			lsp.Position{Line: 50, Character: 2},
+			nil,
+			false,
+		},
+		{
+			`{{ .Values.subchartexample.subchart^WithoutGlobal }}`,
+			"charts/subchartexample/values.yaml",
+			2,
+			lsp.Position{Line: 2, Character: 0},
+			nil,
+			false,
+		},
+		{
+			`{{ .Values.subchart^WithoutGlobal }}`,
+			"charts/subchartexample/values.yaml",
+			2, // TODO: this should also find the parent, but the parent of the chart is not found :?
+			lsp.Position{Line: 2, Character: 0},
+			nil,
+			true,
 		},
 	}
 
-	fileContent, err := os.ReadFile(fileURI.Filename())
-	if err != nil {
-		t.Fatal(err)
-	}
-	lines := strings.Split(string(fileContent), "\n")
 	for _, tc := range testCases {
 		t.Run("Definition on "+tc.templateLineWithMarker, func(t *testing.T) {
+			uri := fileURI
+			if tc.inSubchart {
+				uri = fileURIInSubchart
+			}
+			fileContent, err := os.ReadFile(uri.Filename())
+			if err != nil {
+				t.Fatal(err)
+			}
+			lines := strings.Split(string(fileContent), "\n")
+
 			pos, found := getPosition(tc, lines)
 			if !found {
 				t.Fatal(fmt.Sprintf("%s is not in the file %s", tc.templateLineWithMarker, fileURI.Filename()))
@@ -88,7 +149,7 @@ func TestDefinitionChart(t *testing.T) {
 			chart := charts.NewChart(rootUri, util.DefaultConfig.ValuesFilesConfig)
 
 			chartStore := charts.NewChartStore(rootUri, charts.NewChart)
-			chartStore.GetChartForURI(rootUri)
+			_, err = chartStore.GetChartForURI(rootUri)
 			h := &langHandler{
 				chartStore:      chartStore,
 				documents:       documents,
@@ -96,11 +157,13 @@ func TestDefinitionChart(t *testing.T) {
 				helmlsConfig:    util.DefaultConfig,
 			}
 
+			assert.NoError(t, err)
+
 			h.LoadDocsOnNewChart(chart)
 
 			locations, err := h.Definition(context.TODO(), &lsp.DefinitionParams{
 				TextDocumentPositionParams: lsp.TextDocumentPositionParams{
-					TextDocument: lsp.TextDocumentIdentifier{URI: fileURI},
+					TextDocument: lsp.TextDocumentIdentifier{URI: uri},
 					Position:     pos,
 				},
 			})

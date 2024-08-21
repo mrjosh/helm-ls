@@ -18,7 +18,8 @@ import (
 	"helm.sh/helm/v3/pkg/chart"
 )
 
-var testFileContent = `
+var (
+	testFileContent = `
 {{ $variable := "text" }} # line 1
 {{ $variable }}           # line 2
 
@@ -34,8 +35,6 @@ var testFileContent = `
 {{ end }}
 {{ range $index, $element := pipeline }}{{ $index }}{{ $element }}{{ end }} # line 14
 `
-
-var (
 	testDocumentTemplateURI = uri.URI("file:///templates/test.yaml")
 	testValuesURI           = uri.URI("file:///values.yaml")
 	testOtherValuesURI      = uri.URI("file:///values.other.yaml")

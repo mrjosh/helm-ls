@@ -16,7 +16,7 @@ type DependencyTemplateFile struct {
 var DependencyCacheFolder = ".helm_ls_cache"
 
 func (c *Chart) NewDependencyTemplateFile(chartName string, file *chart.File) *DependencyTemplateFile {
-	path := filepath.Join(c.RootURI.Filename(), "charts", DependencyCacheFolder, chartName, file.Name)
+	path := filepath.Join(c.getDependencyDir(chartName), file.Name)
 
 	return &DependencyTemplateFile{Content: file.Data, Path: path}
 }
@@ -24,6 +24,15 @@ func (c *Chart) NewDependencyTemplateFile(chartName string, file *chart.File) *D
 type PossibleDependencyFile interface {
 	GetContent() string
 	GetPath() string
+}
+
+func (c *Chart) getDependencyDir(chartName string) string {
+	extractedPath := filepath.Join(c.RootURI.Filename(), "charts", chartName)
+	_, err := os.Stat(extractedPath)
+	if err == nil {
+		return extractedPath
+	}
+	return filepath.Join(c.RootURI.Filename(), "charts", DependencyCacheFolder, chartName)
 }
 
 // SyncToDisk writes the content of the document to disk if it is a dependency file.

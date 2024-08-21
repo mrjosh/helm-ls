@@ -1,0 +1,2 @@
+example2: {{ .Values.global.subchart }} 
+example3: {{ .Values.subchartWithoutGlobal }}
