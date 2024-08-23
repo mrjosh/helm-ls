@@ -123,6 +123,7 @@ key:
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"global": map[string]interface{}{"key": "value"}}, URI: "file://tmp/charts/subchart/values.yaml"},
 					},
+					RootURI: uri.File("/tmp/charts/subchart"),
 					ParentChart: charts.ParentChart{
 						ParentChartURI: uri.New("file://tmp/"),
 						HasParent:      true,
@@ -163,6 +164,7 @@ value
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"key": "value"}, URI: "file://tmp/charts/subchart/values.yaml"},
 					},
+					RootURI: uri.File("/tmp/charts/subchart"),
 					ParentChart: charts.ParentChart{
 						ParentChartURI: uri.New("file://tmp/"),
 						HasParent:      true,
@@ -201,6 +203,7 @@ value
 					ValuesFiles: &charts.ValuesFiles{
 						MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"key": "value"}, URI: "file://tmp/charts/subchart/charts/subsubchart/values.yaml"},
 					},
+					RootURI: uri.File("/tmp/charts/subchart/charts/subsubchart"),
 					ParentChart: charts.ParentChart{
 						ParentChartURI: uri.New("file://tmp/charts/subchart"),
 						HasParent:      true,
@@ -213,6 +216,7 @@ value
 						ValuesFiles: &charts.ValuesFiles{
 							MainValuesFile: &charts.ValuesFile{Values: map[string]interface{}{"subsubchart": map[string]interface{}{"key": "middleValue"}}, URI: "file://tmp/charts/subchart/values.yaml"},
 						},
+						RootURI: uri.File("/tmp/charts/subchart"),
 						ParentChart: charts.ParentChart{
 							ParentChartURI: uri.New("file://tmp/"),
 							HasParent:      true,

@@ -81,7 +81,7 @@ func (f *TemplateContextFeature) getDefinitionLocations(templateContext lsplocal
 		}
 		return locations
 	case "Chart":
-		location, _ := f.Chart.GetValueLocation(templateContext.Tail())
+		location, _ := f.Chart.GetMetadataLocation(templateContext.Tail())
 		return []lsp.Location{location}
 	}
 	return locations

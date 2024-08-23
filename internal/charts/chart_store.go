@@ -11,14 +11,16 @@ type ChartStore struct {
 	Charts            map[uri.URI]*Chart
 	RootURI           uri.URI
 	newChart          func(uri.URI, util.ValuesFilesConfig) *Chart
+	addChartCallback  func(chart *Chart)
 	valuesFilesConfig util.ValuesFilesConfig
 }
 
-func NewChartStore(rootURI uri.URI, newChart func(uri.URI, util.ValuesFilesConfig) *Chart) *ChartStore {
+func NewChartStore(rootURI uri.URI, newChart func(uri.URI, util.ValuesFilesConfig) *Chart, addChartCallback func(chart *Chart)) *ChartStore {
 	return &ChartStore{
 		Charts:            map[uri.URI]*Chart{},
 		RootURI:           rootURI,
 		newChart:          newChart,
+		addChartCallback:  addChartCallback,
 		valuesFilesConfig: util.DefaultConfig.ValuesFilesConfig,
 	}
 }
@@ -27,6 +29,7 @@ func NewChartStore(rootURI uri.URI, newChart func(uri.URI, util.ValuesFilesConfi
 func (s *ChartStore) AddChart(chart *Chart) {
 	s.Charts[chart.RootURI] = chart
 	s.loadChartDependencies(chart)
+	s.addChartCallback(chart)
 }
 
 func (s *ChartStore) SetValuesFilesConfig(valuesFilesConfig util.ValuesFilesConfig) {

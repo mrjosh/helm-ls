@@ -3,6 +3,7 @@
 __debug_bin*
 .vscode
 
+.coverage
 testdata/dependenciesExample/charts/.helm_ls_cache/
 helm-ls
 helm_ls

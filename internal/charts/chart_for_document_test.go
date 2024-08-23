@@ -16,7 +16,7 @@ import (
 func TestGetChartForDocumentWorksForAlreadyAddedCharts(t *testing.T) {
 	chartStore := charts.NewChartStore("file:///tmp", func(uri uri.URI, _ util.ValuesFilesConfig) *charts.Chart {
 		return &charts.Chart{RootURI: uri}
-	})
+	}, addChartCallback)
 
 	chart := &charts.Chart{}
 	chartStore.Charts["file:///tmp/chart"] = chart
@@ -58,7 +58,7 @@ func TestGetChartForDocumentWorksForNewToAddChart(t *testing.T) {
 			HelmChart: &chart.Chart{},
 		}
 		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc)
+		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc, addChartCallback)
 		err          = os.MkdirAll(expectedChartDirectory, 0o755)
 	)
 	assert.NoError(t, err)
@@ -84,7 +84,7 @@ func TestGetChartForDocumentWorksForNewToAddChartWithNestedFile(t *testing.T) {
 			HelmChart: &chart.Chart{},
 		}
 		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc)
+		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc, addChartCallback)
 		err          = os.MkdirAll(expectedChartDirectory, 0o755)
 	)
 	assert.NoError(t, err)
@@ -101,7 +101,7 @@ func TestGetChartForDocumentWorksForNewToAddChartWithNestedFile(t *testing.T) {
 func TestGetChartOrParentForDocWorks(t *testing.T) {
 	chartStore := charts.NewChartStore("file:///tmp", func(uri uri.URI, _ util.ValuesFilesConfig) *charts.Chart {
 		return &charts.Chart{RootURI: uri}
-	})
+	}, addChartCallback)
 
 	chart := &charts.Chart{}
 	chartStore.Charts["file:///tmp/chart"] = chart
@@ -142,7 +142,7 @@ func TestGetChartOrParentForDocWorks(t *testing.T) {
 func TestGetChartForDocumentWorksForChartWithDependencies(t *testing.T) {
 	var (
 		rootDir    = "../../testdata/dependenciesExample/"
-		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart, addChartCallback)
 	)
 
 	result1, error := chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))

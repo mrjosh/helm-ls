@@ -4,16 +4,14 @@ import (
 	"context"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 
 	"go.lsp.dev/jsonrpc2"
 )
 
-func (h *langHandler) NewChartWithWatchedFiles(rootURI uri.URI, valuesFilesConfig util.ValuesFilesConfig) *charts.Chart {
-	logger.Debug("NewChartWithWatchedFiles", rootURI, valuesFilesConfig)
-	chart := charts.NewChart(rootURI, valuesFilesConfig)
+func (h *langHandler) NewChartWithWatchedFiles(chart *charts.Chart) {
+	logger.Debug("NewChartWithWatchedFiles ", chart.RootURI)
 
 	uris := make([]uri.URI, 0)
 	for _, valuesFile := range chart.ValuesFiles.AllValuesFiles() {
@@ -21,7 +19,6 @@ func (h *langHandler) NewChartWithWatchedFiles(rootURI uri.URI, valuesFilesConfi
 	}
 
 	go h.RegisterWatchedFiles(context.Background(), h.connPool, uris)
-	return chart
 }
 
 func (h *langHandler) RegisterWatchedFiles(ctx context.Context, conn jsonrpc2.Conn, files []uri.URI) {

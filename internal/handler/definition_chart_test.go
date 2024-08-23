@@ -37,6 +37,14 @@ type testCase struct {
 func TestDefinitionChart(t *testing.T) {
 	testCases := []testCase{
 		{
+			`{{ .Values.subchart^WithoutGlobal }}`,
+			"charts/subchartexample/values.yaml",
+			2, // TODO: this should also find the parent, but the parent of the chart is not found :?
+			lsp.Position{Line: 2, Character: 0},
+			nil,
+			true,
+		},
+		{
 			`{{ include "common.na^mes.name" . }}`,
 			"charts/.helm_ls_cache/common/templates/_names.tpl",
 			1,
@@ -118,12 +126,20 @@ func TestDefinitionChart(t *testing.T) {
 			false,
 		},
 		{
-			`{{ .Values.subchart^WithoutGlobal }}`,
-			"charts/subchartexample/values.yaml",
-			2, // TODO: this should also find the parent, but the parent of the chart is not found :?
-			lsp.Position{Line: 2, Character: 0},
+			`{{ .Cha^rt.Name }}`,
+			"Chart.yaml",
+			1,
+			lsp.Position{Line: 0, Character: 0},
 			nil,
-			true,
+			false,
+		},
+		{
+			`{{ .Chart.Na^me }}`,
+			"Chart.yaml",
+			1,
+			lsp.Position{Line: 1, Character: 0},
+			nil,
+			false,
 		},
 	}
 
@@ -148,7 +164,8 @@ func TestDefinitionChart(t *testing.T) {
 
 			chart := charts.NewChart(rootUri, util.DefaultConfig.ValuesFilesConfig)
 
-			chartStore := charts.NewChartStore(rootUri, charts.NewChart)
+var addChartCallback = func(chart *charts.Chart) {}
+			chartStore := charts.NewChartStore(rootUri, charts.NewChart,addChartCallback)
 			_, err = chartStore.GetChartForURI(rootUri)
 			h := &langHandler{
 				chartStore:      chartStore,

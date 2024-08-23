@@ -11,8 +11,12 @@ import (
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chartutil"
 
+	lsp "go.lsp.dev/protocol"
+
 	"github.com/stretchr/testify/assert"
 )
+
+var addChartCallback = func(chart *charts.Chart) {}
 
 func TestNewChartsLoadsMetadata(t *testing.T) {
 	tempDir := t.TempDir()
@@ -85,7 +89,7 @@ func TestResolvesValuesFileOfParent(t *testing.T) {
 		HelmChart:     &chart.Chart{},
 	}
 	newChartFunc := func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc)
+	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc, addChartCallback)
 
 	valueFiles := sut.ResolveValueFiles([]string{"global", "foo"}, chartStore)
 
@@ -122,7 +126,7 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 		HelmChart: &chart.Chart{},
 	}
 	newChartFunc := func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc)
+	chartStore := charts.NewChartStore(uri.File(tempDir), newChartFunc, addChartCallback)
 
 	valueFiles := subchart.ResolveValueFiles([]string{"foo"}, chartStore)
 
@@ -136,7 +140,7 @@ func TestResolvesValuesFileOfParentByName(t *testing.T) {
 func TestResolvesValuesFileOfDependencyWithGlobal(t *testing.T) {
 	var (
 		rootDir    = "../../testdata/dependenciesExample"
-		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart, addChartCallback)
 		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
 		valueFiles = chart.ResolveValueFiles([]string{"global"}, chartStore)
 	)
@@ -154,7 +158,7 @@ func TestResolvesValuesFileOfDependencyWithGlobal(t *testing.T) {
 func TestResolvesValuesFileOfDependencyWithChartName(t *testing.T) {
 	var (
 		rootDir    = "../../testdata/dependenciesExample"
-		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart, addChartCallback)
 		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
 		valueFiles = chart.ResolveValueFiles([]string{"subchartexample", "foo"}, chartStore)
 	)
@@ -173,7 +177,7 @@ func TestResolvesValuesFileOfDependencyWithChartName(t *testing.T) {
 func TestResolvesValuesFileOfDependencyWithOnlyChartName(t *testing.T) {
 	var (
 		rootDir    = "../../testdata/dependenciesExample"
-		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart, addChartCallback)
 		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
 		valueFiles = chart.ResolveValueFiles([]string{"subchartexample"}, chartStore)
 	)
@@ -192,7 +196,7 @@ func TestResolvesValuesFileOfDependencyWithOnlyChartName(t *testing.T) {
 func TestResolvesValuesFileOfDependencyWithChartNameForPackedDependency(t *testing.T) {
 	var (
 		rootDir    = "../../testdata/dependenciesExample"
-		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart)
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart, addChartCallback)
 		chart, err = chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
 		valueFiles = chart.ResolveValueFiles([]string{"common", "exampleValue"}, chartStore)
 	)
@@ -231,4 +235,23 @@ func TestLoadsHelmChartWithDependecies(t *testing.T) {
 	assert.Contains(t, filePaths, path)
 	path, _ = filepath.Abs("../../testdata/dependenciesExample/charts/" + charts.DependencyCacheFolder + "/common/templates/_names.tpl")
 	assert.Contains(t, filePaths, path)
+}
+
+func TestGetValueLocation(t *testing.T) {
+	chart := charts.NewChart(uri.File("../../testdata/dependenciesExample/"), util.ValuesFilesConfig{})
+
+	valueLocation, err := chart.GetMetadataLocation([]string{"Name"})
+	assert.NoError(t, err)
+
+	expected := lsp.Location{
+		URI: uri.File("../../testdata/dependenciesExample/Chart.yaml"),
+		Range: lsp.Range{
+			Start: lsp.Position{
+				Line:      1,
+				Character: 0,
+			},
+		},
+	}
+
+	assert.Equal(t, expected, valueLocation)
 }

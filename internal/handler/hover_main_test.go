@@ -161,8 +161,10 @@ func TestHoverMain(t *testing.T) {
 				},
 			}
 			documents.DidOpen(&d, util.DefaultConfig)
+
+			addChartCallback := func(chart *charts.Chart) {}
 			h := &langHandler{
-				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart),
+				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
 			}

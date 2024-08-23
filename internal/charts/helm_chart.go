@@ -4,31 +4,44 @@ import (
 	"path/filepath"
 
 	"go.lsp.dev/uri"
+	"gopkg.in/yaml.v3"
 	"helm.sh/helm/v3/pkg/chart"
 )
 
 // TODO: this ignores the newChart callback present in the ChartStore
 func NewChartFromHelmChart(helmChart *chart.Chart, rootURI uri.URI) *Chart {
-	valuesFile := getValues(helmChart, rootURI)
 	return &Chart{
 		ValuesFiles: &ValuesFiles{
-			MainValuesFile:        valuesFile,
+			MainValuesFile:        getValues(helmChart, rootURI),
 			OverlayValuesFile:     &ValuesFile{},
 			AdditionalValuesFiles: []*ValuesFile{},
 		},
 		ChartMetadata: NewChartMetadataForDependencyChart(helmChart.Metadata, rootURI),
 		RootURI:       rootURI,
-		ParentChart:   ParentChart{},
+		ParentChart:   getParent(helmChart, rootURI),
 		HelmChart:     helmChart,
 	}
 }
 
 func getValues(helmChart *chart.Chart, rootURI uri.URI) *ValuesFile {
 	// Use Raw values if present because they also contain comments and documentation can be useful
+	uri := uri.File(filepath.Join(rootURI.Filename(), "values.yaml"))
 	for _, file := range helmChart.Raw {
 		if file.Name == "values.yaml" {
-			return NewValuesFileFromContent(uri.File(filepath.Join(rootURI.Filename(), "values.yaml")), file.Data)
+			return NewValuesFileFromContent(uri, file.Data)
 		}
 	}
-	return NewValuesFileFromValues(uri.File(filepath.Join(rootURI.Filename(), "values.yaml")), helmChart.Values)
+	return &ValuesFile{
+		ValueNode:  yaml.Node{},
+		Values:     helmChart.Values,
+		URI:        uri,
+		rawContent: []byte{},
+	}
+}
+
+func getParent(helmChart *chart.Chart, rootURI uri.URI) ParentChart {
+	if helmChart.Parent() != nil {
+		return newParentChart(rootURI)
+	}
+	return ParentChart{}
 }

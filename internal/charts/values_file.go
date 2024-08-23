@@ -38,19 +38,6 @@ func NewValuesFileFromContent(uri uri.URI, data []byte) *ValuesFile {
 	}
 }
 
-func NewValuesFileFromValues(uri uri.URI, values chartutil.Values) *ValuesFile {
-	valueNode, error := util.ValuesToYamlNode(values)
-	if error != nil {
-		logger.Error(fmt.Sprintf("Could not load values for file %s", uri.Filename()), error)
-		return &ValuesFile{}
-	}
-	return &ValuesFile{
-		ValueNode: valueNode,
-		Values:    values,
-		URI:       uri,
-	}
-}
-
 func (v *ValuesFile) Reload() {
 	vals, valueNodes := readInValuesFile(v.URI.Filename())
 

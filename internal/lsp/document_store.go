@@ -56,17 +56,17 @@ func (s *DocumentStore) Store(filename string, content []byte, helmlsConfig util
 		return
 	}
 	ast := ParseAst(nil, string(content))
-	fileUri := uri.File(filename)
-	s.documents.Store(fileUri.Filename(),
+	fileURI := uri.File(filename)
+	s.documents.Store(fileURI.Filename(),
 		&Document{
-			URI:              fileUri,
+			URI:              fileURI,
 			Path:             filename,
 			Content:          string(content),
 			Ast:              ast,
 			DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
 			IsOpen:           false,
 			SymbolTable:      NewSymbolTable(ast, content),
-			IsYaml:           IsYamlDocument(fileUri, helmlsConfig.YamllsConfiguration),
+			IsYaml:           IsYamlDocument(fileURI, helmlsConfig.YamllsConfiguration),
 		},
 	)
 }
