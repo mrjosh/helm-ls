@@ -36,6 +36,8 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 			TextDocumentSync: lsp.TextDocumentSyncOptions{
 				Change:    lsp.TextDocumentSyncKindIncremental,
 				OpenClose: true,
+				// ensure we get a save notification to update diagnostics
+				Save: &lsp.SaveOptions{},
 			},
 			CompletionProvider: &lsp.CompletionOptions{
 				TriggerCharacters: []string{".", "$."},
