@@ -27,6 +27,7 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
   - [Manual download](#manual-download)
     - [Make it executable](#make-it-executable)
   - [Integration with yaml-language-server](#integration-with-yaml-language-server)
+  - [Dependency Charts](#dependency-charts)
 - [Configuration options](#configuration-options)
   - [General](#general)
   - [Values Files](#values-files)
@@ -138,6 +139,15 @@ to use the schemas from the [CRDs-catalog](https://github.com/datreeio/CRDs-cata
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/keda.sh/scaledobject_v1alpha1.json
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
+```
+
+### Dependency Charts
+
+Helm-ls can process dependency charts to provide autocompletion, hover etc. with values from the dependencies.
+For this the dependency charts have to be downloaded. Run the following command in your project to download them:
+
+```bash
+helm dependency build
 ```
 
 ## Configuration options
