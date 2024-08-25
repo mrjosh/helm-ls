@@ -123,7 +123,7 @@ func (f *TemplateContextFeature) valuesHover(templateContext lsplocal.TemplateCo
 			}
 		}
 	}
-	return hoverResults.Format(f.ChartStore.RootURI), nil
+	return hoverResults.FormatYaml(f.ChartStore.RootURI), nil
 }
 
 func (f *TemplateContextFeature) getMetadataField(v *chart.Metadata, fieldName string) string {

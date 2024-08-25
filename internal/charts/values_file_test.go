@@ -49,7 +49,7 @@ func TestReload(t *testing.T) {
 
 func TestGetContent(t *testing.T) {
 	tempDir := t.TempDir()
-	valuesContent := "foo: bar"
+	valuesContent := []byte(`foo: bar`)
 	valuesFile := charts.NewValuesFileFromContent(uri.File(filepath.Join(tempDir, "values.yaml")), []byte(valuesContent))
 	assert.Equal(t, valuesContent, valuesFile.GetContent())
 }

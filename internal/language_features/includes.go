@@ -124,7 +124,7 @@ func (f *IncludesFeature) getDefinitionsHover(includeName string) protocol.Hover
 				result = append(result, protocol.HoverResultWithFile{
 					Value: node.Content([]byte(doc.Content)),
 					URI:   doc.URI,
-				}.AsHelmCode())
+				})
 			}
 		}
 	}
@@ -139,7 +139,7 @@ func (f *IncludesCallFeature) Hover() (string, error) {
 	}
 
 	result := f.getDefinitionsHover(includeName)
-	return result.Format(f.GenericDocumentUseCase.Document.URI), nil
+	return result.FormatHelm(f.GenericDocumentUseCase.Document.URI), nil
 }
 
 func (f *IncludesCallFeature) Definition() (result []lsp.Location, err error) {

@@ -17,7 +17,7 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) (resul
 	recResult := map[uri.URI]*QueriedValuesFiles{}
 	c.ResolveValueFilesRecursive(query, chartStore, recResult)
 
-	// TODO(@qvalentin): use maps.Values once we have Go 1.23
+	// TODO: @qvalentin use maps.Values once we have Go 1.23
 	for _, valuesFiles := range recResult {
 		result = append(result, valuesFiles)
 	}

@@ -70,11 +70,11 @@ func parseYaml(content []byte) (chartutil.Values, yaml.Node) {
 }
 
 // GetContent implements PossibleDependencyFile.
-func (d *ValuesFile) GetContent() string {
-	return string(d.rawContent)
+func (v *ValuesFile) GetContent() []byte {
+	return v.rawContent
 }
 
 // GetPath implements PossibleDependencyFile.
-func (d *ValuesFile) GetPath() string {
-	return d.URI.Filename()
+func (v *ValuesFile) GetPath() string {
+	return v.URI.Filename()
 }

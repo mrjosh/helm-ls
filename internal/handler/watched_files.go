@@ -22,6 +22,9 @@ func (h *langHandler) NewChartWithWatchedFiles(chart *charts.Chart) {
 }
 
 func (h *langHandler) RegisterWatchedFiles(ctx context.Context, conn jsonrpc2.Conn, files []uri.URI) {
+	if conn == nil {
+		return
+	}
 	watchers := make([]lsp.FileSystemWatcher, 0)
 
 	for _, file := range files {

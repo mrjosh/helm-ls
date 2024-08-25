@@ -8,7 +8,6 @@ import (
 	"helm.sh/helm/v3/pkg/chart"
 )
 
-// TODO: this ignores the newChart callback present in the ChartStore
 func NewChartFromHelmChart(helmChart *chart.Chart, rootURI uri.URI) *Chart {
 	return &Chart{
 		ValuesFiles: &ValuesFiles{

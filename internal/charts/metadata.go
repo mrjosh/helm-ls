@@ -21,13 +21,13 @@ func NewChartMetadata(rootURI uri.URI) *ChartMetadata {
 	filePath := filepath.Join(rootURI.Filename(), chartutil.ChartfileName)
 	contents, err := os.ReadFile(filePath)
 	if err != nil {
-		logger.Error("Error loading Chart.yaml file", filePath, err)
+		logger.Error("Error loading Chart.yaml file ", filePath, err)
 		return nil
 	}
 
 	chartNode, err := util.ReadYamlToNode(contents)
 	if err != nil {
-		logger.Error("Error loading Chart.yaml file", rootURI, err)
+		logger.Error("Error loading Chart.yaml file ", rootURI, err)
 	}
 
 	return &ChartMetadata{
@@ -49,7 +49,7 @@ func NewChartMetadataForDependencyChart(metadata *chart.Metadata, URI uri.URI) *
 func loadChartMetadata(filePath string) chart.Metadata {
 	chartMetadata, err := chartutil.LoadChartfile(filePath)
 	if err != nil {
-		logger.Error("Error loading Chart.yaml file", filePath, err)
+		logger.Error("Error loading Chart.yaml file ", filePath, err)
 		return chart.Metadata{}
 	}
 	return *chartMetadata

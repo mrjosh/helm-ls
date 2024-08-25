@@ -22,7 +22,7 @@ func (c *Chart) NewDependencyTemplateFile(chartName string, file *chart.File) *D
 }
 
 type PossibleDependencyFile interface {
-	GetContent() string
+	GetContent() []byte
 	GetPath() string
 }
 

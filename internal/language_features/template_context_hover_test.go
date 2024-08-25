@@ -44,7 +44,6 @@ func Test_langHandler_getValueHover(t *testing.T) {
 %s
 value
 %s
-
 `, "```yaml", "```"),
 			wantErr: false,
 		},
@@ -65,10 +64,8 @@ value
 %s
 value
 %s
-
 ### values.other.yaml
 ""
-
 `, "```yaml", "```"),
 			wantErr: false,
 		},
@@ -87,9 +84,7 @@ value
 			want: fmt.Sprintf(`### values.yaml
 %s
 nested: value
-
 %s
-
 `, "```yaml", "```"),
 			wantErr: false,
 		},
@@ -109,9 +104,7 @@ nested: value
 %s
 key:
 - nested: value
-
 %s
-
 `, "```yaml", "```"),
 			wantErr: false,
 		},
@@ -145,12 +138,10 @@ key:
 %s
 parentValue
 %s
-
 ### `+filepath.Join("charts", "subchart", "values.yaml")+`
 %s
 value
 %s
-
 `, "```yaml", "```", "```yaml", "```"),
 			wantErr: false,
 		},
@@ -186,12 +177,10 @@ value
 %s
 parentValue
 %s
-
 ### `+filepath.Join("charts", "subchart", "values.yaml")+`
 %s
 value
 %s
-
 `, "```yaml", "```", "```yaml", "```"),
 			wantErr: false,
 		},
@@ -239,17 +228,14 @@ value
 %s
 parentValue
 %s
-
 ### `+filepath.Join("charts", "subchart", "values.yaml")+`
 %s
 middleValue
 %s
-
 ### `+filepath.Join("charts", "subchart", "charts", "subsubchart", "values.yaml")+`
 %s
 value
 %s
-
 `, "```yaml", "```", "```yaml", "```", "```yaml", "```"),
 			wantErr: false,
 		},
@@ -274,7 +260,6 @@ value
 %s
 1.2345
 %s
-
 `, "```yaml", "```"),
 			wantErr: false,
 		},
@@ -299,7 +284,6 @@ value
 %s
 hello
 %s
-
 `, "```yaml", "```"),
 			wantErr: false,
 		},

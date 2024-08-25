@@ -200,6 +200,10 @@ func FormatToYAML(field reflect.Value, fieldName string) string {
 
 func toYAML(value interface{}) string {
 	valBytes, _ := yaml.Marshal(value)
+	// remove trailing new line
+	if len(valBytes) > 0 && valBytes[len(valBytes)-1] == '\n' {
+		valBytes = valBytes[:len(valBytes)-1]
+	}
 	return string(valBytes)
 }
 

@@ -80,8 +80,8 @@ func (d *Document) getLines() []string {
 }
 
 // GetContent implements PossibleDependencyFile.
-func (d *Document) GetContent() string {
-	return d.Content
+func (d *Document) GetContent() []byte {
+	return []byte(d.Content)
 }
 
 // GetPath implements PossibleDependencyFile.

@@ -14,14 +14,17 @@ type HoverResultWithFile struct {
 	URI   uri.URI
 }
 
-func (h HoverResultWithFile) AsHelmCode() HoverResultWithFile {
-	h.Value = fmt.Sprintf("```%s\n%s\n```", "helm", h.Value)
-	return h
-}
-
 type HoverResultsWithFiles []HoverResultWithFile
 
-func (h HoverResultsWithFiles) Format(rootURI uri.URI) string {
+func (h HoverResultsWithFiles) FormatHelm(rootURI uri.URI) string {
+	return h.format(rootURI, "helm")
+}
+
+func (h HoverResultsWithFiles) FormatYaml(rootURI uri.URI) string {
+	return h.format(rootURI, "yaml")
+}
+
+func (h HoverResultsWithFiles) format(rootURI uri.URI, codeLanguage string) string {
 	var formatted string
 	sort.Slice(h, func(i, j int) bool {
 		return h[i].URI > h[j].URI
@@ -32,13 +35,13 @@ func (h HoverResultsWithFiles) Format(rootURI uri.URI) string {
 		if value == "" {
 			value = "\"\""
 		} else {
-			value = fmt.Sprintf("```yaml\n%s\n```", value)
+			value = fmt.Sprintf("```%s\n%s\n```", codeLanguage, value)
 		}
 		filepath, err := filepath.Rel(rootURI.Filename(), result.URI.Filename())
 		if err != nil {
 			filepath = result.URI.Filename()
 		}
-		formatted += fmt.Sprintf("### %s\n%s\n\n", filepath, value)
+		formatted += fmt.Sprintf("### %s\n%s\n", filepath, value)
 	}
 	return formatted
 }

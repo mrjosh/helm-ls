@@ -23,20 +23,17 @@ func TestHoverResultsWithFiles_Format(t *testing.T) {
 %s
 value3
 %s
-
 ### file2.yaml
 %s
 value2
 %s
-
 ### file1.yaml
 %s
 value1
 %s
-
 `, "```yaml", "```", "```yaml", "```", "```yaml", "```")
 
-	formatted := results.Format(rootURI)
+	formatted := results.FormatYaml(rootURI)
 	assert.Equal(t, expected, formatted, "The formatted output should match the expected output")
 }
 
@@ -48,10 +45,9 @@ func TestHoverResultsWithFiles_Format_EmptyValue(t *testing.T) {
 	}
 	expected := `### file1.yaml
 ""
-
 `
 
-	formatted := results.Format(rootURI)
+	formatted := results.FormatYaml(rootURI)
 	assert.Equal(t, expected, formatted, "The formatted output should match the expected output")
 }
 
@@ -66,18 +62,19 @@ func TestHoverResultsWithFiles_Format_DifferenPath(t *testing.T) {
 %s
 value
 %s
-
 `, filepath.Join("..", "..", "..", "invalid", "uri"), "```yaml", "```")
-	formatted := results.Format(rootURI)
+	formatted := results.FormatYaml(rootURI)
 	assert.Equal(t, expected, formatted, "The formatted output should match the expected output")
 }
 
 func TestHoverResultWithFile_WithHelmCode(t *testing.T) {
-	hoverResult := HoverResultWithFile{
-		Value: "some helm code",
-		URI:   uri.New("file:///home/user/project/file1.yaml"),
-	}.AsHelmCode()
+	hoverResult := HoverResultsWithFiles{
+		{
+			Value: "some helm code",
+			URI:   uri.New("file:///home/user/project/file1.yaml"),
+		},
+	}
 
-	expectedValue := "```helm\nsome helm code\n```"
-	assert.Equal(t, expectedValue, hoverResult.Value, "The value should be formatted with Helm code block")
+	expectedValue := "### file1.yaml\n```helm\nsome helm code\n```\n"
+	assert.Equal(t, expectedValue, hoverResult.FormatHelm(uri.New("file:///home/user/project")), "The value should be formatted with Helm code block")
 }

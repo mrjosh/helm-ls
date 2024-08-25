@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
@@ -29,7 +30,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      85,
 				Character: 26,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nvalue\n```"),
+			expected:      fmt.Sprintf("### %s\n%s\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nvalue\n```"),
 			expectedError: nil,
 		},
 		{
@@ -38,7 +39,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      74,
 				Character: 50,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nfirst:\n  some: value\nsecond:\n  some: value\n\n```"),
+			expected:      fmt.Sprintf("### %s\n%s\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nfirst:\n  some: value\nsecond:\n  some: value\n```"),
 			expectedError: nil,
 		},
 		{
@@ -47,7 +48,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      80,
 				Character: 31,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nvalue\n```"),
+			expected:      fmt.Sprintf("### %s\n%s\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nvalue\n```"),
 			expectedError: nil,
 		},
 		{
@@ -56,7 +57,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      17,
 				Character: 19,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\n{}\n\n```"),
+			expected:      fmt.Sprintf("### %s\n%s\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\n{}\n```"),
 			expectedError: nil,
 		},
 		{
@@ -83,7 +84,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      25,
 				Character: 28,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nimagePullSecrets: []\n\n```"),
+			expected:      fmt.Sprintf("### %s\n%s\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\nimagePullSecrets: []\n```"),
 			expectedError: nil,
 		},
 		{
@@ -128,7 +129,7 @@ func TestHoverMain(t *testing.T) {
 				Line:      71,
 				Character: 35,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\ningress.hosts:\n- host: chart-example.local\n  paths:\n  - path: /\n    pathType: ImplementationSpecific\n\n```"),
+			expected:      fmt.Sprintf("### %s\n%s\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\ningress.hosts:\n- host: chart-example.local\n  paths:\n  - path: /\n    pathType: ImplementationSpecific\n```"),
 			expectedError: nil,
 		},
 		{
@@ -137,7 +138,28 @@ func TestHoverMain(t *testing.T) {
 				Line:      8,
 				Character: 28,
 			},
-			expected:      fmt.Sprintf("### %s\n%s\n\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\n1\n```"),
+			expected:      fmt.Sprintf("### %s\n%s\n", filepath.Join("..", "..", "testdata", "example", "values.yaml"), "```yaml\n1\n```"),
+			expectedError: nil,
+		},
+		{
+			desc: "Test hover include parameter",
+			position: lsp.Position{
+				Line:      3,
+				Character: 28,
+			},
+			expected: "### " + filepath.Join("..", "_helpers.tpl") + "\n```helm\n" + `{{- define "example.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+` + "```\n",
 			expectedError: nil,
 		},
 	}
@@ -162,12 +184,15 @@ func TestHoverMain(t *testing.T) {
 			}
 			documents.DidOpen(&d, util.DefaultConfig)
 
-			addChartCallback := func(chart *charts.Chart) {}
 			h := &langHandler{
 				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
+				helmlsConfig:    util.DefaultConfig,
 			}
+			h.chartStore = charts.NewChartStore(uri.File("."), charts.NewChart, h.AddChartCallback)
+			chart, _ := h.chartStore.GetChartOrParentForDoc(fileURI)
+			h.LoadDocsOnNewChart(chart)
 			result, err := h.Hover(context.Background(), &lsp.HoverParams{
 				TextDocumentPositionParams: lsp.TextDocumentPositionParams{
 					TextDocument: lsp.TextDocumentIdentifier{
@@ -180,7 +205,7 @@ func TestHoverMain(t *testing.T) {
 			if result == nil {
 				t.Fatal("Result is nil")
 			}
-			assert.Equal(t, tt.expected, result.Contents.Value)
+			assert.Equal(t, tt.expected, strings.ReplaceAll(result.Contents.Value, "\r\n", "\n"))
 		})
 	}
 }

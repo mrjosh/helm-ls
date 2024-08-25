@@ -37,14 +37,6 @@ type testCase struct {
 func TestDefinitionChart(t *testing.T) {
 	testCases := []testCase{
 		{
-			`{{ .Values.subchart^WithoutGlobal }}`,
-			"charts/subchartexample/values.yaml",
-			2, // TODO: this should also find the parent, but the parent of the chart is not found :?
-			lsp.Position{Line: 2, Character: 0},
-			nil,
-			true,
-		},
-		{
 			`{{ include "common.na^mes.name" . }}`,
 			"charts/.helm_ls_cache/common/templates/_names.tpl",
 			1,
@@ -141,6 +133,14 @@ func TestDefinitionChart(t *testing.T) {
 			nil,
 			false,
 		},
+		{
+			`{{ .Values.subchart^WithoutGlobal }}`,
+			"charts/subchartexample/values.yaml",
+			2,
+			lsp.Position{Line: 2, Character: 0},
+			nil,
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -164,8 +164,8 @@ func TestDefinitionChart(t *testing.T) {
 
 			chart := charts.NewChart(rootUri, util.DefaultConfig.ValuesFilesConfig)
 
-var addChartCallback = func(chart *charts.Chart) {}
-			chartStore := charts.NewChartStore(rootUri, charts.NewChart,addChartCallback)
+			addChartCallback := func(chart *charts.Chart) {}
+			chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
 			_, err = chartStore.GetChartForURI(rootUri)
 			h := &langHandler{
 				chartStore:      chartStore,
