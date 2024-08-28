@@ -8,6 +8,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
+// TODO: use byte instead of string
 func ParseAst(oldTree *sitter.Tree, content string) *sitter.Tree {
 	parser := sitter.NewParser()
 	parser.SetLanguage(gotemplate.GetLanguage())
@@ -69,7 +70,8 @@ func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
 	return a.Row > b.Row
 }
 
-func (d *Document) ApplyChangesToAst(newContent string) {
+func (d *Document) ApplyChangesToAst(editInput sitter.EditInput, newContent string) {
+	d.Ast.Edit(editInput)
 	d.Ast = ParseAst(nil, newContent)
 }
 
