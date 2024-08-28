@@ -24,7 +24,7 @@ func NestedNodeAtPositionForCompletion(tree *sitter.Tree, position lsp.Position)
 	currentNode := NodeAtPosition(tree, position)
 	pointToLoopUp := sitter.Point{
 		Row:    position.Line,
-		Column: position.Character,
+		Column: position.Character - 1,
 	}
 	return FindRelevantChildNodeCompletion(currentNode, pointToLoopUp)
 }
