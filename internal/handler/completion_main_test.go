@@ -164,6 +164,7 @@ func TestCompletionMainSingleLines(t *testing.T) {
 		notExpectedInsertTexts []string
 		err                    error
 	}{
+		{"Test completion on {{.Bad.^}}", []string{}, []string{}, errors.New("[Bad ] is no valid template context for helm")},
 		{"Test completion on {{ .Bad.^ }}", []string{}, []string{}, errors.New("[Bad ] is no valid template context for helm")},
 		{"Test completion on {{ n^ }}", []string{"not"}, []string{}, nil},
 		{"Test completion on {{ .Values.^ }}", []string{"replicaCount"}, []string{}, nil},
