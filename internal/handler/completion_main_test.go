@@ -227,7 +227,7 @@ func completionTestCall(fileURI uri.URI, buf string, pos lsp.Position) (*lsp.Com
 	}
 	documents.DidOpen(&d, util.DefaultConfig)
 	h := &langHandler{
-		chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart),
+		chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, func(chart *charts.Chart) {}),
 		documents:       documents,
 		yamllsConnector: &yamlls.Connector{},
 	}

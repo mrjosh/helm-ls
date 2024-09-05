@@ -2,7 +2,6 @@ package lsp
 
 import (
 	"fmt"
-	"os"
 	"sync"
 
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -51,32 +50,25 @@ func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsCon
 	return doc, nil
 }
 
-func (s *DocumentStore) Store(uri uri.URI, helmlsConfig util.HelmlsConfiguration) error {
-	_, ok := s.documents.Load(uri.Filename())
+func (s *DocumentStore) Store(filename string, content []byte, helmlsConfig util.HelmlsConfiguration) {
+	_, ok := s.documents.Load(filename)
 	if ok {
-		return nil
+		return
 	}
-
-	content, err := os.ReadFile(uri.Filename())
-	if err != nil {
-		logger.Error("Could not open file ", uri.Filename(), " ", err)
-		return err
-	}
-
 	ast := ParseAst(nil, string(content))
-	s.documents.Store(uri.Filename(),
+	fileURI := uri.File(filename)
+	s.documents.Store(fileURI.Filename(),
 		&Document{
-			URI:              uri,
-			Path:             uri.Filename(),
+			URI:              fileURI,
+			Path:             filename,
 			Content:          string(content),
 			Ast:              ast,
 			DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
 			IsOpen:           false,
 			SymbolTable:      NewSymbolTable(ast, content),
-			IsYaml:           IsYamlDocument(uri, helmlsConfig.YamllsConfiguration),
+			IsYaml:           IsYamlDocument(fileURI, helmlsConfig.YamllsConfiguration),
 		},
 	)
-	return nil
 }
 
 func (s *DocumentStore) Get(docuri uri.URI) (*Document, bool) {

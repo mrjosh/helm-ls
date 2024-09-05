@@ -3,12 +3,12 @@ package handler
 import (
 	"context"
 	"errors"
-	"io/fs"
+	"fmt"
 	"path/filepath"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	lsp "go.lsp.dev/protocol"
-	"go.lsp.dev/uri"
 )
 
 func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
@@ -57,7 +57,7 @@ func (h *langHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocume
 	return nil
 }
 
-func (h *langHandler) DidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
+func (h *langHandler) DidChange(_ context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
 	doc, ok := h.documents.Get(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
@@ -102,17 +102,17 @@ func (h *langHandler) DidRenameFiles(ctx context.Context, params *lsp.RenameFile
 	return nil
 }
 
-// TODO: maybe use the helm implementation of this once https://github.com/mrjosh/helm-ls/pull/77 is resolved
-func (h *langHandler) LoadDocsOnNewChart(rootURI uri.URI) {
-	_ = filepath.WalkDir(filepath.Join(rootURI.Filename(), "templates"),
-		func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-			if !d.IsDir() {
-				return h.documents.Store(uri.File(path), h.helmlsConfig)
-			}
-			return nil
-		},
-	)
+func (h *langHandler) LoadDocsOnNewChart(chart *charts.Chart) {
+	if chart.HelmChart == nil {
+		return
+	}
+
+	for _, file := range chart.HelmChart.Templates {
+		h.documents.Store(filepath.Join(chart.RootURI.Filename(), file.Name), file.Data, h.helmlsConfig)
+	}
+
+	for _, file := range chart.GetDependeciesTemplates() {
+		logger.Debug(fmt.Sprintf("Storing dependency %s", file.Path))
+		h.documents.Store(file.Path, file.Content, h.helmlsConfig)
+	}
 }

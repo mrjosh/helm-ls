@@ -15,6 +15,8 @@ import (
 	"go.lsp.dev/uri"
 )
 
+var addChartCallback = func(chart *charts.Chart) {}
+
 func TestRefercesTemplateContext(t *testing.T) {
 	content := `
 {{ .Values.test }}
@@ -94,7 +96,7 @@ func TestRefercesTemplateContext(t *testing.T) {
 			}
 			documents.DidOpen(&d, util.DefaultConfig)
 			h := &langHandler{
-				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart),
+				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
 			}
@@ -161,7 +163,7 @@ func TestRefercesTemplateContextWithTestFile(t *testing.T) {
 			}
 			documents.DidOpen(&d, util.DefaultConfig)
 			h := &langHandler{
-				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart),
+				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
 			}
@@ -219,7 +221,7 @@ func TestRefercesSingleLines(t *testing.T) {
 			}
 			documents.DidOpen(&d, util.DefaultConfig)
 			h := &langHandler{
-				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart),
+				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
 			}

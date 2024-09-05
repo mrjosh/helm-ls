@@ -30,7 +30,7 @@ func TestGetValuesCompletions(t *testing.T) {
 				},
 			},
 		},
-		RootURI: "",
+		RootURI: "", HelmChart: &chart.Chart{},
 	}
 
 	templateConextFeature := TemplateContextFeature{
@@ -69,7 +69,7 @@ func TestGetValuesCompletionsContainsNoDupliactes(t *testing.T) {
 				},
 			},
 		},
-		RootURI: "",
+		RootURI: "", HelmChart: &chart.Chart{},
 	}
 
 	templateConextFeature := TemplateContextFeature{

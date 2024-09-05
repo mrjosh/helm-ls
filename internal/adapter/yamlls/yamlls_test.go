@@ -1,6 +1,7 @@
 package yamlls
 
 import (
+	"os"
 	"testing"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
@@ -17,13 +18,20 @@ func TestIsRelevantFile(t *testing.T) {
 	}
 
 	connector.documents = &lsplocal.DocumentStore{}
-	yamlFile := uri.File("../../../testdata/example/templates/deployment.yaml")
-	nonYamlFile := uri.File("../../../testdata/example/templates/_helpers.tpl")
-	connector.documents.Store(yamlFile, util.DefaultConfig)
-	connector.documents.Store(nonYamlFile, util.DefaultConfig)
+	yamlFile := "../../../testdata/example/templates/deployment.yaml"
+	nonYamlFile := "../../../testdata/example/templates/_helpers.tpl"
 
-	assert.True(t, connector.isRelevantFile(yamlFile))
-	assert.False(t, connector.isRelevantFile(nonYamlFile))
+	yamlFileContent, err := os.ReadFile(yamlFile)
+	assert.NoError(t, err)
+
+	nonYamlFileContent, err := os.ReadFile(nonYamlFile)
+	assert.NoError(t, err)
+
+	connector.documents.Store(yamlFile, yamlFileContent, util.DefaultConfig)
+	connector.documents.Store(nonYamlFile, nonYamlFileContent, util.DefaultConfig)
+
+	assert.True(t, connector.isRelevantFile(uri.File(yamlFile)))
+	assert.False(t, connector.isRelevantFile(uri.File(nonYamlFile)))
 }
 
 func TestShouldRun(t *testing.T) {

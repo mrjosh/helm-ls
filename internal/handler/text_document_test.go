@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
@@ -35,7 +36,7 @@ func TestLoadDocsOnNewChart(t *testing.T) {
 		helmlsConfig: util.DefaultConfig,
 	}
 
-	h.LoadDocsOnNewChart(rootURI)
+	h.LoadDocsOnNewChart(charts.NewChart(rootURI, util.DefaultConfig.ValuesFilesConfig))
 
 	for _, file := range templateFiles {
 		doc, ok := h.documents.Get(uri.File(file))
@@ -70,7 +71,7 @@ func TestLoadDocsOnNewChartDoesNotOverwrite(t *testing.T) {
 		},
 	}, util.DefaultConfig)
 
-	h.LoadDocsOnNewChart(rootURI)
+	h.LoadDocsOnNewChart(charts.NewChart(rootURI, util.DefaultConfig.ValuesFilesConfig))
 
 	doc, ok := h.documents.Get(uri.File(templateFile))
 	assert.True(t, ok)
@@ -89,7 +90,7 @@ func TestLoadDocsOnNewChartWorksForMissingTemplateDir(t *testing.T) {
 		helmlsConfig: util.DefaultConfig,
 	}
 
-	h.LoadDocsOnNewChart(rootURI)
+	h.LoadDocsOnNewChart(charts.NewChart(rootURI, util.DefaultConfig.ValuesFilesConfig))
 
-	h.LoadDocsOnNewChart(uri.File("non-existent-dir/hkjgfdshgkjfd"))
+	h.LoadDocsOnNewChart(charts.NewChart(uri.File("NonExisting"), util.DefaultConfig.ValuesFilesConfig))
 }

@@ -74,6 +74,6 @@ func TestValuesRangeLookupOnMapping(t *testing.T) {
 	inputCopy := append([]string{}, input...)
 	result, err := GetTableOrValueForSelector(values, input)
 	assert.NoError(t, err)
-	assert.Equal(t, "a: 1\n", result)
+	assert.Equal(t, "a: 1", result)
 	assert.Equal(t, inputCopy, input)
 }

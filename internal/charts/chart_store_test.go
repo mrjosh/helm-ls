@@ -12,6 +12,8 @@ import (
 	"helm.sh/helm/v3/pkg/chartutil"
 )
 
+var addChartCallback = func(chart *Chart) {}
+
 func TestSetValuesFilesConfigOverwrites(t *testing.T) {
 	valuesFilesConfig := util.ValuesFilesConfig{
 		MainValuesFileName:               "value.yaml",
@@ -25,7 +27,7 @@ func TestSetValuesFilesConfigOverwrites(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(tempDir, "value.yaml"), []byte("foo: main"), 0o644)
 	_ = os.WriteFile(filepath.Join(tempDir, "something.yaml"), []byte(valuesContent), 0o644)
 	_ = os.WriteFile(filepath.Join(tempDir, "values.other.yaml"), []byte(valuesContent), 0o644)
-	s := NewChartStore(uri.File(tempDir), NewChart)
+	s := NewChartStore(uri.File(tempDir), NewChart, addChartCallback)
 
 	chartOld, err := s.GetChartForURI(uri.File(tempDir))
 	assert.Equal(t, chartutil.Values{}, chartOld.ValuesFiles.MainValuesFile.Values)
@@ -54,7 +56,7 @@ func TestSetValuesFilesConfigDoesNotOverwrite(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(tempDir, "something.yaml"), []byte(valuesContent), 0o644)
 	_ = os.WriteFile(filepath.Join(tempDir, "values.lint.yaml"), []byte(valuesContent), 0o644)
 	_ = os.WriteFile(filepath.Join(tempDir, "values.other.yaml"), []byte(valuesContent), 0o644)
-	s := NewChartStore(uri.File(tempDir), NewChart)
+	s := NewChartStore(uri.File(tempDir), NewChart, addChartCallback)
 
 	chart, err := s.GetChartForURI(uri.File(tempDir))
 	assert.NoError(t, err)
@@ -71,7 +73,7 @@ func TestGetChartForURIWhenChartYamlDoesNotExist(t *testing.T) {
 	tempDir := t.TempDir()
 
 	_ = os.WriteFile(filepath.Join(tempDir, "values.yaml"), []byte("foo: main"), 0o644)
-	s := NewChartStore(uri.File(tempDir), NewChart)
+	s := NewChartStore(uri.File(tempDir), NewChart, addChartCallback)
 
 	chart, err := s.GetChartForURI(uri.File(tempDir))
 	assert.Error(t, err)
@@ -90,7 +92,7 @@ func TestReloadValuesFiles(t *testing.T) {
 		RootURI:       uri.File(tempDir),
 		ParentChart:   ParentChart{},
 	}
-	s := NewChartStore(uri.File(tempDir), NewChart)
+	s := NewChartStore(uri.File(tempDir), NewChart, addChartCallback)
 	s.Charts[chart.RootURI] = chart
 
 	assert.Equal(t, "bar", chart.ValuesFiles.MainValuesFile.Values["foo"])

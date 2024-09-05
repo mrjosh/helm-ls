@@ -20,7 +20,7 @@ func newLintCmd() *cobra.Command {
 			}
 
 			rootPath := uri.File(args[0])
-			chartStore := charts.NewChartStore(rootPath, charts.NewChart)
+			chartStore := charts.NewChartStore(rootPath, charts.NewChart, func(chart *charts.Chart) {})
 			chart, err := chartStore.GetChartForURI(rootPath)
 			if err != nil {
 				return err

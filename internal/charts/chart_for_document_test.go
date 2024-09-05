@@ -10,12 +10,13 @@ import (
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 func TestGetChartForDocumentWorksForAlreadyAddedCharts(t *testing.T) {
 	chartStore := charts.NewChartStore("file:///tmp", func(uri uri.URI, _ util.ValuesFilesConfig) *charts.Chart {
 		return &charts.Chart{RootURI: uri}
-	})
+	}, addChartCallback)
 
 	chart := &charts.Chart{}
 	chartStore.Charts["file:///tmp/chart"] = chart
@@ -53,10 +54,11 @@ func TestGetChartForDocumentWorksForNewToAddChart(t *testing.T) {
 		rootDir                = t.TempDir()
 		expectedChartDirectory = filepath.Join(rootDir, "chart")
 		expectedChart          = &charts.Chart{
-			RootURI: uri.File(expectedChartDirectory),
+			RootURI:   uri.File(expectedChartDirectory),
+			HelmChart: &chart.Chart{},
 		}
 		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc)
+		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc, addChartCallback)
 		err          = os.MkdirAll(expectedChartDirectory, 0o755)
 	)
 	assert.NoError(t, err)
@@ -78,10 +80,11 @@ func TestGetChartForDocumentWorksForNewToAddChartWithNestedFile(t *testing.T) {
 		rootDir                = t.TempDir()
 		expectedChartDirectory = filepath.Join(rootDir, "chart")
 		expectedChart          = &charts.Chart{
-			RootURI: uri.File(expectedChartDirectory),
+			RootURI:   uri.File(expectedChartDirectory),
+			HelmChart: &chart.Chart{},
 		}
 		newChartFunc = func(_ uri.URI, _ util.ValuesFilesConfig) *charts.Chart { return expectedChart }
-		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc)
+		chartStore   = charts.NewChartStore(uri.File(rootDir), newChartFunc, addChartCallback)
 		err          = os.MkdirAll(expectedChartDirectory, 0o755)
 	)
 	assert.NoError(t, err)
@@ -98,7 +101,7 @@ func TestGetChartForDocumentWorksForNewToAddChartWithNestedFile(t *testing.T) {
 func TestGetChartOrParentForDocWorks(t *testing.T) {
 	chartStore := charts.NewChartStore("file:///tmp", func(uri uri.URI, _ util.ValuesFilesConfig) *charts.Chart {
 		return &charts.Chart{RootURI: uri}
-	})
+	}, addChartCallback)
 
 	chart := &charts.Chart{}
 	chartStore.Charts["file:///tmp/chart"] = chart
@@ -134,4 +137,21 @@ func TestGetChartOrParentForDocWorks(t *testing.T) {
 	result5, error := chartStore.GetChartOrParentForDoc("file:///tmp/directory/deployment.yaml")
 	assert.Error(t, error)
 	assert.Equal(t, &charts.Chart{RootURI: uri.File("/tmp")}, result5)
+}
+
+func TestGetChartForDocumentWorksForChartWithDependencies(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample/"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart, addChartCallback)
+	)
+
+	result1, error := chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "templates", "deployment.yaml")))
+	assert.NoError(t, error)
+
+	assert.Len(t, result1.HelmChart.Dependencies(), 2)
+	assert.Len(t, chartStore.Charts, 3)
+
+	assert.NotNil(t, chartStore.Charts[uri.File(rootDir)])
+	assert.NotNil(t, chartStore.Charts[uri.File(filepath.Join(rootDir, "charts", "subchartexample"))])
+	assert.NotNil(t, chartStore.Charts[uri.File(filepath.Join(rootDir, "charts", charts.DependencyCacheFolder, "common"))])
 }

@@ -13,11 +13,12 @@ func (h *langHandler) Definition(_ context.Context, params *lsp.DefinitionParams
 	if err != nil {
 		return nil, err
 	}
+
 	usecases := []languagefeatures.DefinitionUseCase{
 		languagefeatures.NewBuiltInObjectsFeature(genericDocumentUseCase), // has to be before template context
+		languagefeatures.NewVariablesFeature(genericDocumentUseCase),
 		languagefeatures.NewTemplateContextFeature(genericDocumentUseCase),
 		languagefeatures.NewIncludesCallFeature(genericDocumentUseCase),
-		languagefeatures.NewVariablesFeature(genericDocumentUseCase),
 	}
 
 	for _, usecase := range usecases {

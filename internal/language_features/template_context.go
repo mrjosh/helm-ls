@@ -3,9 +3,11 @@ package languagefeatures
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	lsp "go.lsp.dev/protocol"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/protocol"
@@ -69,11 +71,17 @@ func (f *TemplateContextFeature) getDefinitionLocations(templateContext lsplocal
 	switch templateContext[0] {
 	case "Values":
 		for _, value := range f.Chart.ResolveValueFiles(templateContext.Tail(), f.ChartStore) {
-			locations = append(locations, value.ValuesFiles.GetPositionsForValue(value.Selector)...)
+			locs := value.ValuesFiles.GetPositionsForValue(value.Selector)
+			if len(locs) > 0 {
+				for _, valuesFile := range value.ValuesFiles.AllValuesFiles() {
+					charts.SyncToDisk(valuesFile)
+				}
+			}
+			locations = append(locations, locs...)
 		}
 		return locations
 	case "Chart":
-		location, _ := f.Chart.GetValueLocation(templateContext.Tail())
+		location, _ := f.Chart.GetMetadataLocation(templateContext.Tail())
 		return []lsp.Location{location}
 	}
 	return locations
@@ -107,13 +115,15 @@ func (f *TemplateContextFeature) valuesHover(templateContext lsplocal.TemplateCo
 	)
 	for _, valuesFiles := range valuesFiles {
 		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
+			logger.Debug(fmt.Sprintf("Looking for selector: %s in values %v", strings.Join(valuesFiles.Selector, "."), valuesFile.Values))
 			result, err := util.GetTableOrValueForSelector(valuesFile.Values, valuesFiles.Selector)
+
 			if err == nil {
 				hoverResults = append(hoverResults, protocol.HoverResultWithFile{URI: valuesFile.URI, Value: result})
 			}
 		}
 	}
-	return hoverResults.Format(f.ChartStore.RootURI), nil
+	return hoverResults.FormatYaml(f.ChartStore.RootURI), nil
 }
 
 func (f *TemplateContextFeature) getMetadataField(v *chart.Metadata, fieldName string) string {

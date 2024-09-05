@@ -21,7 +21,7 @@ func TestConfigurationWorks(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
 	handler := &langHandler{
 		helmlsConfig: util.DefaultConfig,
-		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart),
+		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
 	handler.client = mockClient
 
@@ -43,7 +43,7 @@ func TestConfigurationWorksForEmptyConfig(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
 	handler := &langHandler{
 		helmlsConfig: util.DefaultConfig,
-		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart),
+		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
 	handler.client = mockClient
 	// disable yamlls to avoid configuring it in the test
@@ -62,7 +62,7 @@ func TestConfigurationWorksForError(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
 	handler := &langHandler{
 		helmlsConfig: util.DefaultConfig,
-		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart),
+		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
 	handler.client = mockClient
 
@@ -84,7 +84,7 @@ func TestConfigurationWorksForJsonError(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
 	handler := &langHandler{
 		helmlsConfig: util.DefaultConfig,
-		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart),
+		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
 	handler.client = mockClient
 

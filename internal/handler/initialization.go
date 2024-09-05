@@ -28,7 +28,7 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 	}
 
 	logger.Debug("Initializing chartStore")
-	h.chartStore = charts.NewChartStore(workspaceURI, h.NewChartWithInitActions)
+	h.chartStore = charts.NewChartStore(workspaceURI, charts.NewChart, h.AddChartCallback)
 
 	logger.Debug("Initializing done")
 	return &lsp.InitializeResult{
@@ -96,7 +96,7 @@ func configureLogLevel(helmlsConfig util.HelmlsConfiguration) {
 	}
 }
 
-func (h *langHandler) NewChartWithInitActions(rootURI uri.URI, valuesFilesConfig util.ValuesFilesConfig) *charts.Chart {
-	go h.LoadDocsOnNewChart(rootURI)
-	return h.NewChartWithWatchedFiles(rootURI, valuesFilesConfig)
+func (h *langHandler) AddChartCallback(chart *charts.Chart) {
+	h.NewChartWithWatchedFiles(chart)
+	go h.LoadDocsOnNewChart(chart)
 }
