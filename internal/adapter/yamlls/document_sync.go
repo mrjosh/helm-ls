@@ -9,7 +9,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Document) {
+func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.TemplateDocument) {
 	if yamllsConnector.server == nil {
 		return
 	}
@@ -27,7 +27,7 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Doc
 		yamllsConnector.DocumentDidOpen(doc.Ast, lsp.DidOpenTextDocumentParams{
 			TextDocument: lsp.TextDocumentItem{
 				URI:  doc.URI,
-				Text: doc.Content,
+				Text: string(doc.Content),
 			},
 		})
 	}
@@ -39,7 +39,7 @@ func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.Di
 	if !yamllsConnector.shouldRun(params.TextDocument.URI) {
 		return
 	}
-	params.TextDocument.Text = lsplocal.TrimTemplate(ast, params.TextDocument.Text)
+	params.TextDocument.Text = lsplocal.TrimTemplate(ast, []byte(params.TextDocument.Text))
 
 	err := yamllsConnector.server.DidOpen(context.Background(), &params)
 	if err != nil {
@@ -47,7 +47,7 @@ func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.Di
 	}
 }
 
-func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params lsp.DidSaveTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.TemplateDocument, params lsp.DidSaveTextDocumentParams) {
 	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
@@ -66,7 +66,7 @@ func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params 
 	})
 }
 
-func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.TemplateDocument, params lsp.DidChangeTextDocumentParams) {
 	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
@@ -95,7 +95,7 @@ func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, param
 	}
 }
 
-func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.TemplateDocument, params lsp.DidChangeTextDocumentParams) {
 	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}

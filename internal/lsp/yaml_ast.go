@@ -32,7 +32,7 @@ func getTextNodeRanges(gotemplateNode *sitter.Node) []sitter.Range {
 // This is done by keeping only the text nodes
 // which is easier then removing the template nodes
 // since template nodes could contain other nodes
-func TrimTemplate(gotemplateTree *sitter.Tree, content string) string {
+func TrimTemplate(gotemplateTree *sitter.Tree, content []byte) string {
 	ranges := getTextNodeRanges(gotemplateTree.RootNode())
 	result := make([]byte, len(content))
 	for i := range result {

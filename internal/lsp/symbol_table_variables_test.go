@@ -77,7 +77,7 @@ func TestGetVariableDefinition(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.template, func(t *testing.T) {
-			ast := ParseAst(nil, tC.template)
+			ast := ParseAst(nil, []byte(tC.template))
 			symbolTable := NewSymbolTable(ast, []byte(tC.template))
 			result, err := symbolTable.getVariableDefinition(tC.variableName, tC.accessRange)
 			assert.Equal(t, tC.expectedError, err)

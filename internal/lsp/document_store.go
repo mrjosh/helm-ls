@@ -20,28 +20,30 @@ func NewDocumentStore() *DocumentStore {
 	}
 }
 
-func (s *DocumentStore) GetAllDocs() []*Document {
-	var docs []*Document
+func (s *DocumentStore) GetAllDocs() []*TemplateDocument {
+	var docs []*TemplateDocument
 	s.documents.Range(func(_, v interface{}) bool {
-		docs = append(docs, v.(*Document))
+		docs = append(docs, v.(*TemplateDocument))
 		return true
 	})
 	return docs
 }
 
-func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (*Document, error) {
+func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (*TemplateDocument, error) {
 	logger.Debug(fmt.Sprintf("Opening document %s with langID %s", params.TextDocument.URI, params.TextDocument.LanguageID))
 
 	uri := params.TextDocument.URI
 	path := uri.Filename()
-	ast := ParseAst(nil, params.TextDocument.Text)
-	doc := &Document{
-		URI:              uri,
-		Path:             path,
-		Content:          params.TextDocument.Text,
+	ast := ParseAst(nil, []byte(params.TextDocument.Text))
+	doc := &TemplateDocument{
+		Document: Document{
+			URI:     uri,
+			Path:    path,
+			Content: []byte(params.TextDocument.Text),
+			IsOpen:  true,
+		},
 		Ast:              ast,
 		DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
-		IsOpen:           true,
 		SymbolTable:      NewSymbolTable(ast, []byte(params.TextDocument.Text)),
 		IsYaml:           IsYamlDocument(uri, helmlsConfig.YamllsConfiguration),
 	}
@@ -50,35 +52,37 @@ func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsCon
 	return doc, nil
 }
 
-func (s *DocumentStore) Store(filename string, content []byte, helmlsConfig util.HelmlsConfiguration) {
-	_, ok := s.documents.Load(filename)
+func (s *DocumentStore) Store(path string, content []byte, helmlsConfig util.HelmlsConfiguration) {
+	_, ok := s.documents.Load(path)
 	if ok {
 		return
 	}
-	ast := ParseAst(nil, string(content))
-	fileURI := uri.File(filename)
+	ast := ParseAst(nil, content)
+	fileURI := uri.File(path)
 	s.documents.Store(fileURI.Filename(),
-		&Document{
-			URI:              fileURI,
-			Path:             filename,
-			Content:          string(content),
+		&TemplateDocument{
+			Document: Document{
+				URI:     fileURI,
+				Path:    path,
+				Content: content,
+				IsOpen:  false,
+			},
 			Ast:              ast,
 			DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
-			IsOpen:           false,
 			SymbolTable:      NewSymbolTable(ast, content),
 			IsYaml:           IsYamlDocument(fileURI, helmlsConfig.YamllsConfiguration),
 		},
 	)
 }
 
-func (s *DocumentStore) Get(docuri uri.URI) (*Document, bool) {
+func (s *DocumentStore) Get(docuri uri.URI) (*TemplateDocument, bool) {
 	path := docuri.Filename()
 	d, ok := s.documents.Load(path)
 
 	if !ok {
 		return nil, false
 	}
-	return d.(*Document), ok
+	return d.(*TemplateDocument), ok
 }
 
 func IsYamlDocument(uri lsp.URI, yamllsConfiguration util.YamllsConfiguration) bool {

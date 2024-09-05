@@ -16,7 +16,7 @@ func TestFindRelevantChildNodeCompletio(t *testing.T) {
 {{ .Chart.N }}
 {{ . }}
 `
-	ast := ParseAst(nil, template)
+	ast := ParseAst(nil, []byte(template))
 
 	logger.Println("RootNode:", ast.RootNode().String())
 

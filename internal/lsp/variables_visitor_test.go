@@ -70,7 +70,7 @@ func TestSymbolTableForVariableDefinitions(t *testing.T) {
 
 	for _, v := range testCases {
 		t.Run(v.template, func(t *testing.T) {
-			ast := ParseAst(nil, v.template)
+			ast := ParseAst(nil, []byte(v.template))
 			symbolTable := NewSymbolTable(ast, []byte(v.template))
 			assert.Equal(t, v.expectedVariableDefinitions, symbolTable.variableDefinitions,
 				fmt.Sprintf("Ast was %s", ast.RootNode()))
@@ -97,7 +97,7 @@ func TestSymbolTableForVariableUsages(t *testing.T) {
 
 	for _, v := range testCases {
 		t.Run(v.template, func(t *testing.T) {
-			ast := ParseAst(nil, v.template)
+			ast := ParseAst(nil, []byte(v.template))
 			symbolTable := NewSymbolTable(ast, []byte(v.template))
 			assert.Equal(t, v.expectedVariableUsages, symbolTable.variableUsages,
 				fmt.Sprintf("Ast was %s", ast.RootNode()))

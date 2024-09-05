@@ -7,7 +7,7 @@ import (
 )
 
 type GenericDocumentUseCase struct {
-	Document       *lsplocal.Document
+	Document       *lsplocal.TemplateDocument
 	DocumentStore  *lsplocal.DocumentStore
 	Chart          *charts.Chart
 	Node           *sitter.Node

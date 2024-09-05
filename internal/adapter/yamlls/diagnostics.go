@@ -32,7 +32,7 @@ func (c Connector) PublishDiagnostics(ctx context.Context, params *protocol.Publ
 	return nil
 }
 
-func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content string) (filtered []lsp.Diagnostic) {
+func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content []byte) (filtered []lsp.Diagnostic) {
 	filtered = []lsp.Diagnostic{}
 
 	for _, diagnostic := range diagnostics {
@@ -41,7 +41,7 @@ func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content s
 
 		if node.Type() == "text" && childNode.Type() == "text" {
 			logger.Debug("Diagnostic", diagnostic)
-			logger.Debug("Node", node.Content([]byte(content)))
+			logger.Debug("Node", node.Content(content))
 
 			if diagnisticIsRelevant(diagnostic, childNode) {
 				diagnostic.Message = "Yamlls: " + diagnostic.Message

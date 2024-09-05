@@ -24,7 +24,7 @@ func TestResolveVariablesInTemplateContext(t *testing.T) {
 		t.Run(tt.template, func(t *testing.T) {
 			col := strings.Index(tt.template, "^")
 			buf := strings.Replace(tt.template, "^", "", 1)
-			ast := ParseAst(nil, tt.template)
+			ast := ParseAst(nil, []byte(tt.template))
 			symbolTable := NewSymbolTable(ast, []byte(buf))
 
 			result, err := symbolTable.ResolveVariablesInTemplateContext(

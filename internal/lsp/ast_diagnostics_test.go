@@ -8,7 +8,7 @@ import (
 
 func TestIsInElseBranch(t *testing.T) {
 	template := `{{if pipeline}} t1 {{ else if pipeline }} t2 {{ else if pipeline2 }} t3 {{ else }} t4 {{ end }}`
-	ast := ParseAst(nil, template)
+	ast := ParseAst(nil, []byte(template))
 	// (template [0, 0] - [1, 0]
 	//   (if_action [0, 0] - [0, 95]
 	//     condition: (function_call [0, 5] - [0, 13]

@@ -8,10 +8,10 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func ParseAst(oldTree *sitter.Tree, content string) *sitter.Tree {
+func ParseAst(oldTree *sitter.Tree, content []byte) *sitter.Tree {
 	parser := sitter.NewParser()
 	parser.SetLanguage(gotemplate.GetLanguage())
-	tree, _ := parser.ParseCtx(context.Background(), oldTree, []byte(content))
+	tree, _ := parser.ParseCtx(context.Background(), oldTree, content)
 	return tree
 }
 
@@ -69,7 +69,7 @@ func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
 	return a.Row > b.Row
 }
 
-func (d *Document) ApplyChangesToAst(newContent string) {
+func (d *TemplateDocument) ApplyChangesToAst(newContent []byte) {
 	d.Ast = ParseAst(nil, newContent)
 }
 
