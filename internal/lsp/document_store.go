@@ -11,12 +11,17 @@ import (
 
 // documentStore holds opened documents.
 type DocumentStore struct {
-	documents sync.Map
+	templateDocuments sync.Map
+	documents         map[string]*sync.Map
 }
 
 func NewDocumentStore() *DocumentStore {
 	return &DocumentStore{
-		documents: sync.Map{},
+		documents: map[string]*sync.Map{
+			("yaml" + ""): new(sync.Map),
+			"helm":        new(sync.Map),
+		},
+		templateDocuments: sync.Map{},
 	}
 }
 
@@ -27,23 +32,23 @@ func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsCon
 	path := uri.Filename()
 	doc := NewTemplateDocument(uri, []byte(params.TextDocument.Text), true, helmlsConfig)
 	logger.Debug("Storing doc ", path)
-	s.documents.Store(path, doc)
+	s.templateDocuments.Store(path, doc)
 	return doc, nil
 }
 
 func (s *DocumentStore) Store(path string, content []byte, helmlsConfig util.HelmlsConfiguration) {
-	_, ok := s.documents.Load(path)
+	_, ok := s.templateDocuments.Load(path)
 	if ok {
 		return
 	}
 	fileURI := uri.File(path)
-	s.documents.Store(fileURI.Filename(),
+	s.templateDocuments.Store(fileURI.Filename(),
 		NewTemplateDocument(fileURI, content, false, helmlsConfig))
 }
 
 func (s *DocumentStore) GetTemplateDoc(docuri uri.URI) (*TemplateDocument, bool) {
 	path := docuri.Filename()
-	d, ok := s.documents.Load(path)
+	d, ok := s.templateDocuments.Load(path)
 
 	if !ok {
 		return nil, false
@@ -53,7 +58,7 @@ func (s *DocumentStore) GetTemplateDoc(docuri uri.URI) (*TemplateDocument, bool)
 
 func (s *DocumentStore) GetAllTemplateDocs() []*TemplateDocument {
 	var docs []*TemplateDocument
-	s.documents.Range(func(_, v interface{}) bool {
+	s.templateDocuments.Range(func(_, v interface{}) bool {
 		docs = append(docs, v.(*TemplateDocument))
 		return true
 	})
