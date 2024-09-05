@@ -55,7 +55,7 @@ func (f *TemplateContextFeature) Definition() (result []lsp.Location, err error)
 
 func (f *TemplateContextFeature) getReferenceLocations(templateContext lsplocal.TemplateContext) []lsp.Location {
 	locations := []lsp.Location{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		referenceRanges := doc.SymbolTable.GetTemplateContextRanges(templateContext)
 		for _, referenceRange := range referenceRanges {
 			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))

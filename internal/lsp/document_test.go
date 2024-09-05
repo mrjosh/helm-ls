@@ -14,9 +14,9 @@ func TestDocumentStore(t *testing.T) {
 
 	sut := NewDocumentStore()
 
-	assert.Empty(sut.GetAllDocs())
+	assert.Empty(sut.GetAllTemplateDocs())
 
-	doc, ok := sut.Get(uri.File("test"))
+	doc, ok := sut.GetTemplateDoc(uri.File("test"))
 	assert.Nil(doc)
 	assert.False(ok)
 
@@ -29,9 +29,9 @@ func TestDocumentStore(t *testing.T) {
 		},
 	}, util.DefaultConfig)
 
-	assert.Len(sut.GetAllDocs(), 1)
+	assert.Len(sut.GetAllTemplateDocs(), 1)
 
-	doc, ok = sut.Get(uri.File("test.yaml"))
+	doc, ok = sut.GetTemplateDoc(uri.File("test.yaml"))
 	assert.NotNil(doc)
 	assert.True(ok)
 }

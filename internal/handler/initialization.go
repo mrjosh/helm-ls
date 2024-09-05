@@ -81,7 +81,7 @@ func (h *langHandler) configureYamlls(ctx context.Context) {
 			logger.Error("Error initializing yamlls", err)
 		}
 
-		h.yamllsConnector.InitiallySyncOpenDocuments(h.documents.GetAllDocs())
+		h.yamllsConnector.InitiallySyncOpenDocuments(h.documents.GetAllTemplateDocs())
 	}
 }
 

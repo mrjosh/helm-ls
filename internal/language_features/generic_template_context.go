@@ -20,7 +20,7 @@ func (f *GenericTemplateContextFeature) getTemplateContext() (lsplocal.TemplateC
 func (f *GenericTemplateContextFeature) getReferencesFromSymbolTable(templateContext lsplocal.TemplateContext) []lsp.Location {
 	locations := []lsp.Location{}
 
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		referenceRanges := doc.SymbolTable.GetTemplateContextRanges(templateContext)
 		for _, referenceRange := range referenceRanges {
 			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))

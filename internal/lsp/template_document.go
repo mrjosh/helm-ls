@@ -1,11 +1,10 @@
 package lsp
 
 import (
-	"strings"
-
 	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
 )
 
 // TemplateDocument represents an opened file.
@@ -16,6 +15,18 @@ type TemplateDocument struct {
 	DiagnosticsCache        DiagnosticsCache
 	SymbolTable             *SymbolTable
 	IsYaml                  bool
+}
+
+func NewTemplateDocument(fileURI uri.URI, content []byte, isOpen bool, helmlsConfig util.HelmlsConfiguration) *TemplateDocument {
+	ast := ParseAst(nil, content)
+	return &TemplateDocument{
+		Document:                *NewDocument(fileURI, content, isOpen),
+		NeedsRefreshDiagnostics: false,
+		Ast:                     ast,
+		DiagnosticsCache:        NewDiagnosticsCache(helmlsConfig),
+		SymbolTable:             NewSymbolTable(ast, content),
+		IsYaml:                  IsYamllsEnabled(fileURI, helmlsConfig.YamllsConfiguration),
+	}
 }
 
 // ApplyChanges updates the content of the document from LSP textDocument/didChange events.
@@ -29,7 +40,7 @@ func (d *TemplateDocument) ApplyChanges(changes []lsp.TextDocumentContentChangeE
 }
 
 // WordAt returns the word found at the given location.
-func (d *TemplateDocument) WordAt(pos lsp.Position) string {
+func (d *Document) WordAt(pos lsp.Position) string {
 	logger.Debug(pos)
 
 	line, ok := d.getLine(int(pos.Line))
@@ -40,7 +51,7 @@ func (d *TemplateDocument) WordAt(pos lsp.Position) string {
 }
 
 // getLine returns the line at the given index.
-func (d *TemplateDocument) getLine(index int) (string, bool) {
+func (d *Document) getLine(index int) (string, bool) {
 	lines := d.getLines()
 	if index < 0 || index > len(lines) {
 		return "", false
@@ -48,21 +59,6 @@ func (d *TemplateDocument) getLine(index int) (string, bool) {
 	return lines[index], true
 }
 
-// getLines returns all the lines in the document.
-func (d *TemplateDocument) getLines() []string {
-	if d.lines == nil {
-		// We keep \r on purpose, to avoid messing up position conversions.
-		d.lines = strings.Split(string(d.Content), "\n")
-	}
-	return d.lines
-}
-
-// GetContent implements PossibleDependencyFile.
-func (d *TemplateDocument) GetContent() []byte {
-	return d.Content
-}
-
-// GetPath implements PossibleDependencyFile.
-func (d *TemplateDocument) GetPath() string {
-	return d.Path
+func IsYamllsEnabled(uri lsp.URI, yamllsConfiguration util.YamllsConfiguration) bool {
+	return yamllsConfiguration.EnabledForFilesGlobObject.Match(uri.Filename())
 }

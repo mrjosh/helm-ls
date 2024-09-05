@@ -21,17 +21,12 @@ func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocume
 
 	h.yamllsConnector.DocumentDidOpen(doc.Ast, *params)
 
-	doc, ok := h.documents.Get(params.TextDocument.URI)
-	if !ok {
-		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
-	}
 	chart, err := h.chartStore.GetChartOrParentForDoc(doc.URI)
 	if err != nil {
 		logger.Error("Error getting chart info for file", doc.URI, err)
 	}
-	notifications := helmlint.GetDiagnosticsNotifications(chart, doc)
 
-	defer h.publishDiagnostics(ctx, notifications)
+	defer h.publishDiagnostics(ctx, helmlint.GetDiagnosticsNotifications(chart, doc))
 
 	return nil
 }
@@ -41,7 +36,7 @@ func (h *langHandler) DidClose(_ context.Context, _ *lsp.DidCloseTextDocumentPar
 }
 
 func (h *langHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocumentParams) (err error) {
-	doc, ok := h.documents.Get(params.TextDocument.URI)
+	doc, ok := h.documents.GetTemplateDoc(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
@@ -59,7 +54,7 @@ func (h *langHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocume
 }
 
 func (h *langHandler) DidChange(_ context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
-	doc, ok := h.documents.Get(params.TextDocument.URI)
+	doc, ok := h.documents.GetTemplateDoc(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}

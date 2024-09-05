@@ -12,7 +12,7 @@ func (h *langHandler) NewGenericDocumentUseCase(
 	params lsp.TextDocumentPositionParams,
 	nodeSelection func(ast *sitter.Tree, position lsp.Position) (node *sitter.Node),
 ) (*languagefeatures.GenericDocumentUseCase, error) {
-	doc, ok := h.documents.Get(params.TextDocument.URI)
+	doc, ok := h.documents.GetTemplateDoc(params.TextDocument.URI)
 	if !ok {
 		return &languagefeatures.GenericDocumentUseCase{}, errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
