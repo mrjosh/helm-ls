@@ -86,7 +86,7 @@ func (f *IncludesDefinitionFeature) References() (result []lsp.Location, err err
 
 func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Location {
 	locations := []lsp.Location{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		referenceRanges := doc.SymbolTable.GetIncludeReference(includeName)
 		for _, referenceRange := range referenceRanges {
 			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
@@ -101,7 +101,7 @@ func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Locati
 
 func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Location {
 	locations := []lsp.Location{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
 		for _, referenceRange := range referenceRanges {
 			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
@@ -116,7 +116,7 @@ func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Locat
 
 func (f *IncludesFeature) getDefinitionsHover(includeName string) protocol.HoverResultsWithFiles {
 	result := protocol.HoverResultsWithFiles{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
 		for _, referenceRange := range referenceRanges {
 			node := doc.Ast.RootNode().NamedDescendantForPointRange(referenceRange.StartPoint, referenceRange.EndPoint)
@@ -152,7 +152,7 @@ func (f *IncludesCallFeature) Definition() (result []lsp.Location, err error) {
 
 func (f *IncludesCallFeature) Completion() (*lsp.CompletionList, error) {
 	items := []lsp.CompletionItem{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		inlcudeDefinitionNames := doc.SymbolTable.GetAllIncludeDefinitionsNames()
 		for _, includeDefinitionName := range inlcudeDefinitionNames {
 			items = append(items, lsp.CompletionItem{

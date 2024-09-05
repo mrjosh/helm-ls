@@ -19,7 +19,7 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Tem
 			continue
 		}
 
-		doc.IsYaml = lsplocal.IsYamlDocument(doc.URI, yamllsConnector.config)
+		doc.IsYaml = lsplocal.IsYamllsEnabled(doc.URI, yamllsConnector.config)
 		if !yamllsConnector.isRelevantFile(doc.URI) {
 			continue
 		}

@@ -39,7 +39,7 @@ func TestLoadDocsOnNewChart(t *testing.T) {
 	h.LoadDocsOnNewChart(charts.NewChart(rootURI, util.DefaultConfig.ValuesFilesConfig))
 
 	for _, file := range templateFiles {
-		doc, ok := h.documents.Get(uri.File(file))
+		doc, ok := h.documents.GetTemplateDoc(uri.File(file))
 		assert.True(t, ok)
 		assert.NotNil(t, doc)
 		assert.False(t, doc.IsOpen)
@@ -73,7 +73,7 @@ func TestLoadDocsOnNewChartDoesNotOverwrite(t *testing.T) {
 
 	h.LoadDocsOnNewChart(charts.NewChart(rootURI, util.DefaultConfig.ValuesFilesConfig))
 
-	doc, ok := h.documents.Get(uri.File(templateFile))
+	doc, ok := h.documents.GetTemplateDoc(uri.File(templateFile))
 	assert.True(t, ok)
 	assert.NotNil(t, doc)
 	// The document should still be open because it's already in the store

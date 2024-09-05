@@ -10,8 +10,8 @@ import (
 
 func TestIsYamlDocument(t *testing.T) {
 	assert := assert.New(t)
-	assert.True(IsYamlDocument(uri.File("test.yaml"), util.DefaultConfig.YamllsConfiguration))
-	assert.False(IsYamlDocument(uri.File("test.tpl"), util.DefaultConfig.YamllsConfiguration))
-	assert.True(IsYamlDocument(uri.File("../../testdata/example/templates/hpa.yaml"), util.DefaultConfig.YamllsConfiguration))
-	assert.False(IsYamlDocument(uri.File("../../testdata/example/templates/_helpers.tpl"), util.DefaultConfig.YamllsConfiguration))
+	assert.True(IsYamllsEnabled(uri.File("test.yaml"), util.DefaultConfig.YamllsConfiguration))
+	assert.False(IsYamllsEnabled(uri.File("test.tpl"), util.DefaultConfig.YamllsConfiguration))
+	assert.True(IsYamllsEnabled(uri.File("../../testdata/example/templates/hpa.yaml"), util.DefaultConfig.YamllsConfiguration))
+	assert.False(IsYamllsEnabled(uri.File("../../testdata/example/templates/_helpers.tpl"), util.DefaultConfig.YamllsConfiguration))
 }

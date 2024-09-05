@@ -3,9 +3,11 @@ package lsp
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
 )
 
 type Document struct {
@@ -14,6 +16,15 @@ type Document struct {
 	Content []byte
 	lines   []string
 	IsOpen  bool
+}
+
+func NewDocument(fileURI uri.URI, content []byte, isOpen bool) *Document {
+	return &Document{
+		URI:     fileURI,
+		Path:    fileURI.Filename(),
+		Content: content,
+		IsOpen:  isOpen,
+	}
 }
 
 func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
@@ -35,4 +46,23 @@ func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	}
 	d.Content = content
 	d.lines = nil
+}
+
+// getLines returns all the lines in the document.
+func (d *Document) getLines() []string {
+	if d.lines == nil {
+		// We keep \r on purpose, to avoid messing up position conversions.
+		d.lines = strings.Split(string(d.Content), "\n")
+	}
+	return d.lines
+}
+
+// GetContent implements PossibleDependencyFile.
+func (d *Document) GetContent() []byte {
+	return d.Content
+}
+
+// GetPath implements PossibleDependencyFile.
+func (d *Document) GetPath() string {
+	return d.Path
 }
