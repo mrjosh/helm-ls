@@ -9,6 +9,11 @@ import (
 	"go.lsp.dev/uri"
 )
 
+var (
+	helmDocumentType = "helm"
+	yamlDocumentType = "yaml"
+)
+
 // documentStore holds opened documents.
 type DocumentStore struct {
 	templateDocuments sync.Map
@@ -18,31 +23,45 @@ type DocumentStore struct {
 func NewDocumentStore() *DocumentStore {
 	return &DocumentStore{
 		documents: map[string]*sync.Map{
-			("yaml" + ""): new(sync.Map),
-			"helm":        new(sync.Map),
+			helmDocumentType: new(sync.Map),
+			yamlDocumentType: new(sync.Map),
 		},
 		templateDocuments: sync.Map{},
 	}
 }
 
-func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (*TemplateDocument, error) {
-	logger.Debug(fmt.Sprintf("Opening document %s with langID %s", params.TextDocument.URI, params.TextDocument.LanguageID))
-
+func (s *DocumentStore) DidOpenTemplateDocument(
+	params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration,
+) (*TemplateDocument, error) {
 	uri := params.TextDocument.URI
 	path := uri.Filename()
 	doc := NewTemplateDocument(uri, []byte(params.TextDocument.Text), true, helmlsConfig)
 	logger.Debug("Storing doc ", path)
-	s.templateDocuments.Store(path, doc)
+	s.documents[helmDocumentType].Store(path, doc)
 	return doc, nil
 }
 
-func (s *DocumentStore) Store(path string, content []byte, helmlsConfig util.HelmlsConfiguration) {
-	_, ok := s.templateDocuments.Load(path)
+func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (*Document, error) {
+	logger.Debug(fmt.Sprintf("Opening document %s with langID %s", params.TextDocument.URI, params.TextDocument.LanguageID))
+
+	uri := params.TextDocument.URI
+	path := uri.Filename()
+	if IsTemplateDocumentLangID(params.TextDocument.LanguageID) {
+		doc := NewTemplateDocument(uri, []byte(params.TextDocument.Text), true, helmlsConfig)
+		logger.Debug("Storing doc ", path)
+		s.documents[helmDocumentType].Store(path, doc)
+		// return doc, nil
+	}
+	return nil, fmt.Errorf("unsupported document type: %s", params.TextDocument.LanguageID)
+}
+
+func (s *DocumentStore) StoreTemplateDocument(path string, content []byte, helmlsConfig util.HelmlsConfiguration) {
+	_, ok := s.documents[helmDocumentType].Load(path)
 	if ok {
 		return
 	}
 	fileURI := uri.File(path)
-	s.templateDocuments.Store(fileURI.Filename(),
+	s.documents[helmDocumentType].Store(fileURI.Filename(),
 		NewTemplateDocument(fileURI, content, false, helmlsConfig))
 }
 

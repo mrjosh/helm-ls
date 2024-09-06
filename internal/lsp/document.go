@@ -66,3 +66,7 @@ func (d *Document) GetContent() []byte {
 func (d *Document) GetPath() string {
 	return d.Path
 }
+
+type TextDocument interface {
+	ApplyChanges([]lsp.TextDocumentContentChangeEvent)
+}

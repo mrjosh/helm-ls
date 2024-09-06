@@ -94,7 +94,7 @@ func TestRefercesTemplateContext(t *testing.T) {
 					Text:       string(content),
 				},
 			}
-			documents.DidOpen(&d, util.DefaultConfig)
+			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 			h := &langHandler{
 				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
@@ -161,7 +161,7 @@ func TestRefercesTemplateContextWithTestFile(t *testing.T) {
 					Text:       string(content),
 				},
 			}
-			documents.DidOpen(&d, util.DefaultConfig)
+			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 			h := &langHandler{
 				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
@@ -219,7 +219,7 @@ func TestRefercesSingleLines(t *testing.T) {
 					Text:       buf,
 				},
 			}
-			documents.DidOpen(&d, util.DefaultConfig)
+			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 			h := &langHandler{
 				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,

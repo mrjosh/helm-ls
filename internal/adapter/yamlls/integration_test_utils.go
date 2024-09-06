@@ -81,6 +81,7 @@ func openFile(t *testing.T, documents *lsplocal.DocumentStore, path string, yaml
 			Text:       string(content),
 		},
 	}
-	doc, err := documents.DidOpen(&d, util.DefaultConfig)
-	yamllsConnector.DocumentDidOpen(doc.Ast, d)
+	_, err = documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
+	// doc, err := documents.DidOpen(&d, util.DefaultConfig) TODO: fix this
+	// yamllsConnector.DocumentDidOpen(doc.Ast, d)
 }

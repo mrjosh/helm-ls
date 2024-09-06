@@ -182,7 +182,7 @@ func TestHoverMain(t *testing.T) {
 					Text:       string(content),
 				},
 			}
-			documents.DidOpen(&d, util.DefaultConfig)
+			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 
 			h := &langHandler{
 				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
