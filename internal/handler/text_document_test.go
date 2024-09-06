@@ -65,7 +65,7 @@ func TestLoadDocsOnNewChartDoesNotOverwrite(t *testing.T) {
 		helmlsConfig: util.DefaultConfig,
 	}
 
-	docs.DidOpen(&lsp.DidOpenTextDocumentParams{
+	docs.DidOpenTemplateDocument(&lsp.DidOpenTextDocumentParams{
 		TextDocument: lsp.TextDocumentItem{
 			URI: uri.File(templateFile),
 		},

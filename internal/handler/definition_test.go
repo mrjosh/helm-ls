@@ -79,7 +79,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 			Text:       string(testFileContent),
 		},
 	}
-	documents.DidOpen(&d, util.DefaultConfig)
+	documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 	chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
 	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: testChart}
 	h := &langHandler{
@@ -274,7 +274,7 @@ func genericDefinitionTestMultipleValuesFiles(t *testing.T, position lsp.Positio
 			Text:       string(testFileContent),
 		},
 	}
-	documents.DidOpen(&d, util.DefaultConfig)
+	documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 	chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
 	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: chart}
 	h := &langHandler{
@@ -366,7 +366,7 @@ func TestDefinitionSingleLine(t *testing.T) {
 					Text: buf,
 				},
 			}
-			documents.DidOpen(&d, util.DefaultConfig)
+			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 			h := &langHandler{
 				chartStore: charts.NewChartStore(rootUri, charts.NewChart, addChartCallback),
 				documents:  documents,

@@ -13,20 +13,23 @@ import (
 )
 
 func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
-	doc, err := h.documents.DidOpen(params, h.helmlsConfig)
-	if err != nil {
-		logger.Error(err)
-		return err
+	if lsplocal.IsTemplateDocumentLangID(params.TextDocument.LanguageID) {
+		doc, err := h.documents.DidOpenTemplateDocument(params, h.helmlsConfig)
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+
+		h.yamllsConnector.DocumentDidOpen(doc.Ast, *params)
+
+		chart, err := h.chartStore.GetChartOrParentForDoc(doc.URI)
+		if err != nil {
+			logger.Error("Error getting chart info for file", doc.URI, err)
+		}
+
+		defer h.publishDiagnostics(ctx, helmlint.GetDiagnosticsNotifications(chart, doc))
+
 	}
-
-	h.yamllsConnector.DocumentDidOpen(doc.Ast, *params)
-
-	chart, err := h.chartStore.GetChartOrParentForDoc(doc.URI)
-	if err != nil {
-		logger.Error("Error getting chart info for file", doc.URI, err)
-	}
-
-	defer h.publishDiagnostics(ctx, helmlint.GetDiagnosticsNotifications(chart, doc))
 
 	return nil
 }
@@ -59,11 +62,10 @@ func (h *langHandler) DidChange(_ context.Context, params *lsp.DidChangeTextDocu
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 
-	shouldSendFullUpdateToYamlls := false
-
 	// Synchronise changes into the doc's ContentChanges
 	doc.ApplyChanges(params.ContentChanges)
 
+	shouldSendFullUpdateToYamlls := false
 	for _, change := range params.ContentChanges {
 		node := lsplocal.NodeAtPosition(doc.Ast, change.Range.Start)
 		if node.Type() != "text" {
@@ -71,7 +73,6 @@ func (h *langHandler) DidChange(_ context.Context, params *lsp.DidChangeTextDocu
 			break
 		}
 	}
-
 	if shouldSendFullUpdateToYamlls {
 		h.yamllsConnector.DocumentDidChangeFullSync(doc, *params)
 	} else {
@@ -104,11 +105,11 @@ func (h *langHandler) LoadDocsOnNewChart(chart *charts.Chart) {
 	}
 
 	for _, file := range chart.HelmChart.Templates {
-		h.documents.Store(filepath.Join(chart.RootURI.Filename(), file.Name), file.Data, h.helmlsConfig)
+		h.documents.StoreTemplateDocument(filepath.Join(chart.RootURI.Filename(), file.Name), file.Data, h.helmlsConfig)
 	}
 
 	for _, file := range chart.GetDependeciesTemplates() {
 		logger.Debug(fmt.Sprintf("Storing dependency %s", file.Path))
-		h.documents.Store(file.Path, file.Content, h.helmlsConfig)
+		h.documents.StoreTemplateDocument(file.Path, file.Content, h.helmlsConfig)
 	}
 }

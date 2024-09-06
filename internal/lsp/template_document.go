@@ -62,3 +62,7 @@ func (d *Document) getLine(index int) (string, bool) {
 func IsYamllsEnabled(uri lsp.URI, yamllsConfiguration util.YamllsConfiguration) bool {
 	return yamllsConfiguration.EnabledForFilesGlobObject.Match(uri.Filename())
 }
+
+func IsTemplateDocumentLangID(langID lsp.LanguageIdentifier) bool {
+	return langID == "helm"
+}

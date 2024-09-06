@@ -225,7 +225,7 @@ func completionTestCall(fileURI uri.URI, buf string, pos lsp.Position) (*lsp.Com
 			Text:       buf,
 		},
 	}
-	documents.DidOpen(&d, util.DefaultConfig)
+	documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 	h := &langHandler{
 		chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, func(chart *charts.Chart) {}),
 		documents:       documents,
