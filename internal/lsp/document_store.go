@@ -16,8 +16,7 @@ var (
 
 // documentStore holds opened documents.
 type DocumentStore struct {
-	templateDocuments sync.Map
-	documents         map[string]*sync.Map
+	documents map[string]*sync.Map
 }
 
 func NewDocumentStore() *DocumentStore {
@@ -26,7 +25,6 @@ func NewDocumentStore() *DocumentStore {
 			helmDocumentType: new(sync.Map),
 			yamlDocumentType: new(sync.Map),
 		},
-		templateDocuments: sync.Map{},
 	}
 }
 
@@ -67,7 +65,7 @@ func (s *DocumentStore) StoreTemplateDocument(path string, content []byte, helml
 
 func (s *DocumentStore) GetTemplateDoc(docuri uri.URI) (*TemplateDocument, bool) {
 	path := docuri.Filename()
-	d, ok := s.templateDocuments.Load(path)
+	d, ok := s.documents[helmDocumentType].Load(path)
 
 	if !ok {
 		return nil, false
@@ -77,7 +75,7 @@ func (s *DocumentStore) GetTemplateDoc(docuri uri.URI) (*TemplateDocument, bool)
 
 func (s *DocumentStore) GetAllTemplateDocs() []*TemplateDocument {
 	var docs []*TemplateDocument
-	s.templateDocuments.Range(func(_, v interface{}) bool {
+	s.documents[helmDocumentType].Range(func(_, v interface{}) bool {
 		docs = append(docs, v.(*TemplateDocument))
 		return true
 	})

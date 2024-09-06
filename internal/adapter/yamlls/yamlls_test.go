@@ -17,7 +17,7 @@ func TestIsRelevantFile(t *testing.T) {
 		},
 	}
 
-	connector.documents = &lsplocal.DocumentStore{}
+	connector.documents = lsplocal.NewDocumentStore()
 	yamlFile := "../../../testdata/example/templates/deployment.yaml"
 	nonYamlFile := "../../../testdata/example/templates/_helpers.tpl"
 
