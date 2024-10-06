@@ -1,4 +1,4 @@
-package handler
+package templatehandler
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *ServerHandler) Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error) {
+func (h *TemplateHandler) Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error) {
 	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams, lsplocal.NodeAtPosition)
 	if err != nil {
 		return nil, err

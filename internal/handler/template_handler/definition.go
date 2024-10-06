@@ -1,4 +1,4 @@
-package handler
+package templatehandler
 
 import (
 	"context"
@@ -8,22 +8,23 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *ServerHandler) References(_ context.Context, params *lsp.ReferenceParams) (result []lsp.Location, err error) {
+func (h *TemplateHandler) Definition(_ context.Context, params *lsp.DefinitionParams) (result []lsp.Location, err error) {
 	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams, lsplocal.NodeAtPosition)
 	if err != nil {
 		return nil, err
 	}
 
-	usecases := []languagefeatures.ReferencesUseCase{
-		languagefeatures.NewIncludesDefinitionFeature(genericDocumentUseCase),
-		languagefeatures.NewIncludesCallFeature(genericDocumentUseCase),
-		languagefeatures.NewTemplateContextFeature(genericDocumentUseCase),
+	usecases := []languagefeatures.DefinitionUseCase{
+		languagefeatures.NewBuiltInObjectsFeature(genericDocumentUseCase), // has to be before template context
 		languagefeatures.NewVariablesFeature(genericDocumentUseCase),
+		languagefeatures.NewTemplateContextFeature(genericDocumentUseCase),
+		languagefeatures.NewIncludesCallFeature(genericDocumentUseCase),
 	}
 
 	for _, usecase := range usecases {
 		if usecase.AppropriateForNode() {
-			return usecase.References()
+			result, err := usecase.Definition()
+			return result, err
 		}
 	}
 

@@ -3,8 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
-	"path/filepath"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	helmlint "github.com/mrjosh/helm-ls/internal/helm_lint"
@@ -12,7 +10,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
+func (h *ServerHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
 	if lsplocal.IsTemplateDocumentLangID(params.TextDocument.LanguageID) {
 		doc, err := h.documents.DidOpenTemplateDocument(params, h.helmlsConfig)
 		if err != nil {
@@ -34,11 +32,11 @@ func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocume
 	return nil
 }
 
-func (h *langHandler) DidClose(_ context.Context, _ *lsp.DidCloseTextDocumentParams) (err error) {
+func (h *ServerHandler) DidClose(_ context.Context, _ *lsp.DidCloseTextDocumentParams) (err error) {
 	return nil
 }
 
-func (h *langHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocumentParams) (err error) {
+func (h *ServerHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocumentParams) (err error) {
 	doc, ok := h.documents.GetTemplateDoc(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
@@ -56,7 +54,7 @@ func (h *langHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocume
 	return nil
 }
 
-func (h *langHandler) DidChange(_ context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
+func (h *ServerHandler) DidChange(_ context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
 	doc, ok := h.documents.GetTemplateDoc(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
@@ -82,34 +80,23 @@ func (h *langHandler) DidChange(_ context.Context, params *lsp.DidChangeTextDocu
 	return nil
 }
 
-func (h *langHandler) DidCreateFiles(ctx context.Context, params *lsp.CreateFilesParams) (err error) {
+func (h *ServerHandler) DidCreateFiles(ctx context.Context, params *lsp.CreateFilesParams) (err error) {
 	logger.Error("DidCreateFiles unimplemented")
 	return nil
 }
 
 // DidDeleteFiles implements protocol.Server.
-func (h *langHandler) DidDeleteFiles(ctx context.Context, params *lsp.DeleteFilesParams) (err error) {
+func (h *ServerHandler) DidDeleteFiles(ctx context.Context, params *lsp.DeleteFilesParams) (err error) {
 	logger.Error("DidDeleteFiles unimplemented")
 	return nil
 }
 
 // DidRenameFiles implements protocol.Server.
-func (h *langHandler) DidRenameFiles(ctx context.Context, params *lsp.RenameFilesParams) (err error) {
+func (h *ServerHandler) DidRenameFiles(ctx context.Context, params *lsp.RenameFilesParams) (err error) {
 	logger.Error("DidRenameFiles unimplemented")
 	return nil
 }
 
-func (h *langHandler) LoadDocsOnNewChart(chart *charts.Chart) {
-	if chart.HelmChart == nil {
-		return
-	}
-
-	for _, file := range chart.HelmChart.Templates {
-		h.documents.StoreTemplateDocument(filepath.Join(chart.RootURI.Filename(), file.Name), file.Data, h.helmlsConfig)
-	}
-
-	for _, file := range chart.GetDependeciesTemplates() {
-		logger.Debug(fmt.Sprintf("Storing dependency %s", file.Path))
-		h.documents.StoreTemplateDocument(file.Path, file.Content, h.helmlsConfig)
-	}
+func (h *ServerHandler) LoadDocsOnNewChart(chart *charts.Chart) {
+	h.documents.LoadDocsOnNewChart(chart, h.helmlsConfig)
 }

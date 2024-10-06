@@ -1,4 +1,4 @@
-package handler
+package templatehandler
 
 import (
 	"context"
@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	rootUri           = uri.File("../../testdata/dependenciesExample/")
-	fileURI           = uri.File("../../testdata/dependenciesExample/templates/deployment.yaml")
-	fileURIInSubchart = uri.File("../../testdata/dependenciesExample/charts/subchartexample/templates/subchart.yaml")
+	rootUri           = uri.File("../../../testdata/dependenciesExample/")
+	fileURI           = uri.File("../../../testdata/dependenciesExample/templates/deployment.yaml")
+	fileURIInSubchart = uri.File("../../../testdata/dependenciesExample/charts/subchartexample/templates/subchart.yaml")
 )
 
 type testCase struct {
@@ -167,16 +167,15 @@ func TestDefinitionChart(t *testing.T) {
 			addChartCallback := func(chart *charts.Chart) {}
 			chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
 			_, err = chartStore.GetChartForURI(rootUri)
-			h := &langHandler{
+			h := &TemplateHandler{
 				chartStore:      chartStore,
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
-				helmlsConfig:    util.DefaultConfig,
 			}
 
 			assert.NoError(t, err)
 
-			h.LoadDocsOnNewChart(chart)
+			documents.LoadDocsOnNewChart(chart, util.DefaultConfig)
 
 			locations, err := h.Definition(context.TODO(), &lsp.DefinitionParams{
 				TextDocumentPositionParams: lsp.TextDocumentPositionParams{

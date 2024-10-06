@@ -1,4 +1,4 @@
-package handler
+package templatehandler
 
 import (
 	"context"
@@ -129,7 +129,7 @@ func TestCompletionMain(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.desc, func(t *testing.T) {
-			path := "../../testdata/example/templates/completion-test.yaml"
+			path := "../../../testdata/example/templates/completion-test.yaml"
 			fileURI := uri.File(path)
 
 			content, err := os.ReadFile(path)
@@ -189,8 +189,8 @@ func TestCompletionMainSingleLines(t *testing.T) {
 		t.Run(tt.templateWithMark, func(t *testing.T) {
 			pos, buf := getPositionForMarkedTestLine(tt.templateWithMark)
 
-			// to get the correct values file ../../testdata/example/values.yaml
-			fileURI := uri.File("../../testdata/example/templates/completion-test.yaml")
+			// to get the correct values file ../../../testdata/example/values.yaml
+			fileURI := uri.File("../../../testdata/example/templates/completion-test.yaml")
 
 			result, err := completionTestCall(fileURI, buf, pos)
 			assert.NotNil(t, result)
@@ -226,7 +226,7 @@ func completionTestCall(fileURI uri.URI, buf string, pos lsp.Position) (*lsp.Com
 		},
 	}
 	documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
-	h := &langHandler{
+	h := &TemplateHandler{
 		chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, func(chart *charts.Chart) {}),
 		documents:       documents,
 		yamllsConnector: &yamlls.Connector{},

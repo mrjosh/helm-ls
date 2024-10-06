@@ -1,4 +1,4 @@
-package handler
+package templatehandler
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *ServerHandler) References(_ context.Context, params *lsp.ReferenceParams) (result []lsp.Location, err error) {
+func (h *TemplateHandler) References(_ context.Context, params *lsp.ReferenceParams) (result []lsp.Location, err error) {
 	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams, lsplocal.NodeAtPosition)
 	if err != nil {
 		return nil, err

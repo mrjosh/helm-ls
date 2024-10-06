@@ -13,7 +13,7 @@ import (
 	"go.lsp.dev/uri"
 )
 
-func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializeParams) (result *lsp.InitializeResult, err error) {
+func (h *ServerHandler) Initialize(ctx context.Context, params *lsp.InitializeParams) (result *lsp.InitializeResult, err error) {
 	var workspaceURI uri.URI
 
 	if len(params.WorkspaceFolders) != 0 {
@@ -51,18 +51,18 @@ func (h *langHandler) Initialize(ctx context.Context, params *lsp.InitializePara
 	}, nil
 }
 
-func (h *langHandler) Initialized(ctx context.Context, _ *lsp.InitializedParams) (err error) {
+func (h *ServerHandler) Initialized(ctx context.Context, _ *lsp.InitializedParams) (err error) {
 	h.retrieveWorkspaceConfiguration(ctx)
 	return nil
 }
 
-func (h *langHandler) initializationWithConfig(ctx context.Context) {
+func (h *ServerHandler) initializationWithConfig(ctx context.Context) {
 	configureLogLevel(h.helmlsConfig)
 	h.chartStore.SetValuesFilesConfig(h.helmlsConfig.ValuesFilesConfig)
 	h.configureYamlls(ctx)
 }
 
-func (h *langHandler) configureYamlsEnabledGlob() {
+func (h *ServerHandler) configureYamlsEnabledGlob() {
 	globObject, err := glob.Compile(h.helmlsConfig.YamllsConfiguration.EnabledForFilesGlob)
 	if err != nil {
 		logger.Error("Error compiling glob for yamlls EnabledForFilesGlob", err)
@@ -71,7 +71,7 @@ func (h *langHandler) configureYamlsEnabledGlob() {
 	h.helmlsConfig.YamllsConfiguration.EnabledForFilesGlobObject = globObject
 }
 
-func (h *langHandler) configureYamlls(ctx context.Context) {
+func (h *ServerHandler) configureYamlls(ctx context.Context) {
 	config := h.helmlsConfig
 	if config.YamllsConfiguration.Enabled {
 		h.configureYamlsEnabledGlob()
@@ -96,7 +96,7 @@ func configureLogLevel(helmlsConfig util.HelmlsConfiguration) {
 	}
 }
 
-func (h *langHandler) AddChartCallback(chart *charts.Chart) {
+func (h *ServerHandler) AddChartCallback(chart *charts.Chart) {
 	h.NewChartWithWatchedFiles(chart)
 	go h.LoadDocsOnNewChart(chart)
 }
