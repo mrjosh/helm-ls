@@ -28,7 +28,7 @@ func (h *ServerHandler) Initialize(ctx context.Context, params *lsp.InitializePa
 	}
 
 	logger.Debug("Initializing chartStore")
-	h.chartStore = charts.NewChartStore(workspaceURI, charts.NewChart, h.AddChartCallback)
+	h.setChartStrore(charts.NewChartStore(workspaceURI, charts.NewChart, h.AddChartCallback))
 
 	logger.Debug("Initializing done")
 	return &lsp.InitializeResult{
@@ -75,7 +75,7 @@ func (h *ServerHandler) configureYamlls(ctx context.Context) {
 	config := h.helmlsConfig
 	if config.YamllsConfiguration.Enabled {
 		h.configureYamlsEnabledGlob()
-		h.yamllsConnector = yamlls.NewConnector(ctx, config.YamllsConfiguration, h.client, h.documents)
+		h.setYamllsConnector(yamlls.NewConnector(ctx, config.YamllsConfiguration, h.client, h.documents))
 		err := h.yamllsConnector.CallInitialize(ctx, h.chartStore.RootURI)
 		if err != nil {
 			logger.Error("Error initializing yamlls", err)
