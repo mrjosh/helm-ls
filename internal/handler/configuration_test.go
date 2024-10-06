@@ -15,7 +15,10 @@ import (
 	"go.lsp.dev/uri"
 )
 
-var configurationParams = lsp.ConfigurationParams{Items: []lsp.ConfigurationItem{{Section: "helm-ls"}}}
+var (
+	addChartCallback    = func(chart *charts.Chart) {}
+	configurationParams = lsp.ConfigurationParams{Items: []lsp.ConfigurationItem{{Section: "helm-ls"}}}
+)
 
 func TestConfigurationWorks(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)

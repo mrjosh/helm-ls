@@ -190,9 +190,9 @@ func TestHoverMain(t *testing.T) {
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
 			}
-			h.chartStore = charts.NewChartStore(uri.File("."), charts.NewChart, func(chart *charts.Chart) {
+			h.SetChartStore(charts.NewChartStore(uri.File("."), charts.NewChart, func(chart *charts.Chart) {
 				documents.LoadDocsOnNewChart(chart, util.DefaultConfig)
-			})
+			}))
 			chart, _ := h.chartStore.GetChartOrParentForDoc(fileURI)
 			documents.LoadDocsOnNewChart(chart, util.DefaultConfig)
 			result, err := h.Hover(context.Background(), &lsp.HoverParams{

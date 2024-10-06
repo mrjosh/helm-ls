@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
+	templatehandler "github.com/mrjosh/helm-ls/internal/handler/template_handler"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
@@ -26,7 +27,7 @@ type ServerHandler struct {
 	chartStore      *charts.ChartStore
 	yamllsConnector *yamlls.Connector
 	helmlsConfig    util.HelmlsConfiguration
-	langHandlers    map[string]LangHandler
+	langHandlers    map[lsplocal.DocumentType]LangHandler
 }
 
 func StartHandler(stream io.ReadWriteCloser) {
@@ -46,17 +47,37 @@ func StartHandler(stream io.ReadWriteCloser) {
 
 func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 	documents := lsplocal.NewDocumentStore()
+	initalYamllsConnector := &yamlls.Connector{}
 	handler := &ServerHandler{
 		client:          client,
 		linterName:      "helm-lint",
 		connPool:        connPool,
 		documents:       documents,
 		helmlsConfig:    util.DefaultConfig,
-		yamllsConnector: &yamlls.Connector{},
+		yamllsConnector: initalYamllsConnector,
+		langHandlers: map[lsplocal.DocumentType]LangHandler{
+			lsplocal.TemplateDocumentType: templatehandler.NewTemplateHandler(documents, nil, initalYamllsConnector),
+		},
 	}
 	logger.Printf("helm-lint-langserver: connections opened")
 
 	return handler
+}
+
+func (h *ServerHandler) setChartStrore(chartStore *charts.ChartStore) {
+	h.chartStore = chartStore
+
+	for _, handler := range h.langHandlers {
+		handler.SetChartStore(chartStore)
+	}
+}
+
+func (h *ServerHandler) setYamllsConnector(yamllsConnector *yamlls.Connector) {
+	h.yamllsConnector = yamllsConnector
+
+	for _, handler := range h.langHandlers {
+		handler.SetYamllsConnector(yamllsConnector)
+	}
 }
 
 // CodeAction implements protocol.Server.

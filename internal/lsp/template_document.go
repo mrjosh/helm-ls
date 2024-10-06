@@ -17,6 +17,10 @@ type TemplateDocument struct {
 	IsYaml                  bool
 }
 
+func (d *TemplateDocument) GetDocumentType() DocumentType {
+	return TemplateDocumentType
+}
+
 func NewTemplateDocument(fileURI uri.URI, content []byte, isOpen bool, helmlsConfig util.HelmlsConfiguration) *TemplateDocument {
 	ast := ParseAst(nil, content)
 	return &TemplateDocument{

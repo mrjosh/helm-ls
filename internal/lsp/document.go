@@ -10,12 +10,24 @@ import (
 	"go.lsp.dev/uri"
 )
 
+type DocumentType string
+
+const (
+	TemplateDocumentType DocumentType = "helm"
+	YamlDocumentType                  = `yaml`
+)
+
 type Document struct {
-	URI     lsp.DocumentURI
-	Path    string
-	Content []byte
-	lines   []string
-	IsOpen  bool
+	URI          lsp.DocumentURI
+	DocumentType DocumentType
+	Path         string
+	Content      []byte
+	lines        []string
+	IsOpen       bool
+}
+
+type DocumentInterface interface {
+	GetDocumentType() DocumentType
 }
 
 func NewDocument(fileURI uri.URI, content []byte, isOpen bool) *Document {
