@@ -5,29 +5,16 @@ import (
 	"errors"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	helmlint "github.com/mrjosh/helm-ls/internal/helm_lint"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	lsp "go.lsp.dev/protocol"
 )
 
 func (h *ServerHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
-	if lsplocal.IsTemplateDocumentLangID(params.TextDocument.LanguageID) {
-		doc, err := h.documents.DidOpenTemplateDocument(params, h.helmlsConfig)
-		if err != nil {
-			logger.Error(err)
-			return err
-		}
+	handler := h.langHandlers[lsplocal.TemplateDocumentTypeForLangID(params.TextDocument.LanguageID)]
 
-		h.yamllsConnector.DocumentDidOpen(doc.Ast, *params)
+	handler.DidOpen(ctx, params, h.helmlsConfig)
 
-		chart, err := h.chartStore.GetChartOrParentForDoc(doc.URI)
-		if err != nil {
-			logger.Error("Error getting chart info for file", doc.URI, err)
-		}
-
-		defer h.publishDiagnostics(ctx, helmlint.GetDiagnosticsNotifications(chart, doc))
-
-	}
+	defer h.publishDiagnostics(ctx, handler.GetDiagnostics(params.TextDocument.URI))
 
 	return nil
 }
@@ -37,45 +24,28 @@ func (h *ServerHandler) DidClose(_ context.Context, _ *lsp.DidCloseTextDocumentP
 }
 
 func (h *ServerHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocumentParams) (err error) {
-	doc, ok := h.documents.GetTemplateDoc(params.TextDocument.URI)
-	if !ok {
-		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
-	}
-	chart, err := h.chartStore.GetChartOrParentForDoc(doc.URI)
+	handler, err := h.selectLangHandler(ctx, params.TextDocument.URI)
 	if err != nil {
-		logger.Error("Error getting chart info for file", doc.URI, err)
+		return err
 	}
 
-	h.yamllsConnector.DocumentDidSave(doc, *params)
-	notifications := helmlint.GetDiagnosticsNotifications(chart, doc)
+	handler.DidSave(ctx, params)
 
-	defer h.publishDiagnostics(ctx, notifications)
+	defer h.publishDiagnostics(ctx, handler.GetDiagnostics(params.TextDocument.URI))
 
 	return nil
 }
 
-func (h *ServerHandler) DidChange(_ context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
-	doc, ok := h.documents.GetTemplateDoc(params.TextDocument.URI)
+func (h *ServerHandler) DidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
+	handler, err := h.selectLangHandler(ctx, params.TextDocument.URI)
+	handler.DidChange(ctx, params)
+
+	doc, ok := h.documents.GetSyncDocument(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
-
 	// Synchronise changes into the doc's ContentChanges
 	doc.ApplyChanges(params.ContentChanges)
-
-	shouldSendFullUpdateToYamlls := false
-	for _, change := range params.ContentChanges {
-		node := lsplocal.NodeAtPosition(doc.Ast, change.Range.Start)
-		if node.Type() != "text" {
-			shouldSendFullUpdateToYamlls = true
-			break
-		}
-	}
-	if shouldSendFullUpdateToYamlls {
-		h.yamllsConnector.DocumentDidChangeFullSync(doc, *params)
-	} else {
-		h.yamllsConnector.DocumentDidChange(doc, *params)
-	}
 
 	return nil
 }
