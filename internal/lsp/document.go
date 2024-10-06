@@ -17,6 +17,16 @@ const (
 	YamlDocumentType                  = `yaml`
 )
 
+func TemplateDocumentTypeForLangID(langID lsp.LanguageIdentifier) DocumentType {
+	if strings.Contains(string(langID), `yaml`) {
+		return YamlDocumentType
+	}
+	if strings.Contains(string(langID), `helm`) {
+		return TemplateDocumentType
+	}
+	return TemplateDocumentType
+}
+
 type Document struct {
 	URI          lsp.DocumentURI
 	DocumentType DocumentType
@@ -28,6 +38,7 @@ type Document struct {
 
 type DocumentInterface interface {
 	GetDocumentType() DocumentType
+	ApplyChanges([]lsp.TextDocumentContentChangeEvent)
 }
 
 func NewDocument(fileURI uri.URI, content []byte, isOpen bool) *Document {

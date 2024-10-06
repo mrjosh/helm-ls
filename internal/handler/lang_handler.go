@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
+	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
@@ -16,6 +17,15 @@ type LangHandler interface {
 	Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error)
 	Definition(ctx context.Context, params *lsp.DefinitionParams) (result []lsp.Location, err error)
 	DocumentSymbol(ctx context.Context, params *lsp.DocumentSymbolParams) (result []interface{}, err error)
+
+	// DidOpen is called when a document is opened. This function has to add the document to the document store
+	DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (err error)
+	// DidSave is called when a document is saved, it must not update the document store
+	DidSave(ctx context.Context, params *lsp.DidSaveTextDocumentParams) (err error)
+	// DidChange is called when a document is changed, it must not update the document store
+	DidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error)
+
+	GetDiagnostics(uri lsp.DocumentURI) []lsp.PublishDiagnosticsParams
 
 	SetChartStore(chartStore *charts.ChartStore)
 	SetYamllsConnector(yamllsConnector *yamlls.Connector)

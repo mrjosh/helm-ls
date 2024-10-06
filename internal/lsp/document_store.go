@@ -106,3 +106,13 @@ func (s *DocumentStore) GetDocumentType(uri uri.URI) (DocumentType, bool) {
 	doc, ok := d.(DocumentInterface)
 	return doc.GetDocumentType(), ok
 }
+
+func (s *DocumentStore) GetSyncDocument(uri uri.URI) (DocumentInterface, bool) {
+	path := uri.Filename()
+	d, ok := s.documents.Load(path)
+	if !ok {
+		return nil, false
+	}
+	doc, ok := d.(DocumentInterface)
+	return doc, ok
+}
