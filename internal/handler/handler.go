@@ -40,23 +40,21 @@ func StartHandler(stream io.ReadWriteCloser) {
 		logger,
 	)
 	server.connPool = conn
-	server.client = client
+	server.setClient(client)
 
 	<-conn.Done()
 }
 
 func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 	documents := lsplocal.NewDocumentStore()
-	initalYamllsConnector := &yamlls.Connector{}
 	handler := &ServerHandler{
-		client:          client,
-		linterName:      "helm-lint",
-		connPool:        connPool,
-		documents:       documents,
-		helmlsConfig:    util.DefaultConfig,
-		yamllsConnector: initalYamllsConnector,
+		client:       client,
+		linterName:   "helm-lint",
+		connPool:     connPool,
+		documents:    documents,
+		helmlsConfig: util.DefaultConfig,
 		langHandlers: map[lsplocal.DocumentType]LangHandler{
-			lsplocal.TemplateDocumentType: templatehandler.NewTemplateHandler(documents, nil, initalYamllsConnector),
+			lsplocal.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, nil),
 		},
 	}
 	logger.Printf("helm-lint-langserver: connections opened")
@@ -72,11 +70,11 @@ func (h *ServerHandler) setChartStrore(chartStore *charts.ChartStore) {
 	}
 }
 
-func (h *ServerHandler) setYamllsConnector(yamllsConnector *yamlls.Connector) {
-	h.yamllsConnector = yamllsConnector
+func (h *ServerHandler) setClient(client protocol.Client) {
+	h.client = client
 
 	for _, handler := range h.langHandlers {
-		handler.SetYamllsConnector(yamllsConnector)
+		handler.SetClient(client)
 	}
 }
 
