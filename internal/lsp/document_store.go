@@ -2,8 +2,10 @@ package lsp
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
@@ -20,67 +22,97 @@ func NewDocumentStore() *DocumentStore {
 	}
 }
 
-func (s *DocumentStore) GetAllDocs() []*Document {
-	var docs []*Document
-	s.documents.Range(func(_, v interface{}) bool {
-		docs = append(docs, v.(*Document))
-		return true
-	})
-	return docs
-}
-
-func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (*Document, error) {
-	logger.Debug(fmt.Sprintf("Opening document %s with langID %s", params.TextDocument.URI, params.TextDocument.LanguageID))
-
+func (s *DocumentStore) DidOpenTemplateDocument(
+	params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration,
+) (*TemplateDocument, error) {
 	uri := params.TextDocument.URI
 	path := uri.Filename()
-	ast := ParseAst(nil, params.TextDocument.Text)
-	doc := &Document{
-		URI:              uri,
-		Path:             path,
-		Content:          params.TextDocument.Text,
-		Ast:              ast,
-		DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
-		IsOpen:           true,
-		SymbolTable:      NewSymbolTable(ast, []byte(params.TextDocument.Text)),
-		IsYaml:           IsYamlDocument(uri, helmlsConfig.YamllsConfiguration),
-	}
+	doc := NewTemplateDocument(uri, []byte(params.TextDocument.Text), true, helmlsConfig)
 	logger.Debug("Storing doc ", path)
 	s.documents.Store(path, doc)
 	return doc, nil
 }
 
-func (s *DocumentStore) Store(filename string, content []byte, helmlsConfig util.HelmlsConfiguration) {
-	_, ok := s.documents.Load(filename)
+// unused
+func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (*Document, error) {
+	logger.Debug(fmt.Sprintf("Opening document %s with langID %s", params.TextDocument.URI, params.TextDocument.LanguageID))
+
+	uri := params.TextDocument.URI
+	path := uri.Filename()
+	if IsTemplateDocumentLangID(params.TextDocument.LanguageID) {
+		doc := NewTemplateDocument(uri, []byte(params.TextDocument.Text), true, helmlsConfig)
+		logger.Debug("Storing doc ", path)
+		s.documents.Store(path, doc)
+		// return doc, nil
+	}
+	return nil, fmt.Errorf("unsupported document type: %s", params.TextDocument.LanguageID)
+}
+
+func (s *DocumentStore) StoreTemplateDocument(path string, content []byte, helmlsConfig util.HelmlsConfiguration) {
+	_, ok := s.documents.Load(path)
 	if ok {
 		return
 	}
-	ast := ParseAst(nil, string(content))
-	fileURI := uri.File(filename)
+	fileURI := uri.File(path)
 	s.documents.Store(fileURI.Filename(),
-		&Document{
-			URI:              fileURI,
-			Path:             filename,
-			Content:          string(content),
-			Ast:              ast,
-			DiagnosticsCache: NewDiagnosticsCache(helmlsConfig),
-			IsOpen:           false,
-			SymbolTable:      NewSymbolTable(ast, content),
-			IsYaml:           IsYamlDocument(fileURI, helmlsConfig.YamllsConfiguration),
-		},
-	)
+		NewTemplateDocument(fileURI, content, false, helmlsConfig))
 }
 
-func (s *DocumentStore) Get(docuri uri.URI) (*Document, bool) {
+func (s *DocumentStore) GetTemplateDoc(docuri uri.URI) (*TemplateDocument, bool) {
 	path := docuri.Filename()
 	d, ok := s.documents.Load(path)
 
 	if !ok {
 		return nil, false
 	}
-	return d.(*Document), ok
+	doc, ok := d.(*TemplateDocument)
+	return doc, ok
 }
 
-func IsYamlDocument(uri lsp.URI, yamllsConfiguration util.YamllsConfiguration) bool {
-	return yamllsConfiguration.EnabledForFilesGlobObject.Match(uri.Filename())
+func (s *DocumentStore) GetAllTemplateDocs() []*TemplateDocument {
+	var docs []*TemplateDocument
+	s.documents.Range(func(_, v interface{}) bool {
+		doc, ok := v.(*TemplateDocument)
+		if !ok {
+			return true
+		}
+		docs = append(docs, doc)
+		return true
+	})
+	return docs
+}
+
+func (s *DocumentStore) LoadDocsOnNewChart(chart *charts.Chart, helmlsConfig util.HelmlsConfiguration) {
+	if chart.HelmChart == nil {
+		return
+	}
+
+	for _, file := range chart.HelmChart.Templates {
+		s.StoreTemplateDocument(filepath.Join(chart.RootURI.Filename(), file.Name), file.Data, helmlsConfig)
+	}
+
+	for _, file := range chart.GetDependeciesTemplates() {
+		logger.Debug(fmt.Sprintf("Storing dependency %s", file.Path))
+		s.StoreTemplateDocument(file.Path, file.Content, helmlsConfig)
+	}
+}
+
+func (s *DocumentStore) GetDocumentType(uri uri.URI) (DocumentType, bool) {
+	path := uri.Filename()
+	d, ok := s.documents.Load(path)
+	if !ok {
+		return DocumentType(""), false
+	}
+	doc, ok := d.(DocumentInterface)
+	return doc.GetDocumentType(), ok
+}
+
+func (s *DocumentStore) GetSyncDocument(uri uri.URI) (DocumentInterface, bool) {
+	path := uri.Filename()
+	d, ok := s.documents.Load(path)
+	if !ok {
+		return nil, false
+	}
+	doc, ok := d.(DocumentInterface)
+	return doc, ok
 }

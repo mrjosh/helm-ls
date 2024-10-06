@@ -1,4 +1,4 @@
-package handler
+package templatehandler
 
 import (
 	"context"
@@ -94,8 +94,8 @@ func TestRefercesTemplateContext(t *testing.T) {
 					Text:       string(content),
 				},
 			}
-			documents.DidOpen(&d, util.DefaultConfig)
-			h := &langHandler{
+			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
+			h := &TemplateHandler{
 				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
@@ -145,7 +145,7 @@ func TestRefercesTemplateContextWithTestFile(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			documents := lsplocal.NewDocumentStore()
 
-			path := "../../testdata/example/templates/deployment.yaml"
+			path := "../../../testdata/example/templates/deployment.yaml"
 			fileURI := uri.File(path)
 
 			content, err := os.ReadFile(path)
@@ -161,8 +161,8 @@ func TestRefercesTemplateContextWithTestFile(t *testing.T) {
 					Text:       string(content),
 				},
 			}
-			documents.DidOpen(&d, util.DefaultConfig)
-			h := &langHandler{
+			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
+			h := &TemplateHandler{
 				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
@@ -219,8 +219,8 @@ func TestRefercesSingleLines(t *testing.T) {
 					Text:       buf,
 				},
 			}
-			documents.DidOpen(&d, util.DefaultConfig)
-			h := &langHandler{
+			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
+			h := &TemplateHandler{
 				chartStore:      charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback),
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
