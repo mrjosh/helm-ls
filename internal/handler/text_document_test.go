@@ -31,7 +31,7 @@ func TestLoadDocsOnNewChart(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	h := &langHandler{
+	h := &ServerHandler{
 		documents:    lsplocal.NewDocumentStore(),
 		helmlsConfig: util.DefaultConfig,
 	}
@@ -60,7 +60,7 @@ func TestLoadDocsOnNewChartDoesNotOverwrite(t *testing.T) {
 	assert.NoError(t, err)
 
 	docs := lsplocal.NewDocumentStore()
-	h := &langHandler{
+	h := &ServerHandler{
 		documents:    docs,
 		helmlsConfig: util.DefaultConfig,
 	}
@@ -85,7 +85,7 @@ func TestLoadDocsOnNewChartWorksForMissingTemplateDir(t *testing.T) {
 	rootURI := uri.File(tempDir)
 
 	docs := lsplocal.NewDocumentStore()
-	h := &langHandler{
+	h := &ServerHandler{
 		documents:    docs,
 		helmlsConfig: util.DefaultConfig,
 	}

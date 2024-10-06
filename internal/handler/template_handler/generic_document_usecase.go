@@ -1,4 +1,4 @@
-package handler
+package templatehandler
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *langHandler) NewGenericDocumentUseCase(
+func (h *TemplateHandler) NewGenericDocumentUseCase(
 	params lsp.TextDocumentPositionParams,
 	nodeSelection func(ast *sitter.Tree, position lsp.Position) (node *sitter.Node),
 ) (*languagefeatures.GenericDocumentUseCase, error) {

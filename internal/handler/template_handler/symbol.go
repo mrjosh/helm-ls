@@ -1,4 +1,4 @@
-package handler
+package templatehandler
 
 import (
 	"context"
@@ -7,6 +7,6 @@ import (
 )
 
 // DocumentSymbol implements protocol.Server.
-func (h *ServerHandler) DocumentSymbol(ctx context.Context, params *lsp.DocumentSymbolParams) (result []interface{}, err error) {
+func (h *TemplateHandler) DocumentSymbol(ctx context.Context, params *lsp.DocumentSymbolParams) (result []interface{}, err error) {
 	return h.yamllsConnector.CallDocumentSymbol(ctx, params)
 }

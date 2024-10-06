@@ -19,7 +19,7 @@ var configurationParams = lsp.ConfigurationParams{Items: []lsp.ConfigurationItem
 
 func TestConfigurationWorks(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
-	handler := &langHandler{
+	handler := &ServerHandler{
 		helmlsConfig: util.DefaultConfig,
 		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
@@ -41,7 +41,7 @@ func TestConfigurationWorks(t *testing.T) {
 
 func TestConfigurationWorksForEmptyConfig(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
-	handler := &langHandler{
+	handler := &ServerHandler{
 		helmlsConfig: util.DefaultConfig,
 		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
@@ -60,7 +60,7 @@ func TestConfigurationWorksForEmptyConfig(t *testing.T) {
 
 func TestConfigurationWorksForError(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
-	handler := &langHandler{
+	handler := &ServerHandler{
 		helmlsConfig: util.DefaultConfig,
 		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
@@ -82,7 +82,7 @@ func TestConfigurationWorksForError(t *testing.T) {
 
 func TestConfigurationWorksForJsonError(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
-	handler := &langHandler{
+	handler := &ServerHandler{
 		helmlsConfig: util.DefaultConfig,
 		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}

@@ -1,4 +1,4 @@
-package handler
+package templatehandler
 
 import (
 	"context"
@@ -82,7 +82,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 	documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 	chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
 	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: testChart}
-	h := &langHandler{
+	h := &TemplateHandler{
 		chartStore:      chartStore,
 		documents:       documents,
 		yamllsConnector: &yamlls.Connector{},
@@ -277,7 +277,7 @@ func genericDefinitionTestMultipleValuesFiles(t *testing.T, position lsp.Positio
 	documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 	chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
 	chartStore.Charts = map[uri.URI]*charts.Chart{rootUri: chart}
-	h := &langHandler{
+	h := &TemplateHandler{
 		chartStore:      chartStore,
 		documents:       documents,
 		yamllsConnector: &yamlls.Connector{},
@@ -367,7 +367,7 @@ func TestDefinitionSingleLine(t *testing.T) {
 				},
 			}
 			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
-			h := &langHandler{
+			h := &TemplateHandler{
 				chartStore: charts.NewChartStore(rootUri, charts.NewChart, addChartCallback),
 				documents:  documents,
 			}

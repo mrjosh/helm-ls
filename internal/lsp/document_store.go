@@ -2,8 +2,10 @@ package lsp
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
@@ -80,4 +82,19 @@ func (s *DocumentStore) GetAllTemplateDocs() []*TemplateDocument {
 		return true
 	})
 	return docs
+}
+
+func (s *DocumentStore) LoadDocsOnNewChart(chart *charts.Chart, helmlsConfig util.HelmlsConfiguration) {
+	if chart.HelmChart == nil {
+		return
+	}
+
+	for _, file := range chart.HelmChart.Templates {
+		s.StoreTemplateDocument(filepath.Join(chart.RootURI.Filename(), file.Name), file.Data, helmlsConfig)
+	}
+
+	for _, file := range chart.GetDependeciesTemplates() {
+		logger.Debug(fmt.Sprintf("Storing dependency %s", file.Path))
+		s.StoreTemplateDocument(file.Path, file.Content, helmlsConfig)
+	}
 }

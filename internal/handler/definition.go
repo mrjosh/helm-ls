@@ -8,7 +8,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *langHandler) Definition(_ context.Context, params *lsp.DefinitionParams) (result []lsp.Location, err error) {
+func (h *ServerHandler) Definition(_ context.Context, params *lsp.DefinitionParams) (result []lsp.Location, err error) {
 	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams, lsplocal.NodeAtPosition)
 	if err != nil {
 		return nil, err
