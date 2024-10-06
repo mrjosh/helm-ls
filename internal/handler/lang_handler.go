@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
+	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
@@ -25,13 +25,16 @@ type LangHandler interface {
 	// DidChange is called when a document is changed, it must not update the document store
 	DidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error)
 
+	Configure(ctx context.Context, helmlsConfig util.HelmlsConfiguration)
 	GetDiagnostics(uri lsp.DocumentURI) []lsp.PublishDiagnosticsParams
 
+	// SetChartStore is called once the chart store has been initialized
 	SetChartStore(chartStore *charts.ChartStore)
-	SetYamllsConnector(yamllsConnector *yamlls.Connector)
+	// SetChartStore is called once the client has been initialized
+	SetClient(client protocol.Client)
 }
 
-func (h *ServerHandler) selectLangHandler(ctx context.Context, uri uri.URI) (LangHandler, error) {
+func (h *ServerHandler) selectLangHandler(_ context.Context, uri uri.URI) (LangHandler, error) {
 	documentType, ok := h.documents.GetDocumentType(uri)
 
 	if !ok {

@@ -4,8 +4,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/gobwas/glob"
-	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/sirupsen/logrus"
@@ -59,29 +57,9 @@ func (h *ServerHandler) Initialized(ctx context.Context, _ *lsp.InitializedParam
 func (h *ServerHandler) initializationWithConfig(ctx context.Context) {
 	configureLogLevel(h.helmlsConfig)
 	h.chartStore.SetValuesFilesConfig(h.helmlsConfig.ValuesFilesConfig)
-	h.configureYamlls(ctx)
-}
 
-func (h *ServerHandler) configureYamlsEnabledGlob() {
-	globObject, err := glob.Compile(h.helmlsConfig.YamllsConfiguration.EnabledForFilesGlob)
-	if err != nil {
-		logger.Error("Error compiling glob for yamlls EnabledForFilesGlob", err)
-		globObject = util.DefaultConfig.YamllsConfiguration.EnabledForFilesGlobObject
-	}
-	h.helmlsConfig.YamllsConfiguration.EnabledForFilesGlobObject = globObject
-}
-
-func (h *ServerHandler) configureYamlls(ctx context.Context) {
-	config := h.helmlsConfig
-	if config.YamllsConfiguration.Enabled {
-		h.configureYamlsEnabledGlob()
-		h.setYamllsConnector(yamlls.NewConnector(ctx, config.YamllsConfiguration, h.client, h.documents))
-		err := h.yamllsConnector.CallInitialize(ctx, h.chartStore.RootURI)
-		if err != nil {
-			logger.Error("Error initializing yamlls", err)
-		}
-
-		h.yamllsConnector.InitiallySyncOpenDocuments(h.documents.GetAllTemplateDocs())
+	for _, handler := range h.langHandlers {
+		handler.Configure(ctx, h.helmlsConfig)
 	}
 }
 

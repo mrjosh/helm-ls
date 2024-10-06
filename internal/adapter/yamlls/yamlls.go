@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/gobwas/glob"
 	"github.com/mrjosh/helm-ls/internal/log"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -18,10 +19,11 @@ import (
 var logger = log.GetLogger()
 
 type Connector struct {
-	config    util.YamllsConfiguration
-	server    protocol.Server
-	documents *lsplocal.DocumentStore
-	client    protocol.Client
+	config                    util.YamllsConfiguration
+	server                    protocol.Server
+	documents                 *lsplocal.DocumentStore
+	client                    protocol.Client
+	EnabledForFilesGlobObject glob.Glob
 }
 
 func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfiguration, client protocol.Client, documents *lsplocal.DocumentStore) *Connector {

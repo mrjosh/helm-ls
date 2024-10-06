@@ -19,7 +19,8 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Tem
 			continue
 		}
 
-		doc.IsYaml = lsplocal.IsYamllsEnabled(doc.URI, yamllsConnector.config)
+		doc.IsYaml = yamllsConnector.IsYamllsEnabled(doc.URI)
+
 		if !yamllsConnector.isRelevantFile(doc.URI) {
 			continue
 		}
@@ -114,4 +115,8 @@ func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Templat
 	if err != nil {
 		logger.Println("Error calling yamlls for didChange", err)
 	}
+}
+
+func (yamllsConnector Connector) IsYamllsEnabled(uri lsp.URI) bool {
+	return yamllsConnector.EnabledForFilesGlobObject.Match(uri.Filename())
 }
