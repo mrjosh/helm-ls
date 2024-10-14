@@ -7,11 +7,6 @@ import (
 	"go.lsp.dev/protocol"
 )
 
-// DidChange implements handler.LangHandler.
-func (h *YamlHandler) DidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) (err error) {
-	panic("unimplemented")
-}
-
 // DidOpen implements handler.LangHandler.
 func (h *YamlHandler) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (err error) {
 	_, err = h.documents.DidOpenTemplateDocument(params, helmlsConfig)
@@ -24,5 +19,10 @@ func (h *YamlHandler) DidOpen(ctx context.Context, params *protocol.DidOpenTextD
 
 // DidSave implements handler.LangHandler.
 func (h *YamlHandler) DidSave(ctx context.Context, params *protocol.DidSaveTextDocumentParams) (err error) {
+	return nil
+}
+
+// DidChange implements handler.LangHandler.
+func (h *YamlHandler) PostDidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) (err error) {
 	return nil
 }

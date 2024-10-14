@@ -101,7 +101,7 @@ func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Templat
 		return
 	}
 
-	logger.Debug("Sending DocumentDidChange with full sync, current content:", doc.Content)
+	logger.Debug("Sending DocumentDidChange with full sync, current content:", string(doc.Content))
 	trimmedText := lsplocal.TrimTemplate(doc.Ast.Copy(), doc.Content)
 
 	params.ContentChanges = []lsp.TextDocumentContentChangeEvent{
