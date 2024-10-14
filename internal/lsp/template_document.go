@@ -7,7 +7,7 @@ import (
 	"go.lsp.dev/uri"
 )
 
-// TemplateDocument represents an opened file.
+// TemplateDocument represents an helm template file.
 type TemplateDocument struct {
 	Document
 	NeedsRefreshDiagnostics bool
@@ -41,26 +41,6 @@ func (d *TemplateDocument) ApplyChanges(changes []lsp.TextDocumentContentChangeE
 	d.SymbolTable = NewSymbolTable(d.Ast, d.Content)
 
 	d.lines = nil
-}
-
-// WordAt returns the word found at the given location.
-func (d *Document) WordAt(pos lsp.Position) string {
-	logger.Debug(pos)
-
-	line, ok := d.getLine(int(pos.Line))
-	if !ok {
-		return ""
-	}
-	return util.WordAt(line, int(pos.Character))
-}
-
-// getLine returns the line at the given index.
-func (d *Document) getLine(index int) (string, bool) {
-	lines := d.getLines()
-	if index < 0 || index > len(lines) {
-		return "", false
-	}
-	return lines[index], true
 }
 
 func IsYamllsEnabled(uri lsp.URI, yamllsConfiguration util.YamllsConfiguration) bool {
