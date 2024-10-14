@@ -97,3 +97,23 @@ func (d *Document) GetPath() string {
 type TextDocument interface {
 	ApplyChanges([]lsp.TextDocumentContentChangeEvent)
 }
+
+// WordAt returns the word found at the given location.
+func (d *Document) WordAt(pos lsp.Position) string {
+	logger.Debug(pos)
+
+	line, ok := d.getLine(int(pos.Line))
+	if !ok {
+		return ""
+	}
+	return util.WordAt(line, int(pos.Character))
+}
+
+// getLine returns the line at the given index.
+func (d *Document) getLine(index int) (string, bool) {
+	lines := d.getLines()
+	if index < 0 || index > len(lines) {
+		return "", false
+	}
+	return lines[index], true
+}

@@ -12,6 +12,12 @@ import (
 func (h *ServerHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
 	handler := h.langHandlers[lsplocal.TemplateDocumentTypeForLangID(params.TextDocument.LanguageID)]
 
+	if handler == nil {
+		message := "Language not supported: " + string(params.TextDocument.LanguageID)
+		logger.Error(message)
+		return errors.New(message)
+	}
+
 	handler.DidOpen(ctx, params, h.helmlsConfig)
 
 	defer h.publishDiagnostics(ctx, handler.GetDiagnostics(params.TextDocument.URI))

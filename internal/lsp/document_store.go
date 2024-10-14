@@ -33,19 +33,15 @@ func (s *DocumentStore) DidOpenTemplateDocument(
 	return doc, nil
 }
 
-// unused
-func (s *DocumentStore) DidOpen(params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (*Document, error) {
-	logger.Debug(fmt.Sprintf("Opening document %s with langID %s", params.TextDocument.URI, params.TextDocument.LanguageID))
-
+func (s *DocumentStore) DidOpenYamlDocument(
+	params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration,
+) (*YamlDocument, error) {
 	uri := params.TextDocument.URI
 	path := uri.Filename()
-	if IsTemplateDocumentLangID(params.TextDocument.LanguageID) {
-		doc := NewTemplateDocument(uri, []byte(params.TextDocument.Text), true, helmlsConfig)
-		logger.Debug("Storing doc ", path)
-		s.documents.Store(path, doc)
-		// return doc, nil
-	}
-	return nil, fmt.Errorf("unsupported document type: %s", params.TextDocument.LanguageID)
+	doc := NewYamlDocument(uri, []byte(params.TextDocument.Text), true, helmlsConfig)
+	logger.Debug("Storing doc ", path)
+	s.documents.Store(path, doc)
+	return doc, nil
 }
 
 func (s *DocumentStore) StoreTemplateDocument(path string, content []byte, helmlsConfig util.HelmlsConfiguration) {
@@ -66,6 +62,18 @@ func (s *DocumentStore) GetTemplateDoc(docuri uri.URI) (*TemplateDocument, bool)
 		return nil, false
 	}
 	doc, ok := d.(*TemplateDocument)
+	return doc, ok
+}
+
+func (s *DocumentStore) GetYamlDoc(docuri uri.URI) (*YamlDocument, bool) {
+	path := docuri.Filename()
+	d, ok := s.documents.Load(path)
+
+	if !ok {
+		return nil, false
+	}
+
+	doc, ok := d.(*YamlDocument)
 	return doc, ok
 }
 
