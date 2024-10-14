@@ -43,9 +43,6 @@ func (h *ServerHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocu
 }
 
 func (h *ServerHandler) DidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
-	handler, err := h.selectLangHandler(ctx, params.TextDocument.URI)
-	handler.DidChange(ctx, params)
-
 	doc, ok := h.documents.GetSyncDocument(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
@@ -53,7 +50,8 @@ func (h *ServerHandler) DidChange(ctx context.Context, params *lsp.DidChangeText
 	// Synchronise changes into the doc's ContentChanges
 	doc.ApplyChanges(params.ContentChanges)
 
-	return nil
+	handler, err := h.selectLangHandler(ctx, params.TextDocument.URI)
+	return handler.PostDidChange(ctx, params)
 }
 
 func (h *ServerHandler) DidCreateFiles(ctx context.Context, params *lsp.CreateFilesParams) (err error) {

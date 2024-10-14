@@ -32,7 +32,7 @@ func (h *TemplateHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDo
 	return nil
 }
 
-func (h *TemplateHandler) DidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
+func (h *TemplateHandler) PostDidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {
 	doc, ok := h.documents.GetTemplateDoc(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())

@@ -53,6 +53,8 @@ func (yamllsConnector Connector) getHoverFromCompletion(ctx context.Context, par
 		}
 	}
 
+	logger.Debug("Got completion for hover from yamlls", completionList)
+
 	return protocol.BuildHoverResponse(documentation, resultRange), nil
 }
 

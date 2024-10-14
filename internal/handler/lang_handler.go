@@ -22,8 +22,8 @@ type LangHandler interface {
 	DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (err error)
 	// DidSave is called when a document is saved, it must not update the document store
 	DidSave(ctx context.Context, params *lsp.DidSaveTextDocumentParams) (err error)
-	// DidChange is called when a document is changed, it must not update the document store
-	DidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error)
+	// PostDidChange is called when a document is changed, it must not update the document store
+	PostDidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error)
 
 	Configure(ctx context.Context, helmlsConfig util.HelmlsConfiguration)
 	GetDiagnostics(uri lsp.DocumentURI) []lsp.PublishDiagnosticsParams
