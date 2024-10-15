@@ -82,3 +82,19 @@ func TestGetPositionOfNodeTable(t *testing.T) {
 		})
 	}
 }
+
+func TestGetNodeForPosition(t *testing.T) {
+	data, err := os.ReadFile("./yaml_test_input.yaml")
+	if err != nil {
+		t.Fatalf("error reading test input file: %v", err)
+	}
+
+	var node yaml.Node
+	err = yaml.Unmarshal(data, &node)
+	if err != nil {
+		t.Fatalf("error parsing YAML: %v", err)
+	}
+
+	result := GetNodeForPosition(&node, lsp.Position{Line: 9, Character: 3})
+	assert.Equal(t, "repository", result.Value)
+}

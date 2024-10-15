@@ -9,7 +9,7 @@ import (
 
 // DidOpen implements handler.LangHandler.
 func (h *YamlHandler) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams, helmlsConfig util.HelmlsConfiguration) (err error) {
-	_, err = h.documents.DidOpenTemplateDocument(params, helmlsConfig)
+	_, err = h.documents.DidOpenYamlDocument(params, helmlsConfig)
 	if err != nil {
 		logger.Error(err)
 		return err

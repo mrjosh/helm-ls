@@ -39,8 +39,6 @@ func (d *TemplateDocument) ApplyChanges(changes []lsp.TextDocumentContentChangeE
 
 	d.ApplyChangesToAst(d.Content)
 	d.SymbolTable = NewSymbolTable(d.Ast, d.Content)
-
-	d.lines = nil
 }
 
 func IsYamllsEnabled(uri lsp.URI, yamllsConfiguration util.YamllsConfiguration) bool {

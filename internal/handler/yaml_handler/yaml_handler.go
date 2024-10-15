@@ -9,7 +9,6 @@ import (
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/protocol"
-	"go.lsp.dev/uri"
 )
 
 var logger = log.GetLogger()
@@ -22,7 +21,8 @@ type YamlHandler struct {
 
 // Completion implements handler.LangHandler.
 func (h *YamlHandler) Completion(ctx context.Context, params *protocol.CompletionParams) (result *protocol.CompletionList, err error) {
-	panic("unimplemented")
+	// TODO
+	return nil, nil
 }
 
 // Configure implements handler.LangHandler.
@@ -30,21 +30,6 @@ func (h *YamlHandler) Configure(ctx context.Context, helmlsConfig util.HelmlsCon
 
 // Definition implements handler.LangHandler.
 func (h *YamlHandler) Definition(ctx context.Context, params *protocol.DefinitionParams) (result []protocol.Location, err error) {
-	panic("unimplemented")
-}
-
-// DocumentSymbol implements handler.LangHandler.
-func (h *YamlHandler) DocumentSymbol(ctx context.Context, params *protocol.DocumentSymbolParams) (result []interface{}, err error) {
-	panic("unimplemented")
-}
-
-// GetDiagnostics implements handler.LangHandler.
-func (h *YamlHandler) GetDiagnostics(uri uri.URI) []protocol.PublishDiagnosticsParams {
-	panic("unimplemented")
-}
-
-// Hover implements handler.LangHandler.
-func (h *YamlHandler) Hover(ctx context.Context, params *protocol.HoverParams) (result *protocol.Hover, err error) {
 	panic("unimplemented")
 }
 
