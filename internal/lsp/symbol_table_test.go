@@ -19,7 +19,7 @@ func TestSymbolTableForIncludeDefinitions(t *testing.T) {
 	{{ end }}
 	`
 
-	ast := ParseAst(nil, content)
+	ast := ParseAst(nil, []byte(content))
 
 	symbolTable := NewSymbolTable(ast, []byte(content))
 
@@ -68,7 +68,7 @@ func TestSymbolTableForValues(t *testing.T) {
 {{ end }}
 `
 
-	ast := ParseAst(nil, content)
+	ast := ParseAst(nil, []byte(content))
 
 	symbolTable := NewSymbolTable(ast, []byte(content))
 	type expectedValue struct {
@@ -187,9 +187,9 @@ func TestSymbolTableForValuesTestFile(t *testing.T) {
 	if err != nil {
 		t.Fatal("Could not read test file", err)
 	}
-	ast := ParseAst(nil, string(content))
+	ast := ParseAst(nil, content)
 
-	symbolTable := NewSymbolTable(ast, []byte(content))
+	symbolTable := NewSymbolTable(ast, content)
 	type expectedValue struct {
 		path       []string
 		startPoint sitter.Point
@@ -324,7 +324,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 
 	for _, v := range testCases {
 		t.Run(v.template, func(t *testing.T) {
-			ast := ParseAst(nil, v.template)
+			ast := ParseAst(nil, []byte(v.template))
 			symbolTable := NewSymbolTable(ast, []byte(v.template))
 			values := symbolTable.GetTemplateContextRanges(v.path)
 			points := []sitter.Point{}

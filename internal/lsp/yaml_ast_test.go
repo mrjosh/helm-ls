@@ -78,7 +78,7 @@ b: not`,
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := getTextNodeRanges(ParseAst(nil, tt.args.gotemplateString).RootNode())
+			got := getTextNodeRanges(ParseAst(nil, []byte(tt.args.gotemplateString)).RootNode())
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -121,8 +121,8 @@ yaml: test
 	}
 	for _, tt := range tests {
 		t.Run(tt.documentText, func(t *testing.T) {
-			gotemplateTree := ParseAst(nil, tt.documentText)
-			got := TrimTemplate(gotemplateTree, tt.documentText)
+			gotemplateTree := ParseAst(nil, []byte(tt.documentText))
+			got := TrimTemplate(gotemplateTree, []byte(tt.documentText))
 			assert.Equal(t, tt.trimmedText, got)
 		})
 	}

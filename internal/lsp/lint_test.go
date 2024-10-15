@@ -25,7 +25,9 @@ func TestLintNotifications(t *testing.T) {
 			AdditionalValuesFiles: []*charts.ValuesFile{},
 		},
 	}
-	diagnostics := GetDiagnosticsNotifications(&chart, &Document{URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml")})
+	diagnostics := GetDiagnosticsNotifications(&chart, &TemplateDocument{
+		Document: Document{URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml")},
+	})
 	assert.NotEmpty(t, diagnostics)
 	assert.Len(t, diagnostics, 3)
 
@@ -50,7 +52,11 @@ func TestLintNotificationsIncludesEmptyDiagnosticsForFixedIssues(t *testing.T) {
 			AdditionalValuesFiles: []*charts.ValuesFile{},
 		},
 	}
-	diagnostics := GetDiagnosticsNotifications(&chart, &Document{URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml")})
+	diagnostics := GetDiagnosticsNotifications(&chart, &TemplateDocument{
+		Document: Document{
+			URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml"),
+		},
+	})
 
 	uris := []string{}
 	for _, notification := range diagnostics {
