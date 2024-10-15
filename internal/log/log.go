@@ -28,7 +28,17 @@ func GetLogger() logger {
 }
 
 func createLogger() logger {
+	logrus.SetReportCaller(true)
 	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
+
+	formatter := &logrus.JSONFormatter{
+		FieldMap: logrus.FieldMap{
+			logrus.FieldKeyTime:  "@timestamp",
+			logrus.FieldKeyLevel: "@level",
+			logrus.FieldKeyMsg:   "@message",
+			logrus.FieldKeyFunc:  "@caller",
+		},
+	}
+	logger.SetFormatter(formatter)
 	return logger
 }
