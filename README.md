@@ -39,7 +39,9 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
     - [nvim-lspconfig setup](#nvim-lspconfig-setup)
     - [coc.nvim setup](#cocnvim-setup)
   - [VSCode](#vscode)
+  - [Zed](#zed)
   - [Emacs eglot setup](#emacs-eglot-setup)
+- [Features and Demos](#features-and-demos)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -270,6 +272,10 @@ Save the configuration file and then either restart Neovim or type `:CocRestart`
 
 Check out the [helm-ls-vscode extension](https://github.com/qvalentin/helm-ls-vscode) for more details.
 
+### Zed
+
+Setup filetypes as described in the [Zed Docs](https://zed.dev/docs/languages/helm) and install the [helm.zed extension](https://github.com/cabrinha/helm.zed).
+
 ### Emacs eglot setup
 
 Integrating helm-ls with [eglot](https://github.com/joaotavora/eglot) for emacs consists of two steps: wiring up Helm template files into a specific major mode and then associating that major mode with `helm_ls` via the `eglot-server-programs` variable.
@@ -303,6 +309,77 @@ Invoke `M-x helm-mode` in a Helm template file to begin using helm-ls as a backe
 Alternatively, you can include a comment such as the following at the top of Helm yaml files to automatically enter `helm-mode`:
 
     # -*- mode: helm -*-
+
+## Features and Demos
+
+<details>
+  <summary>
+	<b>Hover</b>
+  </summary>
+
+<video alt="demo for hover" src="https://github.com/user-attachments/assets/48413b5b-aedf-4735-aeca-aff32553f3fd"></video>
+
+| Language Construct | Example Effect                                                                     |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| Values             | `.Values.replicaCount` shows the value of `replicaCount` in the values.yaml files. |
+| Built-In-Objects   | `.Chart.Name` shows the name of the Chart.                                         |
+| Includes           | `include "example.labels"` shows the defintion of the template.                    |
+| Functions          | `add` shows the docs of the add function.                                          |
+| Yaml in Templates  | `Kind` shows the docs from the yaml-schema (via yaml-language-server).             |
+
+</details>
+
+<details>
+  <summary>
+	<b>Autocomplete</b>
+  </summary>
+
+<video alt="Demo for autocompletion" src="https://github.com/user-attachments/assets/15c57a0a-4a17-48b4-9861-a324bcfa2158"></video>
+
+| Language Construct | Effect                                                               |
+| ------------------ | -------------------------------------------------------------------- |
+| Values             | Values from `values*.yaml` files (including child/parent Charts).    |
+| Built-In-Objects   | Values from `Chart`, `Release`, `Files`, `Capabilities`, `Template`. |
+| Includes           | Available includes (including child/parent Charts).                  |
+| Functions          | Functions from gotemplate and helm.                                  |
+| Yaml in Templates  | Values from the yaml-schema (via yaml-language-server).              |
+
+</details>
+
+<details>
+  <summary>
+	<b>Go-To-Definition/References</b>
+  </summary>
+
+<video alt="Demo for definition and references" src="https://github.com/user-attachments/assets/e49769e9-4ddb-4b05-b075-645a9f9b9937"></video>
+
+| Language Construct | Effect                                                                              |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| Values             | Go to `values*.yaml` files for template references (including child/parent Charts). |
+| Built-In-Objects   | Go to `Chart.yaml` for `Chart.*`.                                                   |
+| Includes           | Go to defintion/references of template (including child/parent Charts).             |
+
+</details>
+
+<details>
+  <summary>
+	<b>Symbol</b>
+  </summary>
+
+Can show a breadcrumb of the yaml path of the current position (via yaml-language-server).
+![Demo for Symbol](https://github.com/user-attachments/assets/0b8a9fc4-4625-4641-a296-8aedb48496e9)
+
+</details>
+
+<details>
+  <summary>
+	<b>Linting</b>
+  </summary>
+
+Diagnostics from both helm lint and yaml-language-server.
+![Demo of Linting](https://github.com/user-attachments/assets/58e90dd4-2fe5-40f5-a9a7-adec6c890a0c)
+
+</details>
 
 ## Contributing
 
