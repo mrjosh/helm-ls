@@ -39,6 +39,7 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
     - [nvim-lspconfig setup](#nvim-lspconfig-setup)
     - [coc.nvim setup](#cocnvim-setup)
   - [VSCode](#vscode)
+  - [Zed](#zed)
   - [Emacs eglot setup](#emacs-eglot-setup)
 - [Features](#features)
 - [Contributing](#contributing)
@@ -270,6 +271,10 @@ Save the configuration file and then either restart Neovim or type `:CocRestart`
 ### VSCode
 
 Check out the [helm-ls-vscode extension](https://github.com/qvalentin/helm-ls-vscode) for more details.
+
+### Zed
+
+Setup filetypes as described in the [Zed Docs](https://zed.dev/docs/languages/helm) and install the [helm.zed extension](https://github.com/cabrinha/helm.zed).
 
 ### Emacs eglot setup
 
