@@ -333,9 +333,9 @@ Alternatively, you can include a comment such as the following at the top of Hel
 
 | Language Construct | Effect                                                               |
 | ------------------ | -------------------------------------------------------------------- |
-| Values             | Values from values.yaml files.                                       |
+| Values             | Values from `values*.yaml` files (including child/parent Charts).    |
 | Built-In-Objects   | Values from `Chart`, `Release`, `Files`, `Capabilities`, `Template`. |
-| Includes           | Available includes.                                                  |
+| Includes           | Available includes (including child/parent Charts).                  |
 | Functions          | Functions from gotemplate and helm.                                  |
 | Yaml in Templates  | Values from the yaml-schema (via yaml-language-server).              |
 
@@ -348,11 +348,11 @@ Alternatively, you can include a comment such as the following at the top of Hel
 
 <video alt="Demo for definition and references" src="https://github.com/user-attachments/assets/e49769e9-4ddb-4b05-b075-645a9f9b9937"></video>
 
-| Language Construct | Effect                                          |
-| ------------------ | ----------------------------------------------- |
-| Values             | Go to values.yaml files or template references. |
-| Built-In-Objects   | Go to `Chart.yaml` for `Chart.*`.               |
-| Includes           | Go to defintion/references of template.         |
+| Language Construct | Effect                                                                              |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| Values             | Go to `values*.yaml` files for template references (including child/parent Charts). |
+| Built-In-Objects   | Go to `Chart.yaml` for `Chart.*`.                                                   |
+| Includes           | Go to defintion/references of template (including child/parent Charts).             |
 
 </details>
 
