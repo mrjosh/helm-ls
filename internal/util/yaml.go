@@ -79,7 +79,7 @@ func GetNodeForPosition(node *yamlv3.Node, position lsp.Position) *yamlv3.Node {
 		return nil
 	}
 
-	if node.Value != "" && node.Line == int(position.Line+1) && node.Column <= int(position.Character-1) {
+	if node.Value != "" && node.Line == int(position.Line+1) && node.Column <= int(position.Character+1) {
 		return node
 	}
 

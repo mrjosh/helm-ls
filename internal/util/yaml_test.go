@@ -95,6 +95,7 @@ func TestGetNodeForPosition(t *testing.T) {
 		t.Fatalf("error parsing YAML: %v", err)
 	}
 
-	result := GetNodeForPosition(&node, lsp.Position{Line: 9, Character: 3})
+	result := GetNodeForPosition(&node, lsp.Position{Line: 8, Character: 3})
+	assert.NotNil(t, result)
 	assert.Equal(t, "repository", result.Value)
 }
