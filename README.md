@@ -41,7 +41,7 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
   - [VSCode](#vscode)
   - [Zed](#zed)
   - [Emacs eglot setup](#emacs-eglot-setup)
-- [Features](#features)
+- [Features and Demos](#features-and-demos)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -310,7 +310,7 @@ Alternatively, you can include a comment such as the following at the top of Hel
 
     # -*- mode: helm -*-
 
-## Features
+## Features and Demos
 
 <details>
   <summary>
