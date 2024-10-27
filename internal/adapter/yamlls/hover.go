@@ -14,7 +14,7 @@ import (
 // thats why we fall back to calling completion
 func (yamllsConnector Connector) CallHover(ctx context.Context, params lsp.HoverParams, word string) (*lsp.Hover, error) {
 	if !yamllsConnector.shouldRun(params.TextDocumentPositionParams.TextDocument.URI) {
-		return &lsp.Hover{}, nil
+		return nil, nil
 	}
 
 	hoverResponse, err := yamllsConnector.server.Hover(ctx, &params)
