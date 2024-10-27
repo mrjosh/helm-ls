@@ -69,8 +69,10 @@ integration-test-deps:
 
 test:
 	$(MAKE) integration-test-deps
-	$$(command -v $(TEST_RUNNER)) || { echo "gotestsum command not found! Installing..." && $(MAKE) install-testrunner; };
-	@$(TEST_RUNNER) ./... -v -race -tags=integration
+	@$(TEST_RUNNER) ./... -v -race -tags=integration || { \
+		echo "gotestsum command not found or failed! Falling back to 'go test'..."; \
+		$(GO) test ./... -v -race -tags=integration; \
+	}
 
 coverage:
 	@$(GO) test -coverprofile=.coverage -tags=integration -coverpkg=./internal/... ./internal/... && go tool cover -html=.coverage

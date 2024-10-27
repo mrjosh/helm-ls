@@ -23,5 +23,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install testrunner
+        run: make install-testrunner
+
       - name: Run tests
         run: make test
