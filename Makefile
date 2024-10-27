@@ -13,6 +13,7 @@ $(eval BUILD_TIME=$(shell date -u '+%Y-%m-%d_%I:%M:%S%p'))
 
 GO_LDFLAGS :=" -X main.Version=${BRANCH_NAME} -X main.CompiledBy=${COMPILED_BY} -X main.GitCommit=${GIT_COMMIT} -X main.Branch=${BRANCH_NAME} -X main.BuildTime=${BUILD_TIME}"
 
+export TEST_RUNNER=$(GOBIN)/gotestsum
 export LINTER=$(GOBIN)/golangci-lint
 export LINTERCMD=run --no-config -v \
 	--print-linter-name \
@@ -55,6 +56,9 @@ install-metalinter:
 	@$(GO) get -v github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.2
 	@$(GO) install -v github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.2
 
+install-testrunner:
+	@$(GO) install -v gotest.tools/gotestsum@latest
+
 install-yamlls:
 	npm install --global yaml-language-server
 
@@ -65,7 +69,10 @@ integration-test-deps:
 
 test:
 	$(MAKE) integration-test-deps
-	@$(GO) test ./... -v -race -tags=integration
+	@$(TEST_RUNNER) ./... -v -race -tags=integration || { \
+		echo "gotestsum command not found or failed! Falling back to 'go test'..."; \
+		$(GO) test ./... -v -race -tags=integration; \
+	}
 
 coverage:
 	@$(GO) test -coverprofile=.coverage -tags=integration -coverpkg=./internal/... ./internal/... && go tool cover -html=.coverage
