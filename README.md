@@ -40,6 +40,7 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
     - [coc.nvim setup](#cocnvim-setup)
   - [VSCode](#vscode)
   - [Emacs eglot setup](#emacs-eglot-setup)
+- [Features](#features)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -303,6 +304,25 @@ Invoke `M-x helm-mode` in a Helm template file to begin using helm-ls as a backe
 Alternatively, you can include a comment such as the following at the top of Helm yaml files to automatically enter `helm-mode`:
 
     # -*- mode: helm -*-
+
+## Features
+
+<details>
+  <summary>
+	<b>Hover</b>
+  </summary>
+
+<video alt="demo for hover" src="https://github.com/user-attachments/assets/48413b5b-aedf-4735-aeca-aff32553f3fd"></video>
+
+| Language Construct | Example Effect                                                                     |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| Values             | `.Values.replicaCount` shows the value of `replicaCount` in the values.yaml files. |
+| Built-In-Objects   | `.Chart.Name` shows the name of the Chart.                                         |
+| Includes           | `include "example.labels"` shows the defintion of the template.                    |
+| Functions          | `add` shows the docs of the add function.                                          |
+| Yaml in Templates  | `Kind` shows the docs from the yaml-schema (via yaml-language-server).             |
+
+</details>
 
 ## Contributing
 
