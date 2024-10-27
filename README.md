@@ -324,6 +324,58 @@ Alternatively, you can include a comment such as the following at the top of Hel
 
 </details>
 
+<details>
+  <summary>
+	<b>Autocomplete</b>
+  </summary>
+
+<video alt="Demo for autocompletion" src="https://github.com/user-attachments/assets/15c57a0a-4a17-48b4-9861-a324bcfa2158"></video>
+
+| Language Construct | Effect                                                               |
+| ------------------ | -------------------------------------------------------------------- |
+| Values             | Values from values.yaml files.                                       |
+| Built-In-Objects   | Values from `Chart`, `Release`, `Files`, `Capabilities`, `Template`. |
+| Includes           | Available includes.                                                  |
+| Functions          | Functions from gotemplate and helm.                                  |
+| Yaml in Templates  | Values from the yaml-schema (via yaml-language-server).              |
+
+</details>
+
+<details>
+  <summary>
+	<b>Go-To-Definition/References</b>
+  </summary>
+
+<video alt="Demo for definition and references" src="https://github.com/user-attachments/assets/e49769e9-4ddb-4b05-b075-645a9f9b9937"></video>
+
+| Language Construct | Effect                                          |
+| ------------------ | ----------------------------------------------- |
+| Values             | Go to values.yaml files or template references. |
+| Built-In-Objects   | Go to `Chart.yaml` for `Chart.*`.               |
+| Includes           | Go to defintion/references of template.         |
+
+</details>
+
+<details>
+  <summary>
+	<b>Symbol</b>
+  </summary>
+
+Can show a breadcrumb of the yaml path of the current position (via yaml-language-server).
+![Demo for Symbol](https://github.com/user-attachments/assets/0b8a9fc4-4625-4641-a296-8aedb48496e9)
+
+</details>
+
+<details>
+  <summary>
+	<b>Linting</b>
+  </summary>
+
+Diagnostics from both helm lint and yaml-language-server.
+![Demo of Linting](https://github.com/user-attachments/assets/58e90dd4-2fe5-40f5-a9a7-adec6c890a0c)
+
+</details>
+
 ## Contributing
 
 Thank you for considering contributing to Helm-ls project!
