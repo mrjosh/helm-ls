@@ -1,4 +1,4 @@
-package lsp
+package helmlint
 
 import (
 	"fmt"
@@ -8,19 +8,18 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
+	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/util"
-
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 	"helm.sh/helm/v3/pkg/action"
-
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/lint/support"
 )
 
 var logger = log.GetLogger()
 
-func GetDiagnosticsNotifications(chart *charts.Chart, doc *Document) []lsp.PublishDiagnosticsParams {
+func GetDiagnosticsNotifications(chart *charts.Chart, doc *lsplocal.Document) []lsp.PublishDiagnosticsParams {
 	vals := chart.ValuesFiles.MainValuesFile.Values
 	if chart.ValuesFiles.OverlayValuesFile != nil {
 		vals = chartutil.CoalesceTables(chart.ValuesFiles.OverlayValuesFile.Values, chart.ValuesFiles.MainValuesFile.Values)
