@@ -202,10 +202,11 @@ func TestHoverMain(t *testing.T) {
 				},
 			})
 			assert.Equal(t, tt.expectedError, err)
-			if result == nil {
-				t.Fatal("Result is nil")
+			if tt.expected == "" {
+				assert.Nil(t, result)
+			} else {
+				assert.Equal(t, tt.expected, strings.ReplaceAll(result.Contents.Value, "\r\n", "\n"))
 			}
-			assert.Equal(t, tt.expected, strings.ReplaceAll(result.Contents.Value, "\r\n", "\n"))
 		})
 	}
 }

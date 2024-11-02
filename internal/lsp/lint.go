@@ -9,7 +9,6 @@ import (
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/util"
-	"github.com/pkg/errors"
 
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
@@ -106,7 +105,7 @@ func parseTemplatesMessage(supMsg support.Message, severity lsp.DiagnosticSeveri
 		fileLineArr = strings.Split(fileLine, ":")
 	)
 	if len(fileLineArr) < 2 {
-		return lsp.Diagnostic{}, errors.Errorf("linter Err contains no position information")
+		return lsp.Diagnostic{}, fmt.Errorf("linter Err contains no position information")
 	}
 	lineStr := fileLineArr[1]
 	line, err = strconv.Atoi(lineStr)
