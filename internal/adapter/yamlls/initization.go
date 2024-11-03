@@ -36,5 +36,10 @@ func (yamllsConnector Connector) CallInitialize(ctx context.Context, workspaceUR
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		yamllsConnector.conn.Notify(ctx, "yaml/registerCustomSchemaRequest", nil)
+	}()
+
 	return yamllsConnector.server.Initialized(ctx, &lsp.InitializedParams{})
 }

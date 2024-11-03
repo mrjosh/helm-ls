@@ -21,12 +21,19 @@ var logger = log.GetLogger()
 type Connector struct {
 	config                    util.YamllsConfiguration
 	server                    protocol.Server
+	conn                      jsonrpc2.Conn
 	documents                 *document.DocumentStore
 	client                    protocol.Client
+	customHandler             jsonrpc2.Handler
 	EnabledForFilesGlobObject glob.Glob
 }
 
-func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfiguration, client protocol.Client, documents *document.DocumentStore) *Connector {
+func NewConnector(ctx context.Context,
+	yamllsConfiguration util.YamllsConfiguration,
+	client protocol.Client,
+	documents *document.DocumentStore,
+	customHandler jsonrpc2.Handler,
+) *Connector {
 	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()
@@ -71,15 +78,17 @@ func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfigurat
 	}()
 
 	yamllsConnector := Connector{
-		config:    yamllsConfiguration,
-		documents: documents,
-		client:    client,
+		config:        yamllsConfiguration,
+		documents:     documents,
+		client:        client,
+		customHandler: customHandler,
 	}
 
 	zapLogger, _ := zap.NewProduction()
-	_, _, server := protocol.NewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)
+	_, conn, server := yamllsConnector.CustomNewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)
 
 	yamllsConnector.server = server
+	yamllsConnector.conn = conn
 	return &yamllsConnector
 }
 

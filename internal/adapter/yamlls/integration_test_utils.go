@@ -55,7 +55,7 @@ func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration) (*Connect
 	zapLogger, _ := zap.NewProduction()
 	client := protocol.ClientDispatcher(con, zapLogger)
 
-	yamllsConnector := NewConnector(context.Background(), config, client, documents)
+	yamllsConnector := NewConnector(context.Background(), config, client, documents, jsonrpc2.MethodNotFoundHandler)
 
 	if yamllsConnector.server == nil {
 		t.Fatal("Could not connect to yaml-language-server")
@@ -82,5 +82,5 @@ func openFile(t *testing.T, documents *document.DocumentStore, path string, yaml
 		},
 	}
 	doc, err := documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
-	yamllsConnector.DocumentDidOpen(doc.Ast, d)
+	yamllsConnector.DocumentDidOpenTemplate(doc.Ast, d)
 }
