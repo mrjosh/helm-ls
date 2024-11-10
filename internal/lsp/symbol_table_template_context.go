@@ -93,7 +93,7 @@ func (v *TemplateContextVisitor) EnterContextShift(node *sitter.Node, suffix str
 	switch node.Type() {
 	case gotemplate.NodeTypeFieldIdentifier:
 		content := node.Content(v.content) + suffix
-		v.currentContext = append(v.currentContext, content)
+		v.PushContext(content)
 	case gotemplate.NodeTypeField:
 		content := node.ChildByFieldName("name").Content(v.content) + suffix
 		v.PushContext(content)
