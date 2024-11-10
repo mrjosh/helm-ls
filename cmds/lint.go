@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	locallsp "github.com/mrjosh/helm-ls/internal/lsp"
+	helmlint "github.com/mrjosh/helm-ls/internal/helm_lint"
 	"github.com/spf13/cobra"
 	"go.lsp.dev/uri"
 )
@@ -26,7 +26,7 @@ func newLintCmd() *cobra.Command {
 				return err
 			}
 
-			msgs := locallsp.GetDiagnostics(rootPath, chart.ValuesFiles.MainValuesFile.Values)
+			msgs := helmlint.GetDiagnostics(rootPath, chart.ValuesFiles.MainValuesFile.Values)
 
 			for _, msg := range msgs {
 				fmt.Println(msg)

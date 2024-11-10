@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
 )
+
+var logger = log.GetLogger()
 
 // Document represents an opened file.
 type Document struct {

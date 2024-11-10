@@ -32,14 +32,6 @@ func (t TemplateContext) AppendSuffix(suffix string) TemplateContext {
 	return t
 }
 
-// Adds a new context to the beginning
-func (t TemplateContext) PrependContext(context string) TemplateContext {
-	if context == "." {
-		return t
-	}
-	return append(TemplateContext{ensureNoLeadingDot(context)}, t...)
-}
-
 func NewTemplateContext(string string) TemplateContext {
 	if string == "." {
 		return TemplateContext{}
@@ -49,13 +41,6 @@ func NewTemplateContext(string string) TemplateContext {
 		return splitted[1:]
 	}
 	return splitted
-}
-
-func ensureNoLeadingDot(context string) string {
-	if context[0] == '.' && len(context) > 1 {
-		return context[1:]
-	}
-	return context
 }
 
 type SymbolTable struct {

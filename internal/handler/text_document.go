@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
+	helmlint "github.com/mrjosh/helm-ls/internal/helm_lint"
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	lsp "go.lsp.dev/protocol"
 )
@@ -28,7 +29,7 @@ func (h *langHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocume
 	if err != nil {
 		logger.Error("Error getting chart info for file", doc.URI, err)
 	}
-	notifications := lsplocal.GetDiagnosticsNotifications(chart, doc)
+	notifications := helmlint.GetDiagnosticsNotifications(chart, doc)
 
 	defer h.publishDiagnostics(ctx, notifications)
 
@@ -50,7 +51,7 @@ func (h *langHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocume
 	}
 
 	h.yamllsConnector.DocumentDidSave(doc, *params)
-	notifications := lsplocal.GetDiagnosticsNotifications(chart, doc)
+	notifications := helmlint.GetDiagnosticsNotifications(chart, doc)
 
 	defer h.publishDiagnostics(ctx, notifications)
 
