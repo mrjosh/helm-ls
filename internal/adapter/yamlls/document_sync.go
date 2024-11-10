@@ -4,12 +4,13 @@ import (
 	"context"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.TemplateDocument) {
+func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*document.TemplateDocument) {
 	if yamllsConnector.server == nil {
 		return
 	}
@@ -48,7 +49,7 @@ func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.Di
 	}
 }
 
-func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.TemplateDocument, params lsp.DidSaveTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidSave(doc *document.TemplateDocument, params lsp.DidSaveTextDocumentParams) {
 	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
@@ -67,7 +68,7 @@ func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.TemplateDocument,
 	})
 }
 
-func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.TemplateDocument, params lsp.DidChangeTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidChange(doc *document.TemplateDocument, params lsp.DidChangeTextDocumentParams) {
 	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
@@ -96,7 +97,7 @@ func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.TemplateDocumen
 	}
 }
 
-func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.TemplateDocument, params lsp.DidChangeTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *document.TemplateDocument, params lsp.DidChangeTextDocumentParams) {
 	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}

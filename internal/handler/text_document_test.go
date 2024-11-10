@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	lsp "go.lsp.dev/protocol"
@@ -32,7 +32,7 @@ func TestLoadDocsOnNewChart(t *testing.T) {
 	}
 
 	h := &ServerHandler{
-		documents:    lsplocal.NewDocumentStore(),
+		documents:    document.NewDocumentStore(),
 		helmlsConfig: util.DefaultConfig,
 	}
 
@@ -59,7 +59,7 @@ func TestLoadDocsOnNewChartDoesNotOverwrite(t *testing.T) {
 	err = os.WriteFile(templateFile, []byte("This is a template file"), 0o644)
 	assert.NoError(t, err)
 
-	docs := lsplocal.NewDocumentStore()
+	docs := document.NewDocumentStore()
 	h := &ServerHandler{
 		documents:    docs,
 		helmlsConfig: util.DefaultConfig,
@@ -84,7 +84,7 @@ func TestLoadDocsOnNewChartWorksForMissingTemplateDir(t *testing.T) {
 	tempDir := t.TempDir()
 	rootURI := uri.File(tempDir)
 
-	docs := lsplocal.NewDocumentStore()
+	docs := document.NewDocumentStore()
 	h := &ServerHandler{
 		documents:    docs,
 		helmlsConfig: util.DefaultConfig,

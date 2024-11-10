@@ -1,4 +1,4 @@
-package lsp
+package templateast
 
 import (
 	"context"
@@ -67,10 +67,6 @@ func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
 		return a.Column >= b.Column
 	}
 	return a.Row > b.Row
-}
-
-func (d *TemplateDocument) ApplyChangesToAst(newContent []byte) {
-	d.Ast = ParseAst(nil, newContent)
 }
 
 func GetLspRangeForNode(node *sitter.Node) lsp.Range {

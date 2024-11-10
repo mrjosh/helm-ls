@@ -3,6 +3,7 @@ package lsp
 import (
 	"testing"
 
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/stretchr/testify/assert"
 )
@@ -78,7 +79,7 @@ b: not`,
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := getTextNodeRanges(ParseAst(nil, []byte(tt.args.gotemplateString)).RootNode())
+			got := getTextNodeRanges(templateast.ParseAst(nil, []byte(tt.args.gotemplateString)).RootNode())
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -121,7 +122,7 @@ yaml: test
 	}
 	for _, tt := range tests {
 		t.Run(tt.documentText, func(t *testing.T) {
-			gotemplateTree := ParseAst(nil, []byte(tt.documentText))
+			gotemplateTree := templateast.ParseAst(nil, []byte(tt.documentText))
 			got := TrimTemplate(gotemplateTree, []byte(tt.documentText))
 			assert.Equal(t, tt.trimmedText, got)
 		})

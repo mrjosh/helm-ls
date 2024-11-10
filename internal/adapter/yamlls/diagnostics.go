@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	sitter "github.com/smacker/go-tree-sitter"
 	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
@@ -36,8 +37,8 @@ func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content [
 	filtered = []lsp.Diagnostic{}
 
 	for _, diagnostic := range diagnostics {
-		node := lsplocal.NodeAtPosition(ast, diagnostic.Range.Start)
-		childNode := lsplocal.FindRelevantChildNode(ast.RootNode(), lsplocal.GetSitterPointForLspPos(diagnostic.Range.Start))
+		node := templateast.NodeAtPosition(ast, diagnostic.Range.Start)
+		childNode := templateast.FindRelevantChildNode(ast.RootNode(), templateast.GetSitterPointForLspPos(diagnostic.Range.Start))
 
 		if node.Type() == "text" && childNode.Type() == "text" {
 			logger.Debug("Diagnostic", diagnostic)

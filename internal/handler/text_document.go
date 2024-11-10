@@ -5,12 +5,12 @@ import (
 	"errors"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	lsp "go.lsp.dev/protocol"
 )
 
 func (h *ServerHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
-	handler := h.langHandlers[lsplocal.TemplateDocumentTypeForLangID(params.TextDocument.LanguageID)]
+	handler := h.langHandlers[document.TemplateDocumentTypeForLangID(params.TextDocument.LanguageID)]
 
 	if handler == nil {
 		message := "Language not supported: " + string(params.TextDocument.LanguageID)

@@ -10,7 +10,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	lsp "go.lsp.dev/protocol"
@@ -160,7 +160,7 @@ func TestDefinitionChart(t *testing.T) {
 				t.Fatal(fmt.Sprintf("%s is not in the file %s", tc.templateLineWithMarker, fileURI.Filename()))
 			}
 
-			documents := lsplocal.NewDocumentStore()
+			documents := document.NewDocumentStore()
 
 			chart := charts.NewChart(rootUri, util.DefaultConfig.ValuesFilesConfig)
 

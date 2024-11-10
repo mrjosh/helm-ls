@@ -4,7 +4,7 @@ import (
 	"context"
 
 	languagefeatures "github.com/mrjosh/helm-ls/internal/language_features"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 
@@ -12,12 +12,12 @@ import (
 )
 
 func (h *TemplateHandler) Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error) {
-	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams, lsplocal.NodeAtPosition)
+	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams, templateast.NodeAtPosition)
 	if err != nil {
 		return nil, err
 	}
 
-	wordRange := lsplocal.GetLspRangeForNode(genericDocumentUseCase.Node)
+	wordRange := templateast.GetLspRangeForNode(genericDocumentUseCase.Node)
 
 	usecases := []languagefeatures.HoverUseCase{
 		languagefeatures.NewBuiltInObjectsFeature(genericDocumentUseCase), // has to be before template context

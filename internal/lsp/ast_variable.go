@@ -1,9 +1,12 @@
 package lsp
 
 import (
+	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	sitter "github.com/smacker/go-tree-sitter"
 )
+
+var logger = log.GetLogger()
 
 func GetVariableDefinition(variableName string, node *sitter.Node, template string) *sitter.Node {
 	if node == nil {

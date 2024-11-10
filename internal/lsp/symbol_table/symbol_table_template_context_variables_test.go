@@ -1,9 +1,10 @@
-package lsp
+package symboltable
 
 import (
 	"strings"
 	"testing"
 
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/stretchr/testify/assert"
 )
@@ -24,7 +25,7 @@ func TestResolveVariablesInTemplateContext(t *testing.T) {
 		t.Run(tt.template, func(t *testing.T) {
 			col := strings.Index(tt.template, "^")
 			buf := strings.Replace(tt.template, "^", "", 1)
-			ast := ParseAst(nil, []byte(tt.template))
+			ast := templateast.ParseAst(nil, []byte(tt.template))
 			symbolTable := NewSymbolTable(ast, []byte(buf))
 
 			result, err := symbolTable.ResolveVariablesInTemplateContext(

@@ -6,7 +6,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/protocol"
 )
@@ -14,7 +14,7 @@ import (
 var logger = log.GetLogger()
 
 type YamlHandler struct {
-	documents       *lsplocal.DocumentStore
+	documents       *document.DocumentStore
 	chartStore      *charts.ChartStore
 	yamllsConnector *yamlls.Connector
 }
@@ -41,7 +41,7 @@ func (h *YamlHandler) References(ctx context.Context, params *protocol.Reference
 // SetClient implements handler.LangHandler.
 func (h *YamlHandler) SetClient(client protocol.Client) {}
 
-func NewYamlHandler(client protocol.Client, documents *lsplocal.DocumentStore, chartStore *charts.ChartStore) *YamlHandler {
+func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, chartStore *charts.ChartStore) *YamlHandler {
 	return &YamlHandler{
 		documents:       documents,
 		chartStore:      chartStore,

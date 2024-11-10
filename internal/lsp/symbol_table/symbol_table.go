@@ -1,11 +1,14 @@
-package lsp
+package symboltable
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/log"
 	sitter "github.com/smacker/go-tree-sitter"
 )
+
+var logger = log.GetLogger()
 
 type TemplateContext []string
 

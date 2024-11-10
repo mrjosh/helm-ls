@@ -8,7 +8,7 @@ import (
 
 	"github.com/gobwas/glob"
 	"github.com/mrjosh/helm-ls/internal/log"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
@@ -21,12 +21,12 @@ var logger = log.GetLogger()
 type Connector struct {
 	config                    util.YamllsConfiguration
 	server                    protocol.Server
-	documents                 *lsplocal.DocumentStore
+	documents                 *document.DocumentStore
 	client                    protocol.Client
 	EnabledForFilesGlobObject glob.Glob
 }
 
-func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfiguration, client protocol.Client, documents *lsplocal.DocumentStore) *Connector {
+func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfiguration, client protocol.Client, documents *document.DocumentStore) *Connector {
 	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()

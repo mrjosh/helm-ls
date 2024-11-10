@@ -4,7 +4,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"go.lsp.dev/protocol"
 )
 
@@ -12,12 +12,12 @@ var logger = log.GetLogger()
 
 type TemplateHandler struct {
 	client          protocol.Client
-	documents       *lsplocal.DocumentStore
+	documents       *document.DocumentStore
 	chartStore      *charts.ChartStore
 	yamllsConnector *yamlls.Connector
 }
 
-func NewTemplateHandler(client protocol.Client, documents *lsplocal.DocumentStore, chartStore *charts.ChartStore) *TemplateHandler {
+func NewTemplateHandler(client protocol.Client, documents *document.DocumentStore, chartStore *charts.ChartStore) *TemplateHandler {
 	return &TemplateHandler{
 		client:          client,
 		documents:       documents,

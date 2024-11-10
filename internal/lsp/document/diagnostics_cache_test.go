@@ -1,11 +1,12 @@
-package lsp
+package document
 
 import (
+	"testing"
+
 	"github.com/mrjosh/helm-ls/internal/util"
 
 	"github.com/stretchr/testify/assert"
 	lsp "go.lsp.dev/protocol"
-	"testing"
 )
 
 func TestDiagnosticsCache_SetYamlDiagnostics(t *testing.T) {

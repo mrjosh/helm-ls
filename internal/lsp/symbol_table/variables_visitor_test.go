@@ -1,9 +1,10 @@
-package lsp
+package symboltable
 
 import (
 	"fmt"
 	"testing"
 
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/stretchr/testify/assert"
 )
@@ -70,7 +71,7 @@ func TestSymbolTableForVariableDefinitions(t *testing.T) {
 
 	for _, v := range testCases {
 		t.Run(v.template, func(t *testing.T) {
-			ast := ParseAst(nil, []byte(v.template))
+			ast := templateast.ParseAst(nil, []byte(v.template))
 			symbolTable := NewSymbolTable(ast, []byte(v.template))
 			assert.Equal(t, v.expectedVariableDefinitions, symbolTable.variableDefinitions,
 				fmt.Sprintf("Ast was %s", ast.RootNode()))
@@ -97,7 +98,7 @@ func TestSymbolTableForVariableUsages(t *testing.T) {
 
 	for _, v := range testCases {
 		t.Run(v.template, func(t *testing.T) {
-			ast := ParseAst(nil, []byte(v.template))
+			ast := templateast.ParseAst(nil, []byte(v.template))
 			symbolTable := NewSymbolTable(ast, []byte(v.template))
 			assert.Equal(t, v.expectedVariableUsages, symbolTable.variableUsages,
 				fmt.Sprintf("Ast was %s", ast.RootNode()))

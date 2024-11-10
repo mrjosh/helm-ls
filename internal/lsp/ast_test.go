@@ -3,6 +3,7 @@ package lsp
 import (
 	"testing"
 
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,11 +17,11 @@ func TestFindRelevantChildNodeCompletio(t *testing.T) {
 {{ .Chart.N }}
 {{ . }}
 `
-	ast := ParseAst(nil, []byte(template))
+	ast := templateast.ParseAst(nil, []byte(template))
 
 	logger.Println("RootNode:", ast.RootNode().String())
 
-	node := FindRelevantChildNodeCompletion(ast.RootNode(), sitter.Point{
+	node := templateast.FindRelevantChildNodeCompletion(ast.RootNode(), sitter.Point{
 		Row:    0,
 		Column: 11,
 	})

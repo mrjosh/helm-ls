@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
@@ -44,7 +44,7 @@ func (f *TemplateContextFeature) Completion() (*lsp.CompletionList, error) {
 }
 
 // handels the completion for .Capabilities.KubeVersion.^ where the result should not contain KubeVersion again
-func trimPrefixForNestedDocs(nestedDocs []helmdocs.HelmDocumentation, templateContext lsplocal.TemplateContext) []helmdocs.HelmDocumentation {
+func trimPrefixForNestedDocs(nestedDocs []helmdocs.HelmDocumentation, templateContext symboltable.TemplateContext) []helmdocs.HelmDocumentation {
 	adjustedDocs := []helmdocs.HelmDocumentation{}
 	for _, v := range nestedDocs {
 		if strings.HasPrefix(v.Name, templateContext.Tail().Format()) {
@@ -55,7 +55,7 @@ func trimPrefixForNestedDocs(nestedDocs []helmdocs.HelmDocumentation, templateCo
 	return adjustedDocs
 }
 
-func (f *TemplateContextFeature) valuesCompletion(templateContext lsplocal.TemplateContext) (*lsp.CompletionList, error) {
+func (f *TemplateContextFeature) valuesCompletion(templateContext symboltable.TemplateContext) (*lsp.CompletionList, error) {
 	m := make(map[string]lsp.CompletionItem)
 	for _, queriedValuesFiles := range f.Chart.ResolveValueFiles(templateContext.Tail(), f.ChartStore) {
 		for _, valuesFile := range queriedValuesFiles.ValuesFiles.AllValuesFiles() {

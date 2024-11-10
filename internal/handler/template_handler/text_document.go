@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 )
@@ -40,7 +40,7 @@ func (h *TemplateHandler) PostDidChange(ctx context.Context, params *lsp.DidChan
 
 	shouldSendFullUpdateToYamlls := false
 	for _, change := range params.ContentChanges {
-		node := lsplocal.NodeAtPosition(doc.Ast, change.Range.Start)
+		node := templateast.NodeAtPosition(doc.Ast, change.Range.Start)
 		if node.Type() != "text" {
 			shouldSendFullUpdateToYamlls = true
 			break

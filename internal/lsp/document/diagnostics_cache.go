@@ -1,4 +1,4 @@
-package lsp
+package document
 
 import (
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -42,7 +42,6 @@ func (d DiagnosticsCache) GetMergedDiagnostics() (merged []lsp.Diagnostic) {
 }
 
 func (d *DiagnosticsCache) ShouldShowDiagnosticsOnNewYamlDiagnostics() bool {
-
 	return d.yamlDiagnosticsCountReduced || // show the diagnostics when the count is reduced, this means an error was fixed and it should be shown to the user
 		d.helmlsConfig.YamllsConfiguration.ShowDiagnosticsDirectly || // show the diagnostics directly when the user configured to show them
 		d.gotYamlDiagnosticsTimes < 3 // show the diagnostics, when it are the initial diagnostics that are sent after opening a file. Initial diagnostics are sent twice from yamlls

@@ -7,7 +7,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/charts"
 	templatehandler "github.com/mrjosh/helm-ls/internal/handler/template_handler"
 	yamlhandler "github.com/mrjosh/helm-ls/internal/handler/yaml_handler"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
@@ -23,10 +23,10 @@ type ServerHandler struct {
 	client       protocol.Client
 	connPool     jsonrpc2.Conn
 	linterName   string
-	documents    *lsplocal.DocumentStore
+	documents    *document.DocumentStore
 	chartStore   *charts.ChartStore
 	helmlsConfig util.HelmlsConfiguration
-	langHandlers map[lsplocal.DocumentType]LangHandler
+	langHandlers map[document.DocumentType]LangHandler
 }
 
 func StartHandler(stream io.ReadWriteCloser) {
@@ -45,7 +45,7 @@ func StartHandler(stream io.ReadWriteCloser) {
 }
 
 func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
-	documents := lsplocal.NewDocumentStore()
+	documents := document.NewDocumentStore()
 	var x LangHandler = yamlhandler.NewYamlHandler(client, documents, nil)
 	handler := &ServerHandler{
 		client:       client,
@@ -53,9 +53,9 @@ func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 		connPool:     connPool,
 		documents:    documents,
 		helmlsConfig: util.DefaultConfig,
-		langHandlers: map[lsplocal.DocumentType]LangHandler{
-			lsplocal.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, nil),
-			lsplocal.YamlDocumentType:     x,
+		langHandlers: map[document.DocumentType]LangHandler{
+			document.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, nil),
+			document.YamlDocumentType:     x,
 		},
 	}
 	logger.Printf("helm-lint-langserver: connections opened")

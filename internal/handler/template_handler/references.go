@@ -4,12 +4,12 @@ import (
 	"context"
 
 	languagefeatures "github.com/mrjosh/helm-ls/internal/language_features"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	lsp "go.lsp.dev/protocol"
 )
 
 func (h *TemplateHandler) References(_ context.Context, params *lsp.ReferenceParams) (result []lsp.Location, err error) {
-	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams, lsplocal.NodeAtPosition)
+	genericDocumentUseCase, err := h.NewGenericDocumentUseCase(params.TextDocumentPositionParams, templateast.NodeAtPosition)
 	if err != nil {
 		return nil, err
 	}

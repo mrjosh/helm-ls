@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 )
@@ -13,11 +13,11 @@ type GenericTemplateContextFeature struct {
 	*GenericDocumentUseCase
 }
 
-func (f *GenericTemplateContextFeature) getTemplateContext() (lsplocal.TemplateContext, error) {
-	return f.GenericDocumentUseCase.Document.SymbolTable.GetTemplateContext(lsplocal.GetRangeForNode(f.Node))
+func (f *GenericTemplateContextFeature) getTemplateContext() (symboltable.TemplateContext, error) {
+	return f.GenericDocumentUseCase.Document.SymbolTable.GetTemplateContext(util.GetRangeForNode(f.Node))
 }
 
-func (f *GenericTemplateContextFeature) getReferencesFromSymbolTable(templateContext lsplocal.TemplateContext) []lsp.Location {
+func (f *GenericTemplateContextFeature) getReferencesFromSymbolTable(templateContext symboltable.TemplateContext) []lsp.Location {
 	locations := []lsp.Location{}
 
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {

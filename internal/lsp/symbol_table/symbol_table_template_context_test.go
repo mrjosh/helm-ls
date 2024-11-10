@@ -1,8 +1,9 @@
-package lsp
+package symboltable
 
 import (
 	"testing"
 
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,7 +53,7 @@ func TestGetContextForSelectorExpression(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			ast := ParseAst(nil, []byte(tC.template))
+			ast := templateast.ParseAst(nil, []byte(tC.template))
 			node := ast.RootNode().Child(1)
 
 			assert.Equal(t, tC.nodeContent, node.Content([]byte(tC.template)))

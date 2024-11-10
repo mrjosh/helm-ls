@@ -1,9 +1,10 @@
-package lsp
+package symboltable
 
 import (
 	"os"
 	"testing"
 
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,24 +20,26 @@ func TestSymbolTableForIncludeDefinitions(t *testing.T) {
 	{{ end }}
 	`
 
-	ast := ParseAst(nil, []byte(content))
+	ast := templateast.ParseAst(nil, []byte(content))
 
 	symbolTable := NewSymbolTable(ast, []byte(content))
 
 	assert.Len(t, symbolTable.includeDefinitions, 2)
 
-	assert.Equal(t, symbolTable.includeDefinitions["bar"], []sitter.Range{{
-		StartPoint: sitter.Point{
-			Row:    5,
-			Column: 0,
+	assert.Equal(t, symbolTable.includeDefinitions["bar"], []sitter.Range{
+		{
+			StartPoint: sitter.Point{
+				Row:    5,
+				Column: 0,
+			},
+			EndPoint: sitter.Point{
+				Row:    7,
+				Column: 10,
+			},
+			StartByte: 56,
+			EndByte:   110,
 		},
-		EndPoint: sitter.Point{
-			Row:    7,
-			Column: 10,
-		},
-		StartByte: 56,
-		EndByte:   110,
-	}})
+	})
 }
 
 func TestSymbolTableForValues(t *testing.T) {
@@ -68,7 +71,7 @@ func TestSymbolTableForValues(t *testing.T) {
 {{ end }}
 `
 
-	ast := ParseAst(nil, []byte(content))
+	ast := templateast.ParseAst(nil, []byte(content))
 
 	symbolTable := NewSymbolTable(ast, []byte(content))
 	type expectedValue struct {
@@ -181,13 +184,13 @@ func TestSymbolTableForValues(t *testing.T) {
 }
 
 func TestSymbolTableForValuesTestFile(t *testing.T) {
-	path := "../../testdata/example/templates/deployment.yaml"
+	path := "../../../testdata/example/templates/deployment.yaml"
 
 	content, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal("Could not read test file", err)
 	}
-	ast := ParseAst(nil, content)
+	ast := templateast.ParseAst(nil, content)
 
 	symbolTable := NewSymbolTable(ast, content)
 	type expectedValue struct {
@@ -324,7 +327,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 
 	for _, v := range testCases {
 		t.Run(v.template, func(t *testing.T) {
-			ast := ParseAst(nil, []byte(v.template))
+			ast := templateast.ParseAst(nil, []byte(v.template))
 			symbolTable := NewSymbolTable(ast, []byte(v.template))
 			values := symbolTable.GetTemplateContextRanges(v.path)
 			points := []sitter.Point{}

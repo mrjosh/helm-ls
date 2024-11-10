@@ -10,7 +10,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	lsp "go.lsp.dev/protocol"
@@ -165,7 +165,7 @@ func TestHoverMain(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.desc, func(t *testing.T) {
-			documents := lsplocal.NewDocumentStore()
+			documents := document.NewDocumentStore()
 
 			path := "../../../testdata/example/templates/deployment.yaml"
 			fileURI := uri.File(path)

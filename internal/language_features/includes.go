@@ -4,7 +4,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -26,7 +26,7 @@ func (f *IncludesCallFeature) AppropriateForNode() bool {
 	if functionCallNode == nil {
 		return false
 	}
-	_, err := lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
+	_, err := symboltable.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
 	return err == nil
 }
 
@@ -76,7 +76,7 @@ func (f *IncludesCallFeature) References() (result []lsp.Location, err error) {
 
 func (f *IncludesCallFeature) getIncludeName() (string, error) {
 	functionCallNode := f.getFunctionCallNode()
-	return lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
+	return symboltable.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
 }
 
 func (f *IncludesDefinitionFeature) References() (result []lsp.Location, err error) {

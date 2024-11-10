@@ -8,7 +8,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/protocol"
@@ -54,7 +54,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 		t.Fatal(err)
 	}
 
-	documents := lsplocal.NewDocumentStore()
+	documents := document.NewDocumentStore()
 	fileURI := testDocumentTemplateURI
 	rootUri := uri.File("/")
 
@@ -244,7 +244,7 @@ func genericDefinitionTestMultipleValuesFiles(t *testing.T, position lsp.Positio
 	if err != nil {
 		t.Fatal(err)
 	}
-	documents := lsplocal.NewDocumentStore()
+	documents := document.NewDocumentStore()
 	fileURI := testDocumentTemplateURI
 	rootUri := uri.File("/")
 
@@ -356,7 +356,7 @@ func TestDefinitionSingleLine(t *testing.T) {
 			expectedColEnd := strings.Index(buf, "§")
 			buf = strings.Replace(buf, "§", "", 1)
 
-			documents := lsplocal.NewDocumentStore()
+			documents := document.NewDocumentStore()
 			fileURI := testDocumentTemplateURI
 			rootUri := uri.File("/")
 

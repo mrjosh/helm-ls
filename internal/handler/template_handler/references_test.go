@@ -7,7 +7,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/protocol"
@@ -81,7 +81,7 @@ func TestRefercesTemplateContext(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.desc, func(t *testing.T) {
-			documents := lsplocal.NewDocumentStore()
+			documents := document.NewDocumentStore()
 
 			path := "/tmp/testfile.yaml"
 			fileURI := uri.File(path)
@@ -143,7 +143,7 @@ func TestRefercesTemplateContextWithTestFile(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.desc, func(t *testing.T) {
-			documents := lsplocal.NewDocumentStore()
+			documents := document.NewDocumentStore()
 
 			path := "../../../testdata/example/templates/deployment.yaml"
 			fileURI := uri.File(path)
@@ -207,7 +207,7 @@ func TestRefercesSingleLines(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.templateWithMark, func(t *testing.T) {
-			documents := lsplocal.NewDocumentStore()
+			documents := document.NewDocumentStore()
 			pos, buf := getPositionForMarkedTestLine(tt.templateWithMark)
 			fileURI := uri.File("fake-testfile.yaml")
 

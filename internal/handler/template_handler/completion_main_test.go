@@ -9,7 +9,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	lsp "go.lsp.dev/protocol"
@@ -216,7 +216,7 @@ func TestCompletionMainSingleLines(t *testing.T) {
 }
 
 func completionTestCall(fileURI uri.URI, buf string, pos lsp.Position) (*lsp.CompletionList, error) {
-	documents := lsplocal.NewDocumentStore()
+	documents := document.NewDocumentStore()
 	d := lsp.DidOpenTextDocumentParams{
 		TextDocument: lsp.TextDocumentItem{
 			URI:        fileURI,

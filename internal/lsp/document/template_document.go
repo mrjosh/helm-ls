@@ -1,6 +1,8 @@
-package lsp
+package document
 
 import (
+	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
@@ -13,7 +15,7 @@ type TemplateDocument struct {
 	NeedsRefreshDiagnostics bool
 	Ast                     *sitter.Tree
 	DiagnosticsCache        DiagnosticsCache
-	SymbolTable             *SymbolTable
+	SymbolTable             *symboltable.SymbolTable
 	IsYaml                  bool
 }
 
@@ -22,13 +24,13 @@ func (d *TemplateDocument) GetDocumentType() DocumentType {
 }
 
 func NewTemplateDocument(fileURI uri.URI, content []byte, isOpen bool, helmlsConfig util.HelmlsConfiguration) *TemplateDocument {
-	ast := ParseAst(nil, content)
+	ast := templateast.ParseAst(nil, content)
 	return &TemplateDocument{
 		Document:                *NewDocument(fileURI, content, isOpen),
 		NeedsRefreshDiagnostics: false,
 		Ast:                     ast,
 		DiagnosticsCache:        NewDiagnosticsCache(helmlsConfig),
-		SymbolTable:             NewSymbolTable(ast, content),
+		SymbolTable:             symboltable.NewSymbolTable(ast, content),
 		IsYaml:                  IsYamllsEnabled(fileURI, helmlsConfig.YamllsConfiguration),
 	}
 }
@@ -38,7 +40,11 @@ func (d *TemplateDocument) ApplyChanges(changes []lsp.TextDocumentContentChangeE
 	d.Document.ApplyChanges(changes)
 
 	d.ApplyChangesToAst(d.Content)
-	d.SymbolTable = NewSymbolTable(d.Ast, d.Content)
+	d.SymbolTable = symboltable.NewSymbolTable(d.Ast, d.Content)
+}
+
+func (d *TemplateDocument) ApplyChangesToAst(newContent []byte) {
+	d.Ast = templateast.ParseAst(nil, newContent)
 }
 
 func IsYamllsEnabled(uri lsp.URI, yamllsConfiguration util.YamllsConfiguration) bool {

@@ -1,4 +1,4 @@
-package lsp
+package symboltable
 
 import (
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"

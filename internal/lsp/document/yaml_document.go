@@ -1,4 +1,4 @@
-package lsp
+package document
 
 import (
 	"github.com/mrjosh/helm-ls/internal/util"
