@@ -50,12 +50,7 @@ func (s *SymbolTable) GetVariableDefinitionForNode(node *sitter.Node, content []
 	if err != nil {
 		return VariableDefinition{}, err
 	}
-	return s.getVariableDefinition(name, sitter.Range{
-		StartPoint: node.StartPoint(),
-		EndPoint:   node.EndPoint(),
-		StartByte:  node.StartByte(),
-		EndByte:    node.EndByte(),
-	})
+	return s.getVariableDefinition(name, util.GetRangeForNode(node))
 }
 
 func (s *SymbolTable) GetVariableReferencesForNode(node *sitter.Node, content []byte) (ranges []sitter.Range, err error) {

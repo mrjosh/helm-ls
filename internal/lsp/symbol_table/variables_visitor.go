@@ -115,7 +115,7 @@ func (v *VariablesVisitor) addVariableDefinition(variableType VariableType, defi
 }
 
 func (v *VariablesVisitor) addVariableUsage(node *sitter.Node) {
-	v.symbolTable.AddVariableUsage(node.Content(v.content), util.NodeToRange(node))
+	v.symbolTable.AddVariableUsage(node.Content(v.content), util.GetRangeForNode(node))
 }
 
 func (v *VariablesVisitor) EnterContextShift(_ *sitter.Node, _ string) {}
