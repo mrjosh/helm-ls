@@ -4,12 +4,13 @@ import (
 	"context"
 
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Document) {
+func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*document.TemplateDocument) {
 	if yamllsConnector.server == nil {
 		return
 	}
@@ -19,7 +20,8 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Doc
 			continue
 		}
 
-		doc.IsYaml = lsplocal.IsYamlDocument(doc.URI, yamllsConnector.config)
+		doc.IsYaml = yamllsConnector.IsYamllsEnabled(doc.URI)
+
 		if !yamllsConnector.isRelevantFile(doc.URI) {
 			continue
 		}
@@ -27,7 +29,7 @@ func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*lsplocal.Doc
 		yamllsConnector.DocumentDidOpen(doc.Ast, lsp.DidOpenTextDocumentParams{
 			TextDocument: lsp.TextDocumentItem{
 				URI:  doc.URI,
-				Text: doc.Content,
+				Text: string(doc.Content),
 			},
 		})
 	}
@@ -39,7 +41,7 @@ func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.Di
 	if !yamllsConnector.shouldRun(params.TextDocument.URI) {
 		return
 	}
-	params.TextDocument.Text = lsplocal.TrimTemplate(ast, params.TextDocument.Text)
+	params.TextDocument.Text = lsplocal.TrimTemplate(ast, []byte(params.TextDocument.Text))
 
 	err := yamllsConnector.server.DidOpen(context.Background(), &params)
 	if err != nil {
@@ -47,7 +49,7 @@ func (yamllsConnector Connector) DocumentDidOpen(ast *sitter.Tree, params lsp.Di
 	}
 }
 
-func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params lsp.DidSaveTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidSave(doc *document.TemplateDocument, params lsp.DidSaveTextDocumentParams) {
 	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
@@ -66,7 +68,7 @@ func (yamllsConnector Connector) DocumentDidSave(doc *lsplocal.Document, params 
 	})
 }
 
-func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidChange(doc *document.TemplateDocument, params lsp.DidChangeTextDocumentParams) {
 	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
@@ -95,12 +97,12 @@ func (yamllsConnector Connector) DocumentDidChange(doc *lsplocal.Document, param
 	}
 }
 
-func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Document, params lsp.DidChangeTextDocumentParams) {
+func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *document.TemplateDocument, params lsp.DidChangeTextDocumentParams) {
 	if !yamllsConnector.shouldRun(doc.URI) {
 		return
 	}
 
-	logger.Debug("Sending DocumentDidChange with full sync, current content:", doc.Content)
+	logger.Debug("Sending DocumentDidChange with full sync, current content:", string(doc.Content))
 	trimmedText := lsplocal.TrimTemplate(doc.Ast.Copy(), doc.Content)
 
 	params.ContentChanges = []lsp.TextDocumentContentChangeEvent{
@@ -114,4 +116,8 @@ func (yamllsConnector Connector) DocumentDidChangeFullSync(doc *lsplocal.Documen
 	if err != nil {
 		logger.Println("Error calling yamlls for didChange", err)
 	}
+}
+
+func (yamllsConnector Connector) IsYamllsEnabled(uri lsp.URI) bool {
+	return yamllsConnector.EnabledForFilesGlobObject.Match(uri.Filename())
 }
