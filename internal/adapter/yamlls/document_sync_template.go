@@ -1,8 +1,6 @@
 package yamlls
 
 import (
-	"context"
-
 	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -43,10 +41,7 @@ func (yamllsConnector Connector) DocumentDidOpenTemplate(ast *sitter.Tree, param
 	}
 	params.TextDocument.Text = lsplocal.TrimTemplate(ast, []byte(params.TextDocument.Text))
 
-	err := yamllsConnector.server.DidOpen(context.Background(), &params)
-	if err != nil {
-		logger.Error("Error calling yamlls for didOpen", err)
-	}
+	yamllsConnector.DocumentDidOpen(&params)
 }
 
 func (yamllsConnector Connector) DocumentDidSaveTemplate(doc *document.TemplateDocument, params lsp.DidSaveTextDocumentParams) {
@@ -54,13 +49,9 @@ func (yamllsConnector Connector) DocumentDidSaveTemplate(doc *document.TemplateD
 		return
 	}
 
-	params.Text = lsplocal.TrimTemplate(doc.Ast, doc.Content)
+	yamllsConnector.DocumentDidSave(&params)
 
-	err := yamllsConnector.server.DidSave(context.Background(), &params)
-	if err != nil {
-		logger.Error("Error calling yamlls for didSave", err)
-	}
-
+	// this is required as params.Text has no effect since the default of includeText is false
 	yamllsConnector.DocumentDidChangeFullSyncTemplate(doc, lsp.DidChangeTextDocumentParams{
 		TextDocument: lsp.VersionedTextDocumentIdentifier{
 			TextDocumentIdentifier: params.TextDocument,
@@ -90,11 +81,7 @@ func (yamllsConnector Connector) DocumentDidChangeTemplate(doc *document.Templat
 		params.ContentChanges[i].Text = trimmedText[start:end]
 	}
 
-	logger.Debug("Sending DocumentDidChange", params)
-	err := yamllsConnector.server.DidChange(context.Background(), &params)
-	if err != nil {
-		logger.Println("Error calling yamlls for didChange", err)
-	}
+	yamllsConnector.DocumentDidChange(&params)
 }
 
 func (yamllsConnector Connector) DocumentDidChangeFullSyncTemplate(doc *document.TemplateDocument, params lsp.DidChangeTextDocumentParams) {
@@ -112,10 +99,7 @@ func (yamllsConnector Connector) DocumentDidChangeFullSyncTemplate(doc *document
 	}
 
 	logger.Println("Sending DocumentDidChange with full sync", params)
-	err := yamllsConnector.server.DidChange(context.Background(), &params)
-	if err != nil {
-		logger.Println("Error calling yamlls for didChange", err)
-	}
+	yamllsConnector.DocumentDidChange(&params)
 }
 
 func (yamllsConnector Connector) IsYamllsEnabled(uri lsp.URI) bool {
