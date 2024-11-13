@@ -10,7 +10,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (yamllsConnector Connector) InitiallySyncOpenDocuments(docs []*document.TemplateDocument) {
+func (yamllsConnector Connector) InitiallySyncOpenTemplateDocuments(docs []*document.TemplateDocument) {
 	if yamllsConnector.server == nil {
 		return
 	}

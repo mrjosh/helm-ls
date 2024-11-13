@@ -3,12 +3,28 @@ package yamlls
 import (
 	"context"
 
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	lsp "go.lsp.dev/protocol"
 )
 
-// func (yamllsConnector Connector) InitiallySyncOpenDocuments() {
-// 	// TODO
-// }
+func (yamllsConnector Connector) InitiallySyncOpenYamlDocuments(docs []*document.YamlDocument) {
+	if yamllsConnector.server == nil {
+		return
+	}
+
+	for _, doc := range docs {
+		if !doc.IsOpen {
+			continue
+		}
+
+		yamllsConnector.DocumentDidOpen(&lsp.DidOpenTextDocumentParams{
+			TextDocument: lsp.TextDocumentItem{
+				URI:  doc.URI,
+				Text: string(doc.Content),
+			},
+		})
+	}
+}
 
 func (yamllsConnector Connector) DocumentDidOpen(params *lsp.DidOpenTextDocumentParams) {
 	logger.Debug("YamllsConnector DocumentDidOpen", params.TextDocument.URI)

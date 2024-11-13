@@ -90,6 +90,19 @@ func (s *DocumentStore) GetAllTemplateDocs() []*TemplateDocument {
 	return docs
 }
 
+func (s *DocumentStore) GetAllYamlDocs() []*YamlDocument {
+	var docs []*YamlDocument
+	s.documents.Range(func(_, v interface{}) bool {
+		doc, ok := v.(*YamlDocument)
+		if !ok {
+			return true
+		}
+		docs = append(docs, doc)
+		return true
+	})
+	return docs
+}
+
 func (s *DocumentStore) LoadDocsOnNewChart(chart *charts.Chart, helmlsConfig util.HelmlsConfiguration) {
 	if chart.HelmChart == nil {
 		return

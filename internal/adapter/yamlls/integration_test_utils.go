@@ -55,7 +55,7 @@ func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration) (*Connect
 	zapLogger, _ := zap.NewProduction()
 	client := protocol.ClientDispatcher(con, zapLogger)
 
-	yamllsConnector := NewConnector(context.Background(), config, client, documents, jsonrpc2.MethodNotFoundHandler)
+	yamllsConnector := NewConnector(context.Background(), config, client, documents, DefaultCustomHandler)
 
 	if yamllsConnector.server == nil {
 		t.Fatal("Could not connect to yaml-language-server")

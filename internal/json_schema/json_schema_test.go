@@ -3,10 +3,11 @@ package jsonschema
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateJSONSchema(t *testing.T) {
-	// Define a sample input map to generate a schema from
 	input := map[string]interface{}{
 		"name":    "example",
 		"age":     30,
@@ -14,20 +15,11 @@ func TestGenerateJSONSchema(t *testing.T) {
 		"tags":    []interface{}{"go", "json", "schema"},
 	}
 
-	// Generate the schema
 	schema, err := GenerateJSONSchema(input)
-	if err != nil {
-		t.Fatalf("Failed to generate schema: %v", err)
-	}
+	assert.NoError(t, err)
 
-	// Marshal the schema to JSON
 	schemaJSON, err := json.MarshalIndent(schema, "", "  ")
-	if err != nil {
-		t.Fatalf("Failed to marshal schema to JSON: %v", err)
-	}
-
-	// Print the JSON schema for visual verification
-	t.Logf("Generated JSON Schema:\n%s", schemaJSON)
+	assert.NoError(t, err)
 
 	// Expected JSON schema structure
 	expected := map[string]interface{}{
@@ -56,14 +48,10 @@ func TestGenerateJSONSchema(t *testing.T) {
 		},
 	}
 
-	// Convert the expected schema to JSON for comparison
 	expectedJSON, err := json.MarshalIndent(expected, "", "  ")
+	assert.NoError(t, err)
+	assert.Equal(t, string(expectedJSON), string(schemaJSON))
 	if err != nil {
 		t.Fatalf("Failed to marshal expected schema to JSON: %v", err)
-	}
-
-	// Check if generated schema matches the expected schema
-	if string(schemaJSON) != string(expectedJSON) {
-		t.Errorf("Generated schema does not match expected schema.\nExpected:\n%s\nGot:\n%s", expectedJSON, schemaJSON)
 	}
 }
