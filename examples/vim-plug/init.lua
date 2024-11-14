@@ -7,19 +7,26 @@ Plug("https://github.com/neovim/nvim-lspconfig")
 
 Plug("https://github.com/qvalentin/helm-ls.nvim")
 
--- Plug("https://github.com/towolf/vim-helm")
+-- Plug("https://github.com/towolf/vim-helm") old, not recommended plugin
+-- note that you need to use tree-sitter for syntax highlighting if not using
+-- vim-helm
 
 vim.call("plug#end")
 
-require("helm-ls").setup({})
+require("helm-ls").setup({
+  opt = {
+    conceal_templates = {
+      -- enable the replacement of templates with virtual text of their current values
+      enabled = false, -- tree-sitter must be setup for this feature
+    },
+    indent_hints = {
+      -- enable hints for indent and nindent functions
+      enabled = false, -- tree-sitter must be setup for this feature
+    },
+  },
+})
 
 local lspconfig = require("lspconfig")
-
-local yamlls_cfg = {
-  maxItemsComputed = 50000,
-  format = { enable = true },
-  schemaStore = { enable = false, url = "" },
-}
 
 lspconfig.yamlls.setup({})
 lspconfig.helm_ls.setup({})
