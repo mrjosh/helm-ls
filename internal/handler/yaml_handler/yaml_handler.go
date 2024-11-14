@@ -52,6 +52,19 @@ func (h *YamlHandler) setYamllsConnector(yamllsConnector *yamlls.Connector) {
 	h.yamllsConnector = yamllsConnector
 }
 
+func (h *YamlHandler) CustomSchemaProvider(ctx context.Context, URI uri.URI) (uri.URI, error) {
+	chart, err := h.chartStore.GetChartForDoc(URI)
+	if err != nil {
+		logger.Error(err)
+	}
+	schemaFilePath, err := jsonschema.CreateJsonSchemaForChart(chart)
+	if err != nil {
+		logger.Error(err)
+		return uri.New(""), err
+	}
+	return uri.File(schemaFilePath), nil
+}
+
 func (h *YamlHandler) CustomHandler(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 	switch req.Method() {
 	case "custom/schema/request":
