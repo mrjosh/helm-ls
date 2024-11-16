@@ -1,4 +1,6 @@
 -- a minimal example config for setting up neovim with helm-ls and yamlls using the plugin manager vim-plug
+-- test it with: nvim -u init.lua
+
 local Plug = vim.fn["plug#"]
 
 -- install required plugins
