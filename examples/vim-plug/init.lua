@@ -1,36 +1,41 @@
-local vim = vim
+-- a minimal example config for setting up neovim with helm-ls and yamlls using the plugin manager vim-plug
 local Plug = vim.fn["plug#"]
 
+-- install required plugins
 vim.call("plug#begin")
 
 Plug("https://github.com/neovim/nvim-lspconfig")
-
 Plug("https://github.com/qvalentin/helm-ls.nvim")
-
--- Plug("https://github.com/towolf/vim-helm") old, not recommended plugin
--- note that you need to use tree-sitter for syntax highlighting if not using
--- vim-helm
 
 vim.call("plug#end")
 
+-- setup helm-ls.nvim
 require("helm-ls").setup({
-  opt = {
-    conceal_templates = {
-      -- enable the replacement of templates with virtual text of their current values
-      enabled = false, -- tree-sitter must be setup for this feature
-    },
-    indent_hints = {
-      -- enable hints for indent and nindent functions
-      enabled = false, -- tree-sitter must be setup for this feature
-    },
+  conceal_templates = {
+    -- enable the replacement of templates with virtual text of their current values
+    enabled = false, -- tree-sitter must be setup for this feature
+  },
+  indent_hints = {
+    -- enable hints for indent and nindent functions
+    enabled = false, -- tree-sitter must be setup for this feature
   },
 })
 
 local lspconfig = require("lspconfig")
 
 lspconfig.yamlls.setup({})
-lspconfig.helm_ls.setup({})
+-- setup helm-ls
+lspconfig.helm_ls.setup({
+  settings = {
+    ["helm-ls"] = {
+      yamlls = {
+        path = "yaml-language-server",
+      },
+    },
+  },
+})
 
+-- below is the config for a basic lsp keymap
 vim.keymap.set("n", "<space>e", vim.diagnostic.open_float)
 vim.keymap.set("n", "[d", vim.diagnostic.goto_prev)
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next)
