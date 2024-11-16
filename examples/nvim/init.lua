@@ -1,4 +1,5 @@
 -- a minimal example config for setting up neovim with helm-ls and yamlls
+-- test it with: nvim -u init.lua
 
 -- setup lazy plugin manager
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
