@@ -52,7 +52,7 @@ func NewCustomSchemaProviderHandler(provider CustomSchemaProvider) jsonrpc2.Hand
 				return reply(ctx, nil, nil)
 			}
 
-			logger.Println("YamlHandler: custom/schema/request", req.Params())
+			logger.Println("YamlHandler: custom/schema/request", string(req.Params()))
 
 			if len(params) == 0 {
 				return reply(ctx, nil, nil)

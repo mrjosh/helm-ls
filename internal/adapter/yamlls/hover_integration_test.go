@@ -60,7 +60,7 @@ func TestYamllsHoverIntegration(t *testing.T) {
 		tt := tt1
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
-			yamllsConnector, documents, _ := getYamlLsConnector(t, config)
+			yamllsConnector, documents, _ := getYamlLsConnector(t, config, &DefaultCustomHandler)
 			openFile(t, documents, tt.file, yamllsConnector)
 
 			assert.Eventually(t, func() bool {

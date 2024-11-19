@@ -24,7 +24,7 @@ type Connector struct {
 	conn                      jsonrpc2.Conn
 	documents                 *document.DocumentStore
 	client                    protocol.Client
-	customHandler             CustomHandler
+	customHandler             *CustomHandler
 	EnabledForFilesGlobObject glob.Glob
 }
 
@@ -32,7 +32,7 @@ func NewConnector(ctx context.Context,
 	yamllsConfiguration util.YamllsConfiguration,
 	client protocol.Client,
 	documents *document.DocumentStore,
-	customHandler CustomHandler,
+	customHandler *CustomHandler,
 ) *Connector {
 	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
 

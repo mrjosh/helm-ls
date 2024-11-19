@@ -25,7 +25,7 @@ func (h *TemplateHandler) configureYamlls(ctx context.Context, helmlsConfig util
 	config := helmlsConfig
 	if config.YamllsConfiguration.Enabled {
 		h.configureYamlsEnabledGlob(helmlsConfig)
-		h.setYamllsConnector(yamlls.NewConnector(ctx, config.YamllsConfiguration, h.client, h.documents, yamlls.DefaultCustomHandler))
+		h.setYamllsConnector(yamlls.NewConnector(ctx, config.YamllsConfiguration, h.client, h.documents, &yamlls.DefaultCustomHandler))
 		err := h.yamllsConnector.CallInitialize(ctx, h.chartStore.RootURI)
 		if err != nil {
 			logger.Error("Error initializing yamlls", err)

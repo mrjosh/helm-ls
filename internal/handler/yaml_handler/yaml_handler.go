@@ -56,6 +56,7 @@ func (h *YamlHandler) CustomSchemaProvider(ctx context.Context, URI uri.URI) (ur
 	chart, err := h.chartStore.GetChartForDoc(URI)
 	if err != nil {
 		logger.Error(err)
+		// we can ignore the error, providing a wrong schema is still useful
 	}
 	schemaFilePath, err := jsonschema.CreateJsonSchemaForChart(chart)
 	if err != nil {
@@ -63,42 +64,4 @@ func (h *YamlHandler) CustomSchemaProvider(ctx context.Context, URI uri.URI) (ur
 		return uri.New(""), err
 	}
 	return uri.File(schemaFilePath), nil
-}
-
-func (h *YamlHandler) CustomHandler(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
-	switch req.Method() {
-	case "custom/schema/request":
-
-		params := []string{}
-		jsonBytes, err := req.Params().MarshalJSON()
-		if err != nil {
-			logger.Error(err)
-			return reply(ctx, nil, nil)
-		}
-
-		err = json.Unmarshal(jsonBytes, &params)
-		if err != nil {
-			logger.Error(err)
-			return reply(ctx, nil, nil)
-		}
-
-		logger.Println("YamlHandler: custom/schema/request", req.Params())
-
-		if len(params) == 0 {
-			return reply(ctx, nil, nil)
-		}
-		chart, err := h.chartStore.GetChartForDoc(uri.New(params[0]))
-		if err != nil {
-			logger.Error(err)
-		}
-		schemaFilePath, err := jsonschema.CreateJsonSchemaForChart(chart)
-		if err != nil {
-			logger.Error(err)
-			return reply(ctx, nil, nil)
-		}
-
-		return reply(ctx, uri.New(schemaFilePath), nil)
-	}
-
-	return jsonrpc2.MethodNotFoundHandler(ctx, reply, req)
 }

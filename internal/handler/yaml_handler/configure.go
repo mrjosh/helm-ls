@@ -18,7 +18,7 @@ func (h *YamlHandler) configureYamlls(ctx context.Context, helmlsConfig util.Hel
 		config.YamllsConfiguration,
 		h.client,
 		h.documents,
-		*yamlls.NewCustomSchemaHandler(
+		yamlls.NewCustomSchemaHandler(
 			yamlls.NewCustomSchemaProviderHandler(h.CustomSchemaProvider),
 		),
 	)

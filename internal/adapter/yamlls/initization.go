@@ -37,8 +37,6 @@ func (yamllsConnector Connector) CallInitialize(ctx context.Context, workspaceUR
 		return err
 	}
 
-	yamllsConnector.customHandler.PostInitialize(ctx, yamllsConnector.conn)
-
 	defer func() {
 		yamllsConnector.customHandler.PostInitialize(ctx, yamllsConnector.conn)
 	}()

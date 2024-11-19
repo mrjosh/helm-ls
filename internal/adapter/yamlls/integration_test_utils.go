@@ -47,7 +47,7 @@ func (proc readWriteCloseMock) Close() error {
 	return nil
 }
 
-func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration) (*Connector, *document.DocumentStore, chan lsp.PublishDiagnosticsParams) {
+func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration, customHandler *CustomHandler) (*Connector, *document.DocumentStore, chan lsp.PublishDiagnosticsParams) {
 	dir := t.TempDir()
 	documents := document.NewDocumentStore()
 	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams)
@@ -55,7 +55,7 @@ func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration) (*Connect
 	zapLogger, _ := zap.NewProduction()
 	client := protocol.ClientDispatcher(con, zapLogger)
 
-	yamllsConnector := NewConnector(context.Background(), config, client, documents, DefaultCustomHandler)
+	yamllsConnector := NewConnector(context.Background(), config, client, documents, customHandler)
 
 	if yamllsConnector.server == nil {
 		t.Fatal("Could not connect to yaml-language-server")
