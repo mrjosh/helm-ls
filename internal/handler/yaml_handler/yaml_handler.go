@@ -2,14 +2,12 @@ package yamlhandler
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	jsonschema "github.com/mrjosh/helm-ls/internal/json_schema"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
-	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )

@@ -37,7 +37,8 @@ func TestYamllsCustomSchemaProviderIntegration(t *testing.T) {
 	config.Path = "yamlls-debug.sh"
 
 	// tempDir := t.TempDir()
-	tempDir := "/data/data/com.termux/files/usr/tmp/"
+	// tempDir := "/data/data/com.termux/files/usr/tmp/"
+	tempDir := "/tmp/"
 	schemaFile := path.Join(tempDir, "schema.json")
 	// write schema
 	err := os.WriteFile(schemaFile, []byte(TEST_JSON_SCHEMA), 0o644)
@@ -51,13 +52,14 @@ func TestYamllsCustomSchemaProviderIntegration(t *testing.T) {
 		NewCustomSchemaProviderHandler(
 			func(ctx context.Context, URI uri.URI) (uri.URI, error) {
 				t.Log("Calling Schema provider")
-				return "http://localhost:8000/schema.json", nil
+				return uri.File(schemaFile), nil
 			}))
 
 	yamllsConnector, documents, _ := getYamlLsConnector(t, config, customHandler)
 	openFile(t, documents, testFile, yamllsConnector)
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		logger.Println("Calling completion")
 		result, _ := yamllsConnector.CallCompletion(context.Background(), &lsp.CompletionParams{
 			TextDocumentPositionParams: lsp.TextDocumentPositionParams{
 				TextDocument: lsp.TextDocumentIdentifier{
@@ -69,11 +71,14 @@ func TestYamllsCustomSchemaProviderIntegration(t *testing.T) {
 				},
 			},
 		})
+		logger.Println("Called completion")
+
 		assert.NotNil(c, result)
 		if result == nil {
+			logger.Println("result is nil")
 			t.Log("result is nil")
 			return
 		}
-		t.Log("reuslt  is", result)
+		t.Log("result is", result)
 	}, time.Second*20, time.Second*2)
 }
