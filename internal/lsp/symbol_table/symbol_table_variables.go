@@ -45,6 +45,16 @@ func (s *SymbolTable) getVariableDefinition(name string, accessRange sitter.Rang
 	return definition, nil
 }
 
+func (s *SymbolTable) GetAllVariableDefinitions() (result map[string][]VariableDefinition) {
+	result = map[string][]VariableDefinition{}
+	for name, definitions := range s.variableDefinitions {
+		result[name] = append(
+			[]VariableDefinition{},
+			definitions...)
+	}
+	return result
+}
+
 func (s *SymbolTable) GetVariableDefinitionForNode(node *sitter.Node, content []byte) (VariableDefinition, error) {
 	name, err := getVariableName(node, content)
 	if err != nil {

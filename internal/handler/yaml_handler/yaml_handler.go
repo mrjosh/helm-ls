@@ -5,10 +5,11 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
+	jsonschema "github.com/mrjosh/helm-ls/internal/json_schema"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
-	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
 )
 
 var logger = log.GetLogger()
@@ -16,17 +17,9 @@ var logger = log.GetLogger()
 type YamlHandler struct {
 	documents       *document.DocumentStore
 	chartStore      *charts.ChartStore
+	client          protocol.Client
 	yamllsConnector *yamlls.Connector
 }
-
-// Completion implements handler.LangHandler.
-func (h *YamlHandler) Completion(ctx context.Context, params *protocol.CompletionParams) (result *protocol.CompletionList, err error) {
-	// TODO
-	return nil, nil
-}
-
-// Configure implements handler.LangHandler.
-func (h *YamlHandler) Configure(ctx context.Context, helmlsConfig util.HelmlsConfiguration) {}
 
 // Definition implements handler.LangHandler.
 func (h *YamlHandler) Definition(ctx context.Context, params *protocol.DefinitionParams) (result []protocol.Location, err error) {
@@ -51,4 +44,22 @@ func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, c
 
 func (h *YamlHandler) SetChartStore(chartStore *charts.ChartStore) {
 	h.chartStore = chartStore
+}
+
+func (h *YamlHandler) setYamllsConnector(yamllsConnector *yamlls.Connector) {
+	h.yamllsConnector = yamllsConnector
+}
+
+func (h *YamlHandler) CustomSchemaProvider(ctx context.Context, URI uri.URI) (uri.URI, error) {
+	chart, err := h.chartStore.GetChartForDoc(URI)
+	if err != nil {
+		logger.Error(err)
+		// we can ignore the error, providing a wrong schema is still useful
+	}
+	schemaFilePath, err := jsonschema.CreateJsonSchemaForChart(chart)
+	if err != nil {
+		logger.Error(err)
+		return uri.New(""), err
+	}
+	return uri.File(schemaFilePath), nil
 }

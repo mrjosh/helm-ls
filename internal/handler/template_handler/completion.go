@@ -24,6 +24,7 @@ func (h *TemplateHandler) Completion(ctx context.Context, params *lsp.Completion
 		languagefeatures.NewFunctionCallFeature(genericDocumentUseCase),
 		languagefeatures.NewTextFeature(ctx, genericDocumentUseCase, h.yamllsConnector, &params.TextDocumentPositionParams),
 		languagefeatures.NewIncludesCallFeature(genericDocumentUseCase),
+		languagefeatures.NewVariablesFeature(genericDocumentUseCase),
 	}
 
 	for _, usecase := range usecases {

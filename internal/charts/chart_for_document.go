@@ -3,6 +3,7 @@ package charts
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -17,7 +18,10 @@ func (s *ChartStore) GetChartForDoc(uri lsp.DocumentURI) (*Chart, error) {
 		return chart, nil
 	}
 
-	chart, err := s.getChartFromFilesystemForTemplates(uri.Filename())
+	chart, err := s.getChartFromFilesystemForNonTemplates(uri.Filename())
+	if err != nil {
+		chart, err = s.getChartFromFilesystemForTemplates(uri.Filename())
+	}
 	if err != nil {
 		return chart, ErrChartNotFound{
 			URI: uri,
@@ -46,11 +50,24 @@ func (s *ChartStore) GetChartOrParentForDoc(uri lsp.DocumentURI) (*Chart, error)
 
 func (s *ChartStore) getChartFromCache(uri lsp.DocumentURI) *Chart {
 	for chartURI, chart := range s.Charts {
+		// template files
 		if strings.HasPrefix(uri.Filename(), filepath.Join(chartURI.Filename(), "template")) {
+			return chart
+		}
+		// values.yaml files etc.
+		if path.Dir(uri.Filename()) == chartURI.Filename() {
 			return chart
 		}
 	}
 	return nil
+}
+
+func (s *ChartStore) getChartFromFilesystemForNonTemplates(path string) (*Chart, error) {
+	directory := filepath.Dir(path)
+	if isChartDirectory(directory) {
+		return s.newChart(uri.File(directory), s.valuesFilesConfig), nil
+	}
+	return nil, ErrChartNotFound{}
 }
 
 func (s *ChartStore) getChartFromFilesystemForTemplates(path string) (*Chart, error) {

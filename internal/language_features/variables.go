@@ -1,6 +1,7 @@
 package languagefeatures
 
 import (
+	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
@@ -17,7 +18,7 @@ func NewVariablesFeature(genericDocumentUseCase *GenericDocumentUseCase) *Variab
 }
 
 func (f *VariablesFeature) AppropriateForNode() bool {
-	return f.NodeType == gotemplate.NodeTypeIdentifier &&
+	return (f.NodeType == gotemplate.NodeTypeIdentifier || f.NodeType == gotemplate.NodeTypeDollar) &&
 		f.ParentNodeType == gotemplate.NodeTypeVariable
 }
 
@@ -40,4 +41,8 @@ func (f *VariablesFeature) References() (result []lsp.Location, err error) {
 		result = append(result, util.RangeToLocation(f.Document.URI, reference))
 	}
 	return result, nil
+}
+
+func (f *VariablesFeature) Completion() (result *lsp.CompletionList, err error) {
+	return protocol.CompletionResults{}.WithVariableDefinitions(f.Document.SymbolTable.GetAllVariableDefinitions()).ToList(), nil
 }
