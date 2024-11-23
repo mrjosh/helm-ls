@@ -63,18 +63,29 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 		v.symbolTable.AddTemplateContext(append(v.currentContext, content), GetRangeForNode(node.ChildByFieldName("name")))
 	case gotemplate.NodeTypeUnfinishedSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
-		content := getContextForSelectorExpression(operandNode, v.content)
-		if !content.IsVariable() {
-			content = append(v.currentContext, content...)
+		context := getContextForSelectorExpression(operandNode, v.content)
+		if !context.IsVariable() {
+			context = append(v.currentContext, context...)
 		}
-		v.symbolTable.AddTemplateContext(append(content, ""),
-			GetRangeForNode(node.Child(int(node.ChildCount())-1)))
+		dotNode := node.Child(int(node.ChildCount()) - 1)
+		v.symbolTable.AddTemplateContext(append(context, ""),
+			GetRangeForNode(dotNode))
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
+		if operandNode == nil {
+			return
+		}
 		if operandNode.Type() == gotemplate.NodeTypeVariable {
 			v.StashContext()
 			v.PushContext(operandNode.Content(v.content))
 		}
+		nextSibling := operandNode.NextSibling()
+		logger.Println("NextSibling", nextSibling.Type())
+
+		if nextSibling != nil && nextSibling.Type() == gotemplate.NodeTypeDotSymbol {
+			v.symbolTable.AddTemplateContext(append(getContextForSelectorExpression(operandNode, v.content), ""), GetRangeForNode(nextSibling))
+		}
+		v.symbolTable.AddTemplateContext(v.currentContext, GetRangeForNode(node))
 	}
 }
 
@@ -121,6 +132,9 @@ func (v *TemplateContextVisitor) ExitContextShift(node *sitter.Node) {
 			v.PopContextN(len(s))
 		}
 	}
+}
+
+func (v *TemplateContextVisitor) addTemplateContextForDotInSelectorExpression() {
 }
 
 func getContextForSelectorExpression(node *sitter.Node, content []byte) TemplateContext {
