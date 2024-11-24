@@ -126,9 +126,6 @@ func (v *TemplateContextVisitor) ExitContextShift(node *sitter.Node) {
 	}
 }
 
-func (v *TemplateContextVisitor) addTemplateContextForDotInSelectorExpression() {
-}
-
 func getContextForSelectorExpression(node *sitter.Node, content []byte) TemplateContext {
 	if node == nil {
 		return TemplateContext{}

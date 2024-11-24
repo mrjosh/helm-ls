@@ -66,9 +66,7 @@ func TestFindRelevantChildNodeCompletion(t *testing.T) {
 			position, content := getPositionForMarkedTestLine(tt.template)
 
 			ast := ParseAst(nil, content)
-
 			t.Logf("RootNode: %s", ast.RootNode().String())
-
 			node := NestedNodeAtPositionForCompletion(ast, position)
 
 			assert.Equal(t, tt.nodeContent, node.Content([]byte(content)))
@@ -80,16 +78,6 @@ func TestFindRelevantChildNodeCompletion(t *testing.T) {
 			t.Log(node.Content([]byte(content)))
 		})
 	}
-}
-
-// Takes a string with a mark (^) in it and returns the position and the string without the mark
-func getPointForMarkedTestLine(buf string) (sitter.Point, string) {
-	col := strings.Index(buf, "^")
-	buf = strings.Replace(buf, "^", "", 1)
-	pos := sitter.Point{
-		Column: uint32(col),
-	}
-	return pos, buf
 }
 
 func getPositionForMarkedTestLine(buf string) (protocol.Position, string) {

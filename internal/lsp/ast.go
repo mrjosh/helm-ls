@@ -26,9 +26,7 @@ func NestedNodeAtPositionForCompletion(tree *sitter.Tree, position lsp.Position)
 		Column: position.Character - 1,
 	}
 	currentNode := tree.RootNode().NamedDescendantForPointRange(pointToLookUp, pointToLookUp)
-	node := FindRelevantChildNodeCompletion(currentNode, pointToLookUp)
-
-	return node
+	return FindRelevantChildNodeCompletion(currentNode, pointToLookUp)
 }
 
 func FindRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
