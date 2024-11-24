@@ -73,13 +73,6 @@ func isPointLargerOrEq(a sitter.Point, b sitter.Point) bool {
 	return a.Row > b.Row
 }
 
-func isPointLarger(a sitter.Point, b sitter.Point) bool {
-	if a.Row == b.Row {
-		return a.Column > b.Column
-	}
-	return a.Row > b.Row
-}
-
 func (d *Document) ApplyChangesToAst(newContent string) {
 	d.Ast = ParseAst(nil, newContent)
 }
