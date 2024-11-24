@@ -55,6 +55,8 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 	switch nodeType {
 	case gotemplate.NodeTypeDot:
 		v.symbolTable.AddTemplateContext(v.currentContext, GetRangeForNode(node))
+	case gotemplate.NodeTypeDotSymbol:
+		v.symbolTable.AddTemplateContext(append(v.currentContext, ""), GetRangeForNode(node))
 	case gotemplate.NodeTypeFieldIdentifier:
 		content := node.Content(v.content)
 		v.symbolTable.AddTemplateContext(append(v.currentContext, content), GetRangeForNode(node))
@@ -72,20 +74,10 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 			GetRangeForNode(dotNode))
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
-		if operandNode == nil {
-			return
-		}
-		if operandNode.Type() == gotemplate.NodeTypeVariable {
+		if operandNode != nil && operandNode.Type() == gotemplate.NodeTypeVariable {
 			v.StashContext()
 			v.PushContext(operandNode.Content(v.content))
 		}
-		nextSibling := operandNode.NextSibling()
-		logger.Println("NextSibling", nextSibling.Type())
-
-		if nextSibling != nil && nextSibling.Type() == gotemplate.NodeTypeDotSymbol {
-			v.symbolTable.AddTemplateContext(append(getContextForSelectorExpression(operandNode, v.content), ""), GetRangeForNode(nextSibling))
-		}
-		v.symbolTable.AddTemplateContext(v.currentContext, GetRangeForNode(node))
 	}
 }
 
@@ -93,7 +85,7 @@ func (v *TemplateContextVisitor) Exit(node *sitter.Node) {
 	switch node.Type() {
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
-		if operandNode.Type() == gotemplate.NodeTypeVariable {
+		if operandNode != nil && operandNode.Type() == gotemplate.NodeTypeVariable {
 			v.PopContext()
 			v.RestoreStashedContext()
 		}
