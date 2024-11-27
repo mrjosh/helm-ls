@@ -56,6 +56,7 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 	case gotemplate.NodeTypeDot:
 		v.symbolTable.AddTemplateContext(v.currentContext, GetRangeForNode(node))
 	case gotemplate.NodeTypeDotSymbol:
+		// DotSymbol appears inside a SelectorExpression or at the end of an UnfinishedSelectorExpression
 		v.symbolTable.AddTemplateContext(append(v.currentContext, ""), GetRangeForNode(node))
 	case gotemplate.NodeTypeFieldIdentifier:
 		content := node.Content(v.content)
@@ -63,15 +64,6 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 	case gotemplate.NodeTypeField:
 		content := node.ChildByFieldName("name").Content(v.content)
 		v.symbolTable.AddTemplateContext(append(v.currentContext, content), GetRangeForNode(node.ChildByFieldName("name")))
-	case gotemplate.NodeTypeUnfinishedSelectorExpression:
-		operandNode := node.ChildByFieldName("operand")
-		context := getContextForSelectorExpression(operandNode, v.content)
-		if !context.IsVariable() {
-			context = append(v.currentContext, context...)
-		}
-		dotNode := node.Child(int(node.ChildCount()) - 1)
-		v.symbolTable.AddTemplateContext(append(context, ""),
-			GetRangeForNode(dotNode))
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
 		if operandNode != nil && operandNode.Type() == gotemplate.NodeTypeVariable {
