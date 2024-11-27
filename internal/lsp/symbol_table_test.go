@@ -237,7 +237,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    2,
 				Column: 40,
 			},
-			foundContextsLen: 6,
+			foundContextsLen: 10,
 		},
 		{
 			template: `{{ $x := .Values }}{{ $x.test }}{{ .Values.test }}`,
@@ -246,7 +246,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 25,
 			},
-			foundContextsLen: 3,
+			foundContextsLen: 6,
 		},
 		{
 			template: `{{ $x.test }}`,
@@ -255,7 +255,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 6,
 			},
-			foundContextsLen: 1,
+			foundContextsLen: 2,
 		},
 		{
 			template: `{{ $x.test. }}`,
@@ -264,7 +264,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 10,
 			},
-			foundContextsLen: 2,
+			foundContextsLen: 3,
 		},
 		{
 			template: `{{ if (and .Values. ) }} {{ end }} `,
@@ -273,7 +273,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 12,
 			},
-			foundContextsLen: 2,
+			foundContextsLen: 3,
 		},
 		{
 			template: `{{ if (and .Values. ) }} {{ end }} `,
@@ -282,7 +282,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 18,
 			},
-			foundContextsLen: 2,
+			foundContextsLen: 3,
 		},
 		{
 			template: `{{- range $type, $config := .Values.deployments }} {{ .test }} {{ end }} `,
@@ -291,7 +291,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 55,
 			},
-			foundContextsLen: 3,
+			foundContextsLen: 6,
 		},
 		{
 			template: `{{- range $type, $config := .Values.deployments }} {{ .test.nested }} {{ end }} `,
@@ -300,7 +300,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 60,
 			},
-			foundContextsLen: 4,
+			foundContextsLen: 8,
 		},
 		{
 			template: `{{- range $type, $config := .Values.deployments }} {{ .test.nested. }} {{ end }} `,
@@ -309,7 +309,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 66,
 			},
-			foundContextsLen: 5,
+			foundContextsLen: 9,
 		},
 		{
 			template: `{{- range $type, $config := .Values.deployments }} {{ $config.test.nested. }} {{ end }} `,
@@ -318,7 +318,7 @@ func TestSymbolTableForValuesSingleTests(t *testing.T) {
 				Row:    0,
 				Column: 73,
 			},
-			foundContextsLen: 5,
+			foundContextsLen: 9,
 		},
 	}
 

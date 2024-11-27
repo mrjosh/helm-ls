@@ -21,12 +21,12 @@ func NodeAtPosition(tree *sitter.Tree, position lsp.Position) *sitter.Node {
 }
 
 func NestedNodeAtPositionForCompletion(tree *sitter.Tree, position lsp.Position) *sitter.Node {
-	currentNode := NodeAtPosition(tree, position)
-	pointToLoopUp := sitter.Point{
+	pointToLookUp := sitter.Point{
 		Row:    position.Line,
 		Column: position.Character - 1,
 	}
-	return FindRelevantChildNodeCompletion(currentNode, pointToLoopUp)
+	currentNode := tree.RootNode().NamedDescendantForPointRange(pointToLookUp, pointToLookUp)
+	return FindRelevantChildNodeCompletion(currentNode, pointToLookUp)
 }
 
 func FindRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
@@ -44,6 +44,8 @@ func FindRelevantChildNode(currentNode *sitter.Node, pointToLookUp sitter.Point)
 
 func FindRelevantChildNodeCompletion(currentNode *sitter.Node, pointToLookUp sitter.Point) *sitter.Node {
 	childCount := int(currentNode.ChildCount())
+
+	// iterate over children backwards
 	for i := childCount - 1; i >= 0; i-- {
 		child := currentNode.Child(i)
 		if child == nil {

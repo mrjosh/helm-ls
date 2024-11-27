@@ -70,11 +70,19 @@ func (v *Visitors) visitNodesRecursiveWithScopeShift(node *sitter.Node) {
 		for _, visitor := range v.visitors {
 			visitor.EnterContextShift(operand, "")
 		}
+
+		dotNode := operand.NextSibling()
+		if dotNode != nil && dotNode.Type() == gotemplate.NodeTypeDotSymbol {
+			v.visitNodesRecursiveWithScopeShift(dotNode)
+		}
+
 		field := node.ChildByFieldName("field")
 		v.visitNodesRecursiveWithScopeShift(field)
 		for _, visitor := range v.visitors {
 			visitor.ExitContextShift(operand)
 		}
+	case gotemplate.NodeTypeDot:
+		// Do not visit children of Dot Type to be able to distinguish NodeTypeDot and NodeTypeDotSymbol
 
 	default:
 		for i := uint32(0); i < node.ChildCount(); i++ {
