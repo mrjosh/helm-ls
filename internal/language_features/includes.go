@@ -88,9 +88,7 @@ func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Locati
 	locations := []lsp.Location{}
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		referenceRanges := doc.SymbolTable.GetIncludeReference(includeName)
-		for _, referenceRange := range referenceRanges {
-			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
-		}
+		locations = append(locations, util.RangesToLocations(doc.URI, referenceRanges)...)
 		if len(locations) > 0 {
 			charts.SyncToDisk(doc)
 		}
@@ -103,9 +101,7 @@ func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Locat
 	locations := []lsp.Location{}
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		definitionRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
-		for _, definitionRange := range definitionRanges {
-			locations = append(locations, util.RangeToLocation(doc.URI, definitionRange))
-		}
+		locations = append(locations, util.RangesToLocations(doc.URI, definitionRanges)...)
 		if len(locations) > 0 {
 			charts.SyncToDisk(doc)
 		}

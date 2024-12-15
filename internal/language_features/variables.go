@@ -37,9 +37,7 @@ func (f *VariablesFeature) References() (result []lsp.Location, err error) {
 		return []lsp.Location{}, err
 	}
 
-	for _, reference := range variableReferences {
-		result = append(result, util.RangeToLocation(f.Document.URI, reference))
-	}
+	result = append(result, util.RangesToLocations(f.Document.URI, variableReferences)...)
 	return result, nil
 }
 

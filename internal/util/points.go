@@ -23,3 +23,10 @@ func RangeToLocation(URI uri.URI, range_ sitter.Range) lsp.Location {
 		},
 	}
 }
+
+func RangesToLocations(URI uri.URI, ranges []sitter.Range) (locations []lsp.Location) {
+	for _, definitionRange := range ranges {
+		locations = append(locations, RangeToLocation(URI, definitionRange))
+	}
+	return locations
+}
