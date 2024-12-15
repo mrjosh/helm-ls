@@ -41,7 +41,7 @@ func (f *TemplateContextFeature) References() (result []lsp.Location, err error)
 		return []lsp.Location{}, err
 	}
 
-	locations := f.getReferenceLocations(templateContext)
+	locations := f.getReferencesFromSymbolTable(templateContext)
 	return append(locations, f.getDefinitionLocations(templateContext)...), nil
 }
 
@@ -51,16 +51,6 @@ func (f *TemplateContextFeature) Definition() (result []lsp.Location, err error)
 		return []lsp.Location{}, err
 	}
 	return f.getDefinitionLocations(templateContext), nil
-}
-
-func (f *TemplateContextFeature) getReferenceLocations(templateContext symboltable.TemplateContext) []lsp.Location {
-	locations := []lsp.Location{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
-		referenceRanges := doc.SymbolTable.GetTemplateContextRanges(templateContext)
-		locations = append(locations, util.RangesToLocations(doc.URI, referenceRanges)...)
-	}
-
-	return append(locations, f.getDefinitionLocations(templateContext)...)
 }
 
 func (f *TemplateContextFeature) getDefinitionLocations(templateContext symboltable.TemplateContext) []lsp.Location {
