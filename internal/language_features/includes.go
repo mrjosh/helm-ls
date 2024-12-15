@@ -102,9 +102,9 @@ func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Locati
 func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Location {
 	locations := []lsp.Location{}
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
-		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
-		for _, referenceRange := range referenceRanges {
-			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
+		definitionRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
+		for _, definitionRange := range definitionRanges {
+			locations = append(locations, util.RangeToLocation(doc.URI, definitionRange))
 		}
 		if len(locations) > 0 {
 			charts.SyncToDisk(doc)
@@ -117,9 +117,9 @@ func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Locat
 func (f *IncludesFeature) getDefinitionsHover(includeName string) protocol.HoverResultsWithFiles {
 	result := protocol.HoverResultsWithFiles{}
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
-		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
-		for _, referenceRange := range referenceRanges {
-			node := doc.Ast.RootNode().NamedDescendantForPointRange(referenceRange.StartPoint, referenceRange.EndPoint)
+		definitionRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
+		for _, definitionRange := range definitionRanges {
+			node := doc.Ast.RootNode().NamedDescendantForPointRange(definitionRange.StartPoint, definitionRange.EndPoint)
 			if node != nil {
 				result = append(result, protocol.HoverResultWithFile{
 					Value: node.Content([]byte(doc.Content)),
