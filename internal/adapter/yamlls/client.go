@@ -2,6 +2,7 @@ package yamlls
 
 import (
 	"context"
+	"fmt"
 
 	"go.lsp.dev/protocol"
 )
@@ -13,6 +14,7 @@ func (y Connector) ApplyEdit(ctx context.Context, params *protocol.ApplyWorkspac
 
 // LogMessage implements protocol.Client.
 func (y Connector) LogMessage(ctx context.Context, params *protocol.LogMessageParams) (err error) {
+	logger.Debug(fmt.Sprintf("LogMessage from yamlls: %s %s", params.Type, params.Message))
 	return nil
 }
 

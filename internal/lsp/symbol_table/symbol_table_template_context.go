@@ -2,7 +2,6 @@ package symboltable
 
 import (
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
-	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
@@ -55,13 +54,13 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 	nodeType := node.Type()
 	switch nodeType {
 	case gotemplate.NodeTypeDot:
-		v.symbolTable.AddTemplateContext(v.currentContext, util.GetRangeForNode(node))
+		v.symbolTable.AddTemplateContext(v.currentContext, node.Range())
 	case gotemplate.NodeTypeFieldIdentifier:
 		content := node.Content(v.content)
-		v.symbolTable.AddTemplateContext(append(v.currentContext, content), util.GetRangeForNode(node))
+		v.symbolTable.AddTemplateContext(append(v.currentContext, content), node.Range())
 	case gotemplate.NodeTypeField:
 		content := node.ChildByFieldName("name").Content(v.content)
-		v.symbolTable.AddTemplateContext(append(v.currentContext, content), util.GetRangeForNode(node.ChildByFieldName("name")))
+		v.symbolTable.AddTemplateContext(append(v.currentContext, content), node.ChildByFieldName("name").Range())
 	case gotemplate.NodeTypeUnfinishedSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
 		content := getContextForSelectorExpression(operandNode, v.content)
@@ -69,7 +68,7 @@ func (v *TemplateContextVisitor) Enter(node *sitter.Node) {
 			content = append(v.currentContext, content...)
 		}
 		v.symbolTable.AddTemplateContext(append(content, ""),
-			util.GetRangeForNode(node.Child(int(node.ChildCount())-1)))
+			node.Child(int(node.ChildCount())-1).Range())
 	case gotemplate.NodeTypeSelectorExpression:
 		operandNode := node.ChildByFieldName("operand")
 		if operandNode.Type() == gotemplate.NodeTypeVariable {
