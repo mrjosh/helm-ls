@@ -2,7 +2,6 @@ package lsp
 
 import (
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
-	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
@@ -12,7 +11,7 @@ func getTextNodeRanges(gotemplateNode *sitter.Node) []sitter.Range {
 	for i := 0; i < int(gotemplateNode.ChildCount()); i++ {
 		child := gotemplateNode.Child(i)
 		if child.Type() == gotemplate.NodeTypeText {
-			textNodes = append(textNodes, util.GetRangeForNode(child))
+			textNodes = append(textNodes, child.Range())
 		} else {
 			textNodes = append(textNodes, getTextNodeRanges(child)...)
 		}

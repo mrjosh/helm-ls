@@ -14,7 +14,7 @@ type GenericTemplateContextFeature struct {
 }
 
 func (f *GenericTemplateContextFeature) getTemplateContext() (symboltable.TemplateContext, error) {
-	return f.GenericDocumentUseCase.Document.SymbolTable.GetTemplateContext(util.GetRangeForNode(f.Node))
+	return f.GenericDocumentUseCase.Document.SymbolTable.GetTemplateContext(f.Node.Range())
 }
 
 func (f *GenericTemplateContextFeature) getReferencesFromSymbolTable(templateContext symboltable.TemplateContext) []lsp.Location {

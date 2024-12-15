@@ -23,7 +23,7 @@ func NewIncludeDefinitionsVisitor(symbolTable *SymbolTable, content []byte) *Inc
 func (v *IncludeDefinitionsVisitor) Enter(node *sitter.Node) {
 	if node.Type() == gotemplate.NodeTypeDefineAction {
 		content := node.ChildByFieldName("name").Content(v.content)
-		v.symbolTable.AddIncludeDefinition(util.RemoveQuotes(content), util.GetRangeForNode(node))
+		v.symbolTable.AddIncludeDefinition(util.RemoveQuotes(content), node.Range())
 	}
 
 	if node.Type() == gotemplate.NodeTypeFunctionCall {
@@ -37,7 +37,7 @@ func (v *IncludeDefinitionsVisitor) enterFunctionCall(node *sitter.Node) {
 		return
 	}
 
-	v.symbolTable.AddIncludeReference(includeName, util.GetRangeForNode(node))
+	v.symbolTable.AddIncludeReference(includeName, node.Range())
 }
 
 func ParseIncludeFunctionCall(node *sitter.Node, content []byte) (string, error) {
