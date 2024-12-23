@@ -10,7 +10,7 @@ import (
 	"go.lsp.dev/jsonrpc2"
 )
 
-func (h *langHandler) NewChartWithWatchedFiles(chart *charts.Chart) {
+func (h *ServerHandler) NewChartWithWatchedFiles(chart *charts.Chart) {
 	logger.Debug("NewChartWithWatchedFiles ", chart.RootURI)
 
 	uris := make([]uri.URI, 0)
@@ -21,7 +21,7 @@ func (h *langHandler) NewChartWithWatchedFiles(chart *charts.Chart) {
 	go h.RegisterWatchedFiles(context.Background(), h.connPool, uris)
 }
 
-func (h *langHandler) RegisterWatchedFiles(ctx context.Context, conn jsonrpc2.Conn, files []uri.URI) {
+func (h *ServerHandler) RegisterWatchedFiles(ctx context.Context, conn jsonrpc2.Conn, files []uri.URI) {
 	if conn == nil {
 		return
 	}
@@ -49,7 +49,7 @@ func (h *langHandler) RegisterWatchedFiles(ctx context.Context, conn jsonrpc2.Co
 	}
 }
 
-func (h *langHandler) DidChangeWatchedFiles(ctx context.Context, params *lsp.DidChangeWatchedFilesParams) (err error) {
+func (h *ServerHandler) DidChangeWatchedFiles(ctx context.Context, params *lsp.DidChangeWatchedFilesParams) (err error) {
 	for _, change := range params.Changes {
 		h.chartStore.ReloadValuesFile(change.URI)
 	}

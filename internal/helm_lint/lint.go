@@ -8,7 +8,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
@@ -19,7 +19,7 @@ import (
 
 var logger = log.GetLogger()
 
-func GetDiagnosticsNotifications(chart *charts.Chart, doc *lsplocal.Document) []lsp.PublishDiagnosticsParams {
+func GetDiagnosticsNotifications(chart *charts.Chart, doc *document.TemplateDocument) []lsp.PublishDiagnosticsParams {
 	vals := chart.ValuesFiles.MainValuesFile.Values
 	if chart.ValuesFiles.OverlayValuesFile != nil {
 		vals = chartutil.CoalesceTables(chart.ValuesFiles.OverlayValuesFile.Values, chart.ValuesFiles.MainValuesFile.Values)

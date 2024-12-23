@@ -10,13 +10,13 @@ import (
 	lsp "go.lsp.dev/protocol"
 )
 
-func (h *langHandler) DidChangeConfiguration(ctx context.Context, params *lsp.DidChangeConfigurationParams) (err error) {
+func (h *ServerHandler) DidChangeConfiguration(ctx context.Context, params *lsp.DidChangeConfigurationParams) (err error) {
 	// go h.retrieveWorkspaceConfiguration(ctx)
 	logger.Println("Changing workspace config is not implemented")
 	return nil
 }
 
-func (h *langHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
+func (h *ServerHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
 	logger.Debug("Calling workspace/configuration")
 	configurationParams := lsp.ConfigurationParams{
 		Items: []lsp.ConfigurationItem{{Section: "helm-ls"}},
