@@ -59,6 +59,20 @@ func TestFindRelevantChildNodeCompletion(t *testing.T) {
 			nodeType:    "field_identifier",
 			nodeContent: "test",
 		},
+		{
+			template:    `{{ print^ }}`,
+			startColumn: 3,
+			endColumn:   8,
+			nodeType:    "identifier",
+			nodeContent: "print",
+		},
+		{
+			template:    `{{ pri^nt }}`,
+			startColumn: 3,
+			endColumn:   8,
+			nodeType:    "identifier",
+			nodeContent: "print",
+		},
 	}
 
 	for _, tt := range tests {

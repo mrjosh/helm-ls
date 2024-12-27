@@ -3,43 +3,31 @@ package lsp
 import (
 	"testing"
 
+	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTemplateContextVisitor(t *testing.T) {
-	tC := struct {
-		desc        string
-		template    string
-		nodeContent string
-		expected    TemplateContext
-	}{
-		template: "{{ .Values.ingress.host }}",
-	}
-
+func createSymbolTableWithContexts(template string) *SymbolTable {
+	ast := ParseAst(nil, template)
+	rootNode := ast.RootNode()
 	s := &SymbolTable{
 		contexts:         map[string][]sitter.Range{},
 		contextsReversed: map[sitter.Range]TemplateContext{},
 	}
-
-	ast := ParseAst(nil, tC.template)
-	rootNode := ast.RootNode()
 	v := Visitors{
 		symbolTable: s,
 		visitors: []Visitor{
-			NewTemplateContextVisitor(s, []byte(tC.template)),
+			NewTemplateContextVisitor(s, []byte(template)),
 		},
 	}
-
 	v.visitNodesRecursiveWithScopeShift(rootNode)
+	return s
+}
 
-	keys := make([]sitter.Range, 0, len(s.contextsReversed))
-	for r := range s.contextsReversed {
-		keys = append(keys, r)
-	}
-
-	t.Log("Keys", keys)
-
+func TestTemplateContextVisitor(t *testing.T) {
+	template := "{{ .Values.ingress.host }}"
+	s := createSymbolTableWithContexts(template)
 	assert.Len(t, s.GetTemplateContextRanges([]string{"Values"}), 1)
 	assert.Len(t, s.GetTemplateContextRanges([]string{"Values", "ingress"}), 1)
 	assert.Len(t, s.GetTemplateContextRanges([]string{"Values", "ingress", "host"}), 1)
@@ -54,6 +42,33 @@ func TestTemplateContextVisitor(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, templateContext)
 	assert.Equal(t, TemplateContext{"Values", ""}, templateContext)
+}
+
+func TestGetTemplateContextFromSymbolTable(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		template string
+		err      error
+		expected TemplateContext
+	}{
+		{
+			desc:     "Selects simple selector expression correctly",
+			template: `{{ .Values.test }}`,
+			expected: TemplateContext{"Values", "test"},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			pos, template := getPositionForMarkedTestLine(tC.template)
+			s := createSymbolTableWithContexts(template)
+			s.GetTemplateContext(sitter.Range{
+				StartPoint: sitter.Point{},
+				EndPoint:   sitter.Point{},
+				StartByte:  0,
+				EndByte:    0,
+			}
+		})
+	}
 }
 
 func TestGetContextForSelectorExpression(t *testing.T) {
