@@ -164,6 +164,7 @@ func TestCompletionMainSingleLines(t *testing.T) {
 		notExpectedInsertTexts []string
 		err                    error
 	}{
+		{"Test completion on {{ .Values.^ingress.hosts }}", []string{"ingress"}, []string{"hosts"}, nil},
 		{"Test completion on {{.Bad.^}}", []string{}, []string{}, errors.New("[Bad ] is no valid template context for helm")},
 		{"Test completion on {{ .Bad.^ }}", []string{}, []string{}, errors.New("[Bad ] is no valid template context for helm")},
 		{"Test completion on {{ n^ }}", []string{"not"}, []string{}, nil},
