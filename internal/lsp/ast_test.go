@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/protocol"
@@ -99,4 +100,15 @@ func getPositionForMarkedTestLine(buf string) (protocol.Position, string) {
 	buf = strings.Replace(buf, "^", "", 1)
 	pos := protocol.Position{Line: 0, Character: uint32(col)}
 	return pos, buf
+}
+
+func getRangeForMarkedTestLine(template string) (sitter.Range, string) {
+	pos0, template := getPositionForMarkedTestLine(template)
+	pos1, template := getPositionForMarkedTestLine(template)
+	return sitter.Range{
+		StartPoint: util.PositionToPoint(pos0),
+		EndPoint:   util.PositionToPoint(pos1),
+		StartByte:  pos0.Character,
+		EndByte:    pos1.Character,
+	}, template
 }
