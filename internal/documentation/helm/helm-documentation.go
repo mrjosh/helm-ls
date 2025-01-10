@@ -200,6 +200,7 @@ var (
 		{"fromYaml", "fromYaml $str", "Parse YAML into a dict or list."},
 		{"fromJson", "fromJson $str", "Parse JSON $str into a dict or list."},
 		{"required", "required $str $val", "Fail template with message $str if $val is not provided or is empty."},
+		{"tpl", "tpl $templateString $values", "Allows to evaluate strings as templates inside a template. This is useful to pass a template string as a value to a chart or render external configuration files."},
 	}
 
 	AllFuncs = slices.Concat(HelmFuncs, SprigFuncs, BuiltinFuncs)
