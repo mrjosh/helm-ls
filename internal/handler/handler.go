@@ -46,7 +46,6 @@ func StartHandler(stream io.ReadWriteCloser) {
 
 func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 	documents := document.NewDocumentStore()
-	var x LangHandler = yamlhandler.NewYamlHandler(client, documents, nil)
 	handler := &ServerHandler{
 		client:       client,
 		linterName:   "helm-lint",
@@ -55,7 +54,7 @@ func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 		helmlsConfig: util.DefaultConfig,
 		langHandlers: map[document.DocumentType]LangHandler{
 			document.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, nil),
-			document.YamlDocumentType:     x,
+			document.YamlDocumentType:     yamlhandler.NewYamlHandler(client, documents, nil),
 		},
 	}
 	logger.Printf("helm-lint-langserver: connections opened")

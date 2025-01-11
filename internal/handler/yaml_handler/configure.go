@@ -8,14 +8,12 @@ import (
 )
 
 func (h *YamlHandler) Configure(ctx context.Context, helmlsConfig util.HelmlsConfiguration) {
-	h.configureYamlls(ctx, helmlsConfig)
+	h.configureYamlls(ctx, helmlsConfig.YamllsConfiguration)
 }
 
-func (h *YamlHandler) configureYamlls(ctx context.Context, helmlsConfig util.HelmlsConfiguration) {
-	config := helmlsConfig
-
+func (h *YamlHandler) configureYamlls(ctx context.Context, config util.YamllsConfiguration) {
 	connector := yamlls.NewConnector(ctx,
-		config.YamllsConfiguration,
+		config,
 		h.client,
 		h.documents,
 		yamlls.NewCustomSchemaHandler(

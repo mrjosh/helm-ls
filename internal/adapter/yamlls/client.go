@@ -2,20 +2,19 @@ package yamlls
 
 import (
 	"context"
-	"fmt"
 
 	"go.lsp.dev/protocol"
 )
 
 // ApplyEdit implements protocol.Client.
 func (y Connector) ApplyEdit(ctx context.Context, params *protocol.ApplyWorkspaceEditParams) (result bool, err error) {
-	return true, nil
+	return y.client.ApplyEdit(ctx, params)
 }
 
 // LogMessage implements protocol.Client.
 func (y Connector) LogMessage(ctx context.Context, params *protocol.LogMessageParams) (err error) {
-	logger.Debug(fmt.Sprintf("LogMessage from yamlls: %s %s", params.Type, params.Message))
-	return nil
+	logger.Printf("LogMessage from yamlls: %s %s", params.Type, params.Message)
+	return y.client.LogMessage(ctx, params)
 }
 
 // Progress implements protocol.Client.

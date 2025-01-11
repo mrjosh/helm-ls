@@ -14,13 +14,14 @@ type CustomHandler struct {
 	Handler        jsonrpc2.Handler
 	PostInitialize SetupCustomHandler
 }
-
 type SetupCustomHandler func(ctx context.Context, conn jsonrpc2.Conn) error
 
 var DefaultCustomHandler = CustomHandler{
 	jsonrpc2.MethodNotFoundHandler, func(ctx context.Context, conn jsonrpc2.Conn) error { return nil },
 }
 
+// NewCustomSchemaHandler creates a custom schema handler
+// that registers the custom schema request to yaml-language-server
 func NewCustomSchemaHandler(handler jsonrpc2.Handler) *CustomHandler {
 	return &CustomHandler{
 		Handler: handler,
@@ -36,6 +37,8 @@ func NewCustomSchemaProviderHandler(provider CustomSchemaProvider) jsonrpc2.Hand
 	return func(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 		switch req.Method() {
 		case "custom/schema/request":
+
+			// TODO: clean this up
 
 			params := []string{}
 			jsonBytes, err := req.Params().MarshalJSON()
@@ -67,6 +70,7 @@ func NewCustomSchemaProviderHandler(provider CustomSchemaProvider) jsonrpc2.Hand
 }
 
 // CustomNewClient returns the context in which Client is embedded, jsonrpc2.Conn, and the Server.
+// This is a patched version of protocol.NewClient (see https://github.com/go-language-server/protocol/issues/53)
 func (yamllsConnector Connector) CustomNewClient(ctx context.Context, client protocol.Client, stream jsonrpc2.Stream, logger *zap.Logger) (context.Context, jsonrpc2.Conn, protocol.Server) {
 	ctx = protocol.WithClient(ctx, client)
 

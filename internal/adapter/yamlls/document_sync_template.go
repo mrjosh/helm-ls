@@ -34,11 +34,11 @@ func (yamllsConnector Connector) InitiallySyncOpenTemplateDocuments(docs []*docu
 }
 
 func (yamllsConnector Connector) DocumentDidOpenTemplate(ast *sitter.Tree, params lsp.DidOpenTextDocumentParams) {
-	logger.Debug("YamllsConnector DocumentDidOpen", params.TextDocument.URI)
-
 	if !yamllsConnector.shouldRun(params.TextDocument.URI) {
 		return
 	}
+
+	logger.Debug("YamllsConnector DocumentDidOpen", params.TextDocument.URI)
 	params.TextDocument.Text = lsplocal.TrimTemplate(ast, []byte(params.TextDocument.Text))
 
 	yamllsConnector.DocumentDidOpen(&params)
@@ -52,6 +52,7 @@ func (yamllsConnector Connector) DocumentDidSaveTemplate(doc *document.TemplateD
 	yamllsConnector.DocumentDidSave(&params)
 
 	// this is required as params.Text has no effect since the default of includeText is false
+	// and we want to force a full sync after a save
 	yamllsConnector.DocumentDidChangeFullSyncTemplate(doc, lsp.DidChangeTextDocumentParams{
 		TextDocument: lsp.VersionedTextDocumentIdentifier{
 			TextDocumentIdentifier: params.TextDocument,

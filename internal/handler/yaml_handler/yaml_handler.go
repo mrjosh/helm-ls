@@ -5,11 +5,9 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
-	jsonschema "github.com/mrjosh/helm-ls/internal/json_schema"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"go.lsp.dev/protocol"
-	"go.lsp.dev/uri"
 )
 
 var logger = log.GetLogger()
@@ -48,18 +46,4 @@ func (h *YamlHandler) SetChartStore(chartStore *charts.ChartStore) {
 
 func (h *YamlHandler) setYamllsConnector(yamllsConnector *yamlls.Connector) {
 	h.yamllsConnector = yamllsConnector
-}
-
-func (h *YamlHandler) CustomSchemaProvider(ctx context.Context, URI uri.URI) (uri.URI, error) {
-	chart, err := h.chartStore.GetChartForDoc(URI)
-	if err != nil {
-		logger.Error(err)
-		// we can ignore the error, providing a wrong schema is still useful
-	}
-	schemaFilePath, err := jsonschema.CreateJsonSchemaForChart(chart)
-	if err != nil {
-		logger.Error(err)
-		return uri.New(""), err
-	}
-	return uri.File(schemaFilePath), nil
 }
