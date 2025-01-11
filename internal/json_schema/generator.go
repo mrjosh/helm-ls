@@ -29,10 +29,14 @@ func generateSchemaType(value interface{}) *Schema {
 	switch v := value.(type) {
 	case string:
 		schema.Type = "string"
+		schema.Default = v
+
 	case int, int32, int64, float32, float64:
 		schema.Type = "number"
+		schema.Default = v
 	case bool:
 		schema.Type = "boolean"
+		schema.Default = v
 	case map[string]interface{}:
 		schema.Type = "object"
 		schema.Properties = generateProperties(v)

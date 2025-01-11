@@ -14,7 +14,7 @@ var logger = log.GetLogger()
 
 func createJsonSchemaForChart(chart *charts.Chart) (string, error) {
 	subSchemas := []*Schema{}
-	for _, value := range chart.ValuesFiles.AdditionalValuesFiles {
+	for _, value := range chart.ValuesFiles.AllValuesFiles() {
 		if value == nil || len(value.Values) == 0 {
 			continue
 		}
@@ -39,7 +39,7 @@ func createJsonSchemaForChart(chart *charts.Chart) (string, error) {
 		return "", err
 	}
 
-	file, err := os.CreateTemp("", base64.StdEncoding.EncodeToString([]byte(chart.RootURI.Filename())))
+	file, err := os.CreateTemp("", base64.StdEncoding.EncodeToString([]byte(chart.RootURI.Filename()))+`.json`)
 	if err != nil {
 		logger.Error(err)
 		return "", err

@@ -27,6 +27,9 @@ func (yamllsConnector Connector) InitiallySyncOpenYamlDocuments(docs []*document
 }
 
 func (yamllsConnector Connector) DocumentDidOpen(params *lsp.DidOpenTextDocumentParams) {
+	if yamllsConnector.server == nil {
+		return
+	}
 	logger.Debug("YamllsConnector DocumentDidOpen ", params.TextDocument.URI, yamllsConnector.server)
 	err := yamllsConnector.server.DidOpen(context.Background(), params)
 	if err != nil {
@@ -35,6 +38,9 @@ func (yamllsConnector Connector) DocumentDidOpen(params *lsp.DidOpenTextDocument
 }
 
 func (yamllsConnector Connector) DocumentDidSave(params *lsp.DidSaveTextDocumentParams) {
+	if yamllsConnector.server == nil {
+		return
+	}
 	err := yamllsConnector.server.DidSave(context.Background(), params)
 	if err != nil {
 		logger.Error("Error calling yamlls for didSave", err)
@@ -42,6 +48,9 @@ func (yamllsConnector Connector) DocumentDidSave(params *lsp.DidSaveTextDocument
 }
 
 func (yamllsConnector Connector) DocumentDidChange(params *lsp.DidChangeTextDocumentParams) {
+	if yamllsConnector.server == nil {
+		return
+	}
 	logger.Debug("Sending DocumentDidChange previous ", params)
 	err := yamllsConnector.server.DidChange(context.Background(), params)
 	if err != nil {
