@@ -4,6 +4,7 @@ package yamlls
 
 import (
 	"context"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -141,6 +142,7 @@ func getYamllsConnectorWithCustomSchema(t *testing.T) (*Connector, chan lsp.Publ
 	customHandler := NewCustomSchemaHandler(
 		NewCustomSchemaProviderHandler(
 			func(ctx context.Context, URI uri.URI) (uri.URI, error) {
+				log.Printf("Custom schema provider called for %s returning %s", URI, uri.File(schemaFile))
 				return uri.File(schemaFile), nil
 			}))
 
