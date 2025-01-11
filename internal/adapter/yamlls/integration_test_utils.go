@@ -47,10 +47,10 @@ func (proc readWriteCloseMock) Close() error {
 	return nil
 }
 
-func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration, customHandler *CustomHandler) (*Connector, *document.DocumentStore, chan lsp.PublishDiagnosticsParams) {
+func getYamllsConnector(t *testing.T, config util.YamllsConfiguration, customHandler *CustomHandler) (*Connector, *document.DocumentStore, chan lsp.PublishDiagnosticsParams) {
 	dir := t.TempDir()
 	documents := document.NewDocumentStore()
-	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams)
+	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams, 10000) // set a big size for tests where the channel is not read (prevents deadlock)
 	con := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloseMock{diagnosticsChan}))
 	zapLogger, _ := zap.NewProduction()
 	client := protocol.ClientDispatcher(con, zapLogger)

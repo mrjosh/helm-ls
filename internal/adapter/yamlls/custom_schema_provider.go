@@ -22,14 +22,12 @@ var DefaultCustomHandler = CustomHandler{
 }
 
 func NewCustomSchemaHandler(handler jsonrpc2.Handler) *CustomHandler {
-	customHandler := &CustomHandler{
+	return &CustomHandler{
 		Handler: handler,
 		PostInitialize: func(ctx context.Context, conn jsonrpc2.Conn) error {
 			return conn.Notify(ctx, "yaml/registerCustomSchemaRequest", nil)
 		},
 	}
-
-	return customHandler
 }
 
 type CustomSchemaProvider func(ctx context.Context, uri uri.URI) (uri.URI, error)

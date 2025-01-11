@@ -6,6 +6,7 @@ import (
 	"context"
 	"os"
 	"path"
+	"strings"
 	"testing"
 	"time"
 
@@ -23,43 +24,41 @@ var TEST_JSON_SCHEMA = `
   "type": "object",
   "properties": {
     "postOfficeBox": {
-      "type": "string"
+      "type": "string",
+  		"description": "Post office box number"
     },
     "countryName": {
-      "type": "string"
+      "type": "string",
+			"description": "Country name"
     }
   }
 }
 `
 
-func TestYamllsCustomSchemaProviderIntegration(t *testing.T) {
-	config := util.DefaultConfig.YamllsConfiguration
-	config.Path = "yamlls-debug.sh"
+func TestYamllsCustomSchemaProviderDiagnosticsIntegration(t *testing.T) {
+	_, diagnosticsChan, _ := getYamllsConnectorWithCustomSchema(t)
+	diagnostic := []lsp.Diagnostic{}
+	afterCh := time.After(10 * time.Second)
+	for {
+		if len(diagnostic) > 0 {
+			break
+		}
+		select {
+		case d := <-diagnosticsChan:
+			diagnostic = append(diagnostic, d.Diagnostics...)
+		case <-afterCh:
+			t.Fatal("Timed out waiting for diagnostics")
+		}
+	}
 
-	// tempDir := t.TempDir()
-	// tempDir := "/data/data/com.termux/files/usr/tmp/"
-	tempDir := "/tmp/"
-	schemaFile := path.Join(tempDir, "schema.json")
-	// write schema
-	err := os.WriteFile(schemaFile, []byte(TEST_JSON_SCHEMA), 0o644)
-	assert.NoError(t, err)
+	assert.Len(t, diagnostic, 1)
+	assert.Equal(t, "Yamlls: Incorrect type. Expected \"address\".", diagnostic[0].Message)
+}
 
-	testFile := path.Join(tempDir, "test.yaml")
-	err = os.WriteFile(testFile, []byte("c"), 0o644)
-	assert.NoError(t, err)
-
-	customHandler := NewCustomSchemaHandler(
-		NewCustomSchemaProviderHandler(
-			func(ctx context.Context, URI uri.URI) (uri.URI, error) {
-				t.Log("Calling Schema provider")
-				return uri.File(schemaFile), nil
-			}))
-
-	yamllsConnector, documents, _ := getYamlLsConnector(t, config, customHandler)
-	openFile(t, documents, testFile, yamllsConnector)
+func TestYamllsCustomSchemaProviderCompletionIntegration(t *testing.T) {
+	yamllsConnector, _, testFile := getYamllsConnectorWithCustomSchema(t)
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		logger.Println("Calling completion")
 		result, _ := yamllsConnector.CallCompletion(context.Background(), &lsp.CompletionParams{
 			TextDocumentPositionParams: lsp.TextDocumentPositionParams{
 				TextDocument: lsp.TextDocumentIdentifier{
@@ -71,14 +70,82 @@ func TestYamllsCustomSchemaProviderIntegration(t *testing.T) {
 				},
 			},
 		})
-		logger.Println("Called completion")
+		t.Log("Called completion")
 
 		assert.NotNil(c, result)
 		if result == nil {
-			logger.Println("result is nil")
 			t.Log("result is nil")
 			return
 		}
-		t.Log("result is", result)
-	}, time.Second*20, time.Second*2)
+
+		items := result.Items
+		assert.Len(c, items, 2)
+
+		assert.Equal(c, "postOfficeBox: ", items[0].InsertText)
+		assert.Equal(c, "countryName: ", items[1].InsertText)
+	}, time.Second*10, time.Second*2)
+}
+
+func TestYamllsCustomSchemaProviderHoverIntegration(t *testing.T) {
+	yamllsConnector, _, testFile := getYamllsConnectorWithCustomSchema(t)
+
+	yamllsConnector.DocumentDidChange(&lsp.DidChangeTextDocumentParams{
+		TextDocument: lsp.VersionedTextDocumentIdentifier{
+			Version: 1,
+			TextDocumentIdentifier: lsp.TextDocumentIdentifier{
+				URI: uri.File(testFile),
+			},
+		},
+		ContentChanges: []lsp.TextDocumentContentChangeEvent{
+			{
+				Text: "postOfficeBox: ",
+			},
+		},
+	})
+
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		result, _ := yamllsConnector.CallHover(context.Background(), lsp.HoverParams{
+			TextDocumentPositionParams: lsp.TextDocumentPositionParams{
+				TextDocument: lsp.TextDocumentIdentifier{
+					URI: uri.File(testFile),
+				},
+				Position: lsp.Position{
+					Line:      0,
+					Character: 1,
+				},
+			},
+		}, "postOfficeBox")
+		t.Log("Called completion")
+
+		assert.NotNil(c, result)
+		if result == nil {
+			t.Log("result is nil")
+			return
+		}
+
+		assert.True(c, strings.HasPrefix(result.Contents.Value, "Post office box number"))
+	}, time.Second*10, time.Second*2)
+}
+
+func getYamllsConnectorWithCustomSchema(t *testing.T) (*Connector, chan lsp.PublishDiagnosticsParams, string) {
+	config := util.DefaultConfig.YamllsConfiguration
+	tempDir := t.TempDir()
+	schemaFile := path.Join(tempDir, "schema.json")
+	err := os.WriteFile(schemaFile, []byte(TEST_JSON_SCHEMA), 0o644)
+	assert.NoError(t, err)
+
+	testFile := path.Join(tempDir, "test.yaml")
+	err = os.WriteFile(testFile, []byte("c"), 0o644)
+	assert.NoError(t, err)
+
+	customHandler := NewCustomSchemaHandler(
+		NewCustomSchemaProviderHandler(
+			func(ctx context.Context, URI uri.URI) (uri.URI, error) {
+				return uri.File(schemaFile), nil
+			}))
+
+	yamllsConnector, documents, diagnosticsChan := getYamllsConnector(t, config, customHandler)
+
+	openFile(t, documents, testFile, yamllsConnector)
+	return yamllsConnector, diagnosticsChan, testFile
 }

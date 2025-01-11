@@ -37,7 +37,7 @@ func TestYamllsDocumentSymoblIntegration(t *testing.T) {
 		tt := tt1
 		t.Run(tt.file, func(t *testing.T) {
 			t.Parallel()
-			yamllsConnector, documents, _ := getYamlLsConnector(t, config, &DefaultCustomHandler)
+			yamllsConnector, documents, _ := getYamllsConnector(t, config, &DefaultCustomHandler)
 			openFile(t, documents, tt.file, yamllsConnector)
 
 			assert.EventuallyWithT(t, func(c *assert.CollectT) {
