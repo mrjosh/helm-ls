@@ -47,6 +47,24 @@ var TextSnippets = []GoTemplateSnippet{
 		Snippet: "{{- /* $1 */ -}}",
 	},
 	{
+		Name:    "comment-no-trim",
+		Detail:  "{{ /* a comment without white space trimmed from preceding and following text */ }}",
+		Doc:     "A comment; discarded. May contain newlines. Comments do not nest and must start and end at the delimiters, as shown here.",
+		Snippet: "{{ /* $1 */ }}",
+	},
+	{
+		Name:    "comment-left-trim",
+		Detail:  "{{- /* a comment with left white space trimmed from preceding and following text */ }}",
+		Doc:     "A comment; discarded. May contain newlines. Comments do not nest and must start and end at the delimiters, as shown here.",
+		Snippet: "{{- /* $1 */ }}",
+	},
+	{
+		Name:    "comment-right-trim",
+		Detail:  "{{ /* a comment with right white space trimmed from preceding and following text */ -}}",
+		Doc:     "A comment; discarded. May contain newlines. Comments do not nest and must start and end at the delimiters, as shown here.",
+		Snippet: "{{ /* $1 */ -}}",
+	},
+	{
 		Name:    "{{ }}",
 		Detail:  "template",
 		Doc:     "",
