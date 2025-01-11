@@ -3,17 +3,35 @@ package jsonschema
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"os"
 
-	// "github.com/invopop/jsonschema"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
 )
 
 var logger = log.GetLogger()
 
-func CreateJsonSchemaForChart(chart *charts.Chart) (string, error) {
-	schema, err := GenerateJSONSchema(chart.ValuesFiles.MainValuesFile.Values)
+func createJsonSchemaForChart(chart *charts.Chart) (string, error) {
+	subSchemas := []*Schema{}
+	for _, value := range chart.ValuesFiles.AdditionalValuesFiles {
+		if value == nil || len(value.Values) == 0 {
+			continue
+		}
+		subSchema, err := generateJSONSchema(value.Values)
+		if err != nil {
+			logger.Error(err)
+			continue
+		}
+
+		subSchemas = append(subSchemas, subSchema)
+	}
+
+	if len(subSchemas) == 0 {
+		return "", errors.New("No values found to generate schema for")
+	}
+
+	schema := generateSchemaWithSubSchemas(subSchemas)
 
 	bytes, err := json.Marshal(schema)
 	if err != nil {

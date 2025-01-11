@@ -7,6 +7,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/charts"
 	templatehandler "github.com/mrjosh/helm-ls/internal/handler/template_handler"
 	yamlhandler "github.com/mrjosh/helm-ls/internal/handler/yaml_handler"
+	jsonschema "github.com/mrjosh/helm-ls/internal/json_schema"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
@@ -54,7 +55,7 @@ func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 		helmlsConfig: util.DefaultConfig,
 		langHandlers: map[document.DocumentType]LangHandler{
 			document.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, nil),
-			document.YamlDocumentType:     yamlhandler.NewYamlHandler(client, documents, nil),
+			document.YamlDocumentType:     yamlhandler.NewYamlHandler(client, documents, nil, jsonschema.NewJSONSchemaCache()),
 		},
 	}
 	logger.Printf("helm-lint-langserver: connections opened")

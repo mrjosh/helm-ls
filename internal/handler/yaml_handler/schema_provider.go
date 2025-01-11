@@ -3,7 +3,6 @@ package yamlhandler
 import (
 	"context"
 
-	jsonschema "github.com/mrjosh/helm-ls/internal/json_schema"
 	"go.lsp.dev/uri"
 )
 
@@ -15,9 +14,7 @@ func (h *YamlHandler) CustomSchemaProvider(ctx context.Context, URI uri.URI) (ur
 		// chart will still include some fallback values
 	}
 
-	// TODO: we want to cache jsonschema generation, either here or in the jsonschema package
-
-	schemaFilePath, err := jsonschema.CreateJsonSchemaForChart(chart)
+	schemaFilePath, err := h.jsonSchemas.GetJsonSchemaForChart(chart)
 	if err != nil {
 		logger.Error(err)
 		return uri.New(""), err

@@ -41,7 +41,7 @@ func TestYamllsCustomSchemaProviderDiagnosticsIntegration(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Test does not work on windows for unknown reasons")
 	}
-	_, diagnosticsChan, _ := getYamllsConnectorWithCustomSchema(t)
+	_, diagnosticsChan, _ := getYamllsConnectorWithCustomSchema(t, TEST_JSON_SCHEMA)
 	diagnostic := []lsp.Diagnostic{}
 	afterCh := time.After(20 * time.Second)
 	for {
@@ -61,7 +61,74 @@ func TestYamllsCustomSchemaProviderDiagnosticsIntegration(t *testing.T) {
 }
 
 func TestYamllsCustomSchemaProviderCompletionIntegration(t *testing.T) {
-	yamllsConnector, _, testFile := getYamllsConnectorWithCustomSchema(t)
+	yamllsConnector, _, testFile := getYamllsConnectorWithCustomSchema(t, TEST_JSON_SCHEMA)
+
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		result, _ := yamllsConnector.CallCompletion(context.Background(), &lsp.CompletionParams{
+			TextDocumentPositionParams: lsp.TextDocumentPositionParams{
+				TextDocument: lsp.TextDocumentIdentifier{
+					URI: uri.File(testFile),
+				},
+				Position: lsp.Position{
+					Line:      0,
+					Character: 1,
+				},
+			},
+		})
+		t.Log("Called completion")
+
+		assert.NotNil(c, result)
+		if result == nil {
+			t.Log("result is nil")
+			return
+		}
+
+		items := result.Items
+		assert.Len(c, items, 2)
+
+		assert.Equal(c, "postOfficeBox: ", items[0].InsertText)
+		assert.Equal(c, "countryName: ", items[1].InsertText)
+	}, time.Second*10, time.Second*2)
+}
+
+func TestYamllsCustomSchemaProviderCompletionMultipleSchemasaIntegration(t *testing.T) {
+	// Show that anyOf works
+	JSON_SCHEMA := `
+{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object",
+  "anyOf": [
+		{
+  		"$id": "https://example.com/address0.schema.json",
+  		"$schema": "https://json-schema.org/draft/2020-12/schema",
+  		"description": "An address similar to http://microformats.org/wiki/h-card",
+  		"type": "object",
+  		"properties": {
+    		"postOfficeBox": {
+      		"type": "string",
+  				"description": "Post office box number"
+    		}
+  		}
+		},
+		{
+  		"$id": "https://example.com/address1.schema.json",
+  		"$schema": "https://json-schema.org/draft/2020-12/schema",
+  		"description": "An address similar to http://microformats.org/wiki/h-card",
+  		"type": "object",
+  		"properties": {
+    		"countryName": {
+      		"type": "string",
+					"description": "Country name"
+    		}
+  		}
+		}
+  ]
+}
+`
+
+	yamllsConnector, _, testFile := getYamllsConnectorWithCustomSchema(t, JSON_SCHEMA)
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		result, _ := yamllsConnector.CallCompletion(context.Background(), &lsp.CompletionParams{
@@ -92,7 +159,7 @@ func TestYamllsCustomSchemaProviderCompletionIntegration(t *testing.T) {
 }
 
 func TestYamllsCustomSchemaProviderHoverIntegration(t *testing.T) {
-	yamllsConnector, _, testFile := getYamllsConnectorWithCustomSchema(t)
+	yamllsConnector, _, testFile := getYamllsConnectorWithCustomSchema(t, TEST_JSON_SCHEMA)
 
 	yamllsConnector.DocumentDidChange(&lsp.DidChangeTextDocumentParams{
 		TextDocument: lsp.VersionedTextDocumentIdentifier{
@@ -132,11 +199,11 @@ func TestYamllsCustomSchemaProviderHoverIntegration(t *testing.T) {
 	}, time.Second*10, time.Second*2)
 }
 
-func getYamllsConnectorWithCustomSchema(t *testing.T) (*Connector, chan lsp.PublishDiagnosticsParams, string) {
+func getYamllsConnectorWithCustomSchema(t *testing.T, schemaString string) (*Connector, chan lsp.PublishDiagnosticsParams, string) {
 	config := util.DefaultConfig.YamllsConfiguration
 	tempDir := t.TempDir()
 	schemaFile := filepath.Join(tempDir, "schema.json")
-	err := os.WriteFile(schemaFile, []byte(TEST_JSON_SCHEMA), 0o644)
+	err := os.WriteFile(schemaFile, []byte(schemaString), 0o644)
 	assert.NoError(t, err)
 
 	testFile := filepath.Join(tempDir, "test.yaml")
