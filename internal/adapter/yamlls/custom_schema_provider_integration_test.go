@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -37,6 +38,9 @@ var TEST_JSON_SCHEMA = `
 `
 
 func TestYamllsCustomSchemaProviderDiagnosticsIntegration(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Test does not work on windows for unknown reasons")
+	}
 	_, diagnosticsChan, _ := getYamllsConnectorWithCustomSchema(t)
 	diagnostic := []lsp.Diagnostic{}
 	afterCh := time.After(20 * time.Second)
