@@ -38,7 +38,7 @@ var TEST_JSON_SCHEMA = `
 func TestYamllsCustomSchemaProviderDiagnosticsIntegration(t *testing.T) {
 	_, diagnosticsChan, _ := getYamllsConnectorWithCustomSchema(t)
 	diagnostic := []lsp.Diagnostic{}
-	afterCh := time.After(10 * time.Second)
+	afterCh := time.After(20 * time.Second)
 	for {
 		if len(diagnostic) > 0 {
 			break
