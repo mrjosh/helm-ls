@@ -5,7 +5,7 @@ package yamlls
 import (
 	"context"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -130,11 +130,11 @@ func TestYamllsCustomSchemaProviderHoverIntegration(t *testing.T) {
 func getYamllsConnectorWithCustomSchema(t *testing.T) (*Connector, chan lsp.PublishDiagnosticsParams, string) {
 	config := util.DefaultConfig.YamllsConfiguration
 	tempDir := t.TempDir()
-	schemaFile := path.Join(tempDir, "schema.json")
+	schemaFile := filepath.Join(tempDir, "schema.json")
 	err := os.WriteFile(schemaFile, []byte(TEST_JSON_SCHEMA), 0o644)
 	assert.NoError(t, err)
 
-	testFile := path.Join(tempDir, "test.yaml")
+	testFile := filepath.Join(tempDir, "test.yaml")
 	err = os.WriteFile(testFile, []byte("c"), 0o644)
 	assert.NoError(t, err)
 
