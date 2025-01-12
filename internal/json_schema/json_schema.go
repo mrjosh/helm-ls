@@ -27,6 +27,8 @@ func createJsonSchemaForChart(chart *charts.Chart) (string, error) {
 		subSchemas = append(subSchemas, subSchema)
 	}
 
+	// TODO: also add parent and child schemas
+
 	if len(subSchemas) == 0 {
 		return "", errors.New("No values found to generate schema for")
 	}
