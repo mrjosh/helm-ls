@@ -21,34 +21,29 @@ func TestGenerateJSONSchema(t *testing.T) {
 	schemaJSON, err := json.MarshalIndent(schema, "", "  ")
 	assert.NoError(t, err)
 
-	// Expected JSON schema structure
-	expected := map[string]interface{}{
-		"$schema": "https://json-schema.org/draft/2020-12/schema",
-		"type":    "object",
-		"properties": map[string]interface{}{
-			"name": map[string]interface{}{
-				"type": "string",
-			},
-			"age": map[string]interface{}{
-				"type": "number",
-			},
-			"address": map[string]interface{}{
-				"type": "object",
-				"properties": map[string]interface{}{
-					"city": map[string]interface{}{"type": "string"},
-					"zip":  map[string]interface{}{"type": "string"},
+	expected := &Schema{
+		Version: "https://json-schema.org/draft/2020-12/schema",
+		Type:    "object",
+		Properties: map[string]*Schema{
+			"name": {Type: "string", Default: "example"},
+			"age":  {Type: "number", Default: 30},
+			"address": {
+				Type: "object",
+				Properties: map[string]*Schema{
+					"city": {
+						Type: "string", Default: "ExampleCity",
+					},
+					"zip": {
+						Type: "string", Default: "12345",
+					},
 				},
 			},
-			"tags": map[string]interface{}{
-				"type": "array",
-				"items": map[string]interface{}{
-					"type": "string",
-				},
-			},
+			"tags": {Type: "array", Items: &Schema{Type: "string", Default: "go"}},
 		},
 	}
 
 	expectedJSON, err := json.MarshalIndent(expected, "", "  ")
+
 	assert.NoError(t, err)
 	assert.Equal(t, string(expectedJSON), string(schemaJSON))
 	if err != nil {
