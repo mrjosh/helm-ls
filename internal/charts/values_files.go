@@ -66,6 +66,7 @@ func getAdditionalValuesFiles(additionalValuesFilesGlob string, rootURI uri.URI,
 }
 
 func (v *ValuesFiles) AllValuesFiles() []*ValuesFile {
+	// TODO: should this include the overlay values file?
 	return append([]*ValuesFile{v.MainValuesFile}, v.AdditionalValuesFiles...)
 }
 

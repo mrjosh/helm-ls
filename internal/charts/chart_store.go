@@ -25,6 +25,13 @@ func NewChartStore(rootURI uri.URI, newChart func(uri.URI, util.ValuesFilesConfi
 	}
 }
 
+func (s *ChartStore) SetRootURI(uri uri.URI) {
+	s.RootURI = uri
+	for uri := range s.Charts {
+		s.AddChart(s.newChart(uri, s.valuesFilesConfig))
+	}
+}
+
 // AddChart adds a new chart to the store and loads its dependencies
 func (s *ChartStore) AddChart(chart *Chart) {
 	s.Charts[chart.RootURI] = chart

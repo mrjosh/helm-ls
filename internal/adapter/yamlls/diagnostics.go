@@ -14,6 +14,10 @@ import (
 )
 
 func (c Connector) PublishDiagnostics(ctx context.Context, params *protocol.PublishDiagnosticsParams) (err error) {
+	if !c.config.DiagnosticsEnabled {
+		return nil
+	}
+
 	doc, ok := c.documents.GetTemplateDoc(params.URI)
 	if !ok {
 		logger.Println("Error handling diagnostic. Could not get document: " + params.URI.Filename())

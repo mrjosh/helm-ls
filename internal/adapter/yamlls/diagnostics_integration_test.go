@@ -79,7 +79,7 @@ func TestYamllsDiagnosticsIntegration(t *testing.T) {
 		Enable: false,
 	}
 	config.YamllsSettings = yamllsSettings
-	yamllsConnector, documents, diagnosticsChan := getYamlLsConnector(t, config)
+	yamllsConnector, documents, diagnosticsChan := getYamllsConnector(t, config, &DefaultCustomHandler)
 
 	didOpenChan := make(chan string)
 	go readTestFiles(TEST_DATA_DIR, didOpenChan, doneReadingFilesChan)
@@ -119,7 +119,7 @@ func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams)
 
 	config := util.DefaultConfig.YamllsConfiguration
-	yamllsConnector, documents, diagnosticsChan := getYamlLsConnector(t, config)
+	yamllsConnector, documents, diagnosticsChan := getYamllsConnector(t, config, &DefaultCustomHandler)
 	file := filepath.Join("..", "..", "..", "testdata", "example", "templates", "service.yaml")
 	openFile(t, documents, file, yamllsConnector)
 

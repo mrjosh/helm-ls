@@ -9,11 +9,11 @@ import (
 )
 
 func (h *TemplateHandler) Configure(ctx context.Context, helmlsConfig util.HelmlsConfiguration) {
-	h.configureYamlls(ctx, helmlsConfig)
+	h.configureYamlls(ctx, helmlsConfig.YamllsConfiguration)
 }
 
-func (h *TemplateHandler) configureYamlsEnabledGlob(helmlsConfig util.HelmlsConfiguration) {
-	globObject, err := glob.Compile(helmlsConfig.YamllsConfiguration.EnabledForFilesGlob)
+func (h *TemplateHandler) configureYamlsEnabledGlob(config util.YamllsConfiguration) {
+	globObject, err := glob.Compile(config.EnabledForFilesGlob)
 	if err != nil {
 		logger.Error("Error compiling glob for yamlls EnabledForFilesGlob", err)
 		globObject = util.DefaultConfig.YamllsConfiguration.EnabledForFilesGlobObject
@@ -21,16 +21,15 @@ func (h *TemplateHandler) configureYamlsEnabledGlob(helmlsConfig util.HelmlsConf
 	h.yamllsConnector.EnabledForFilesGlobObject = globObject
 }
 
-func (h *TemplateHandler) configureYamlls(ctx context.Context, helmlsConfig util.HelmlsConfiguration) {
-	config := helmlsConfig
-	if config.YamllsConfiguration.Enabled {
-		h.configureYamlsEnabledGlob(helmlsConfig)
-		h.setYamllsConnector(yamlls.NewConnector(ctx, config.YamllsConfiguration, h.client, h.documents))
+func (h *TemplateHandler) configureYamlls(ctx context.Context, config util.YamllsConfiguration) {
+	if config.Enabled {
+		h.configureYamlsEnabledGlob(config)
+		h.setYamllsConnector(yamlls.NewConnector(ctx, config, h.client, h.documents, &yamlls.DefaultCustomHandler))
 		err := h.yamllsConnector.CallInitialize(ctx, h.chartStore.RootURI)
 		if err != nil {
 			logger.Error("Error initializing yamlls", err)
 		}
 
-		h.yamllsConnector.InitiallySyncOpenDocuments(h.documents.GetAllTemplateDocs())
+		h.yamllsConnector.InitiallySyncOpenTemplateDocuments(h.documents.GetAllTemplateDocs())
 	}
 }

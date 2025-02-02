@@ -47,15 +47,15 @@ func (proc readWriteCloseMock) Close() error {
 	return nil
 }
 
-func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration) (*Connector, *document.DocumentStore, chan lsp.PublishDiagnosticsParams) {
+func getYamllsConnector(t *testing.T, config util.YamllsConfiguration, customHandler *CustomHandler) (*Connector, *document.DocumentStore, chan lsp.PublishDiagnosticsParams) {
 	dir := t.TempDir()
 	documents := document.NewDocumentStore()
-	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams)
+	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams, 10000) // set a big size for tests where the channel is not read (prevents deadlock)
 	con := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloseMock{diagnosticsChan}))
 	zapLogger, _ := zap.NewProduction()
 	client := protocol.ClientDispatcher(con, zapLogger)
 
-	yamllsConnector := NewConnector(context.Background(), config, client, documents)
+	yamllsConnector := NewConnector(context.Background(), config, client, documents, customHandler)
 
 	if yamllsConnector.server == nil {
 		t.Fatal("Could not connect to yaml-language-server")
@@ -82,5 +82,5 @@ func openFile(t *testing.T, documents *document.DocumentStore, path string, yaml
 		},
 	}
 	doc, err := documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
-	yamllsConnector.DocumentDidOpen(doc.Ast, d)
+	yamllsConnector.DocumentDidOpenTemplate(doc.Ast, d)
 }

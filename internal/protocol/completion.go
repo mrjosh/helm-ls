@@ -3,6 +3,7 @@ package protocol
 import (
 	"github.com/mrjosh/helm-ls/internal/documentation/godocs"
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
+	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
 	lsp "go.lsp.dev/protocol"
 )
 
@@ -46,5 +47,31 @@ func snippetCompletionItem(gotemplateSnippet godocs.GoTemplateSnippet) lsp.Compl
 		Documentation:    gotemplateSnippet.Doc,
 		Kind:             lsp.CompletionItemKindText,
 		InsertTextFormat: lsp.InsertTextFormatSnippet,
+	}
+}
+
+func (c CompletionResults) WithVariableDefinitions(variableDefinitions map[string][]symboltable.VariableDefinition) CompletionResults {
+	items := c.Items
+	for variableName, definitions := range variableDefinitions {
+
+		if len(definitions) == 0 {
+			continue
+		}
+		definition := definitions[0]
+
+		items = append(items,
+			variableCompletionItem(variableName, definition),
+		)
+	}
+	return CompletionResults{Items: items}
+}
+
+func variableCompletionItem(variableName string, definition symboltable.VariableDefinition) lsp.CompletionItem {
+	return lsp.CompletionItem{
+		Label:            variableName,
+		Detail:           definition.Value,
+		InsertText:       variableName,
+		InsertTextFormat: lsp.InsertTextFormatPlainText,
+		Kind:             lsp.CompletionItemKindVariable,
 	}
 }
