@@ -14,13 +14,15 @@ type cachedGeneratedJSONSchema struct {
 
 type JSONSchemaCache struct {
 	cache          map[uri.URI]cachedGeneratedJSONSchema
-	schemaCreation func(chart *charts.Chart) (string, error)
+	schemaCreation func(chart *charts.Chart, chartStore *charts.ChartStore) (string, error)
+	chartStore     *charts.ChartStore
 }
 
-func NewJSONSchemaCache() *JSONSchemaCache {
+func NewJSONSchemaCache(chartStore *charts.ChartStore) *JSONSchemaCache {
 	return &JSONSchemaCache{
 		cache:          make(map[uri.URI]cachedGeneratedJSONSchema),
 		schemaCreation: createJsonSchemaForChart,
+		chartStore:     chartStore,
 	}
 }
 
@@ -38,7 +40,7 @@ func (c *JSONSchemaCache) GetJsonSchemaForChart(chart *charts.Chart) (string, er
 }
 
 func (c *JSONSchemaCache) createJsonSchemaAndCache(chart *charts.Chart) (string, error) {
-	schemaFilePath, err := c.schemaCreation(chart)
+	schemaFilePath, err := c.schemaCreation(chart, c.chartStore)
 	if err != nil {
 		logger.Error(err)
 		return "", err

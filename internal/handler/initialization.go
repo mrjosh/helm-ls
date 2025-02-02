@@ -26,7 +26,7 @@ func (h *ServerHandler) Initialize(ctx context.Context, params *lsp.InitializePa
 	}
 
 	logger.Debug("Initializing chartStore")
-	h.setChartStrore(charts.NewChartStore(workspaceURI, charts.NewChart, h.AddChartCallback))
+	h.chartStore.SetRootURI(workspaceURI)
 
 	logger.Debug("Initializing done")
 	return &lsp.InitializeResult{

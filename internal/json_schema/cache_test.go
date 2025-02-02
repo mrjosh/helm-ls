@@ -13,7 +13,7 @@ func TestCreateNewSchema(t *testing.T) {
 
 	sut := &JSONSchemaCache{
 		cache: make(map[uri.URI]cachedGeneratedJSONSchema),
-		schemaCreation: func(chart *charts.Chart) (string, error) {
+		schemaCreation: func(chart *charts.Chart, chartStore *charts.ChartStore) (string, error) {
 			callCount++
 			return `filepath`, nil
 		},

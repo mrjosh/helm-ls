@@ -12,6 +12,10 @@ func (h *YamlHandler) Configure(ctx context.Context, helmlsConfig util.HelmlsCon
 }
 
 func (h *YamlHandler) configureYamlls(ctx context.Context, config util.YamllsConfiguration) {
+	// NOTE: For now we disable yamlls diagnostics since we expect the user
+	// to also run yaml-language-server separately for diagnostics
+	config.DiagnosticsEnabled = false
+
 	connector := yamlls.NewConnector(ctx,
 		config,
 		h.client,

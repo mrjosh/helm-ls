@@ -45,6 +45,9 @@ func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, c
 
 func (h *YamlHandler) SetChartStore(chartStore *charts.ChartStore) {
 	h.chartStore = chartStore
+
+	jsonSchemas := jsonschema.NewJSONSchemaCache(chartStore)
+	h.jsonSchemas = jsonSchemas
 }
 
 func (h *YamlHandler) setYamllsConnector(yamllsConnector *yamlls.Connector) {

@@ -19,6 +19,7 @@ type YamllsConfiguration struct {
 	EnabledForFilesGlob       string `json:"enabledForFilesGlob,omitempty"`
 	EnabledForFilesGlobObject glob.Glob
 	Path                      string `json:"path,omitempty"`
+	DiagnosticsEnabled        bool   `json:"diagnosticsEnabled,omitempty"`
 	// max diagnostics from yamlls that are shown for a single file
 	DiagnosticsLimit int `json:"diagnosticsLimit,omitempty"`
 	// if set to false diagnostics will only be shown after saving the file
@@ -40,6 +41,7 @@ var DefaultConfig = HelmlsConfiguration{
 		EnabledForFilesGlob:       "*.{yaml,yml}",
 		EnabledForFilesGlobObject: glob.MustCompile("*.{yaml,yml}"),
 		Path:                      "yaml-language-server",
+		DiagnosticsEnabled:        true,
 		DiagnosticsLimit:          50,
 		ShowDiagnosticsDirectly:   false,
 		YamllsSettings:            DefaultYamllsSettings,
