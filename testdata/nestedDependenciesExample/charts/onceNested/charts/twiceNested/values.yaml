@@ -1,10 +1,8 @@
-# Default values for onceNested.
+# Default values for twiceNested.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 replicaCount: 1
 
-twiceNested:
-  replicaCount: 1
-  fullnameOverride: null
+fromTwiceNested: hi
