@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"reflect"
 	"slices"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
@@ -24,20 +23,34 @@ func createJsonSchemaForChart(chart *charts.Chart, chartStore *charts.ChartStore
 		for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
 
 			subVals := valuesFile.Values.AsMap()
+			globalVals, ok := subVals["global"]
+			if ok {
+				globalVals, ok := globalVals.(map[string]interface{})
+				if ok {
+					delete(subVals, "global")
+					globalSchema, err := generateJSONSchema(globalVals)
+					if err != nil {
+						logger.Error(err)
+					} else {
+						globalDefs = append(globalDefs, globalSchema)
+					}
+				}
+			}
+
 			for _, subScope := range scopedValuesfiles.SubScope {
 				sub, ok := subVals[subScope].(map[string]interface{})
 				if !ok || sub == nil {
 					logger.Error("subscope value is nil", scopedValuesfiles.SubScope)
 					subVals = map[string]interface{}{}
 					continue
+				} else {
+					subVals = sub
 				}
-				subVals = sub
 			}
 
 			scopeList := slices.Clone(scopedValuesfiles.Scope)
 			slices.Reverse(scopeList)
 			for _, scope := range scopeList {
-				delete(subVals, "global") // IDEA: dont delete here, but instead to the global thing first
 				tmpVals := make(map[string]interface{})
 				tmpVals[scope] = subVals
 				subVals = tmpVals
@@ -47,23 +60,6 @@ func createJsonSchemaForChart(chart *charts.Chart, chartStore *charts.ChartStore
 			if err != nil {
 				logger.Error(err)
 				continue
-			}
-			if schema.Properties != nil && schema.Properties["global"] != nil {
-				globalDefs = append(globalDefs, schema.Properties["global"])
-				schema.Properties["global"] = &Schema{Ref: "#/$defs/global"}
-			}
-
-			if global := valuesFile.Values.AsMap()["global"]; global != nil {
-				if reflect.TypeOf(global).Kind() == reflect.Map {
-					globalCast := global.(map[string]interface{})
-					globalSchema, err := generateJSONSchema(globalCast)
-					if err != nil {
-						logger.Error(err)
-						continue
-					}
-					globalSchema.ID = scopedValuesfiles.Name
-					globalDefs = append(globalDefs, globalSchema)
-				}
 			}
 
 			innerSubSchemas = append(innerSubSchemas, schema)
@@ -90,7 +86,11 @@ func createJsonSchemaForChart(chart *charts.Chart, chartStore *charts.ChartStore
 
 	references = append(references, &Schema{Ref: "#/$defs/global"})
 
-	definitions["global"] = generateSchemaWithSubSchemas(globalDefs)
+	definitions["global"] = &Schema{
+		Properties: map[string]*Schema{
+			"global": generateSchemaWithSubSchemas(globalDefs),
+		},
+	}
 
 	schema := generateSchemaWithReferences(definitions, references)
 
