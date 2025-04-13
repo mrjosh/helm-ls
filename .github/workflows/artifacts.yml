@@ -152,6 +152,7 @@ jobs:
             helm_ls_linux_arm:./helm_ls_linux_arm/helm-ls
             helm_ls_linux_arm64:./helm_ls_linux_arm64/helm-ls
             helm_ls_linux_arm.sha256sum:./helm_ls_linux_arm.sha256sum
+            helm_ls_linux_arm64.sha256sum:./helm_ls_linux_arm64.sha256sum
           body: |
             ### macOS (x64)
             1. Download **helm_ls_darwin_amd64**
