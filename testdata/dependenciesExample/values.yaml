@@ -49,6 +49,7 @@ serviceAccount:
 subchartWithoutGlobal: works
 subchartexample:
   subchartWithoutGlobal: worksToo
+  fromParent: true
 tolerations: []
 volumeMounts: []
 volumes: []

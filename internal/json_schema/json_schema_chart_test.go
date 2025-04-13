@@ -10,25 +10,6 @@ import (
 	"go.lsp.dev/uri"
 )
 
-func getSchemaForChart(t *testing.T, rootUri uri.URI) *Schema {
-	addChartCallback := func(chart *charts.Chart) {}
-	chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
-	chart, err := chartStore.GetChartForURI(rootUri)
-
-	assert.NoError(t, err)
-	schemaFile, err := createJsonSchemaForChart(chart, chartStore)
-	println(schemaFile)
-	assert.NoError(t, err)
-
-	content, err := os.ReadFile(schemaFile)
-	assert.NoError(t, err)
-
-	schema := &Schema{}
-	json.Unmarshal(content, schema)
-
-	return schema
-}
-
 func TestHasOtherValueFilesInSameChartInSchema(t *testing.T) {
 	rootUri := uri.File("../../testdata/dependenciesExample/")
 	schema := getSchemaForChart(t, rootUri)
@@ -61,9 +42,21 @@ func TestHasValuesFromDependencySubChartInSchema(t *testing.T) {
 }
 
 func TestHasGlobalValuesInSchema(t *testing.T) {
-	rootUri := uri.File("../../testdata/dependenciesExample/")
+	rootUri := uri.File("../../testdata/dependenciesExample/charts/subchartexample/")
 	schema := getSchemaForChart(t, rootUri)
-	definitionsDoesContainProperty(t, schema, "global", []string{"global", "subchart"})
+
+	definitionsDoesContainPropertyGlobalProperty(t, schema, []string{"subchart"})
+	expectedRef := &Schema{Ref: "#/$defs/global"}
+	refsContains(t, schema, expectedRef)
+}
+
+func TestHasParentValuesInSchema(t *testing.T) {
+	rootUri := uri.File("../../testdata/dependenciesExample/charts/subchartexample/")
+	schema := getSchemaForChart(t, rootUri)
+
+	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"fromParent"})
+	expectedRef := &Schema{Ref: "#/$defs/dependeciesExample"}
+	refsContains(t, schema, expectedRef)
 }
 
 func TestCreateJsonSchemaForChart(t *testing.T) {
@@ -87,11 +80,28 @@ func TestCreateJsonSchemaForChart(t *testing.T) {
 }
 
 func definitionsDoesContainProperty(t *testing.T, schema *Schema, definitionName string, propertyPath []string) {
+	definitionsDoesContainPropertyGeneric(t, schema, definitionName, []string{}, propertyPath)
+}
+
+func definitionsDoesContainPropertyGlobalProperty(t *testing.T, schema *Schema, propertyPath []string) {
+	definitionsDoesContainPropertyGeneric(t, schema, "global", []string{"global"}, propertyPath)
+}
+
+func definitionsDoesContainPropertyGeneric(t *testing.T, schema *Schema, definitionName string, prePropertyPath []string, propertyPath []string) {
 	subSchema := schema.Definitions[definitionName]
-	assert.NotNil(t, subSchema, "Definition %s should exist on schema, but does not", definitionName)
+	assert.NotNil(t, subSchema, "Definition %s should exist on schema, but does not, schema: %s", definitionName, schemaToJSON(schema))
 
 	found, ok := false, true
 
+	for _, preProperty := range prePropertyPath {
+		props := subSchema.Properties
+		subSchema, ok = props[preProperty]
+		if !ok {
+			t.Fatalf("Definition %s should contain preProperty %s, but does not, schema: %s", definitionName, preProperty, schemaToJSON(schema.Definitions[definitionName]))
+		}
+	}
+
+	assert.NotNil(t, subSchema.AllOf, "Subschema has no AllOf property: %s", schemaToJSON(subSchema))
 	assert.Condition(t, func() bool {
 		for _, subSchema := range subSchema.AllOf {
 			for _, property := range propertyPath {
@@ -152,4 +162,23 @@ func TestCreateJsonSchemaForChartNested(t *testing.T) {
 	definitionsDoesContainProperty(t, schema, "twiceNested", []string{"twiceNested", "onlyInTwiceNested"})
 	definitionsDoesContainProperty(t, schema, "nestedDependenciesExample", []string{"fromRootForOnceNested"})
 	println(schemaFile)
+}
+
+func getSchemaForChart(t *testing.T, rootUri uri.URI) *Schema {
+	addChartCallback := func(chart *charts.Chart) {}
+	chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
+	chart, err := chartStore.GetChartForURI(rootUri)
+
+	assert.NoError(t, err)
+	schemaFile, err := createJsonSchemaForChart(chart, chartStore)
+	println(schemaFile)
+	assert.NoError(t, err)
+
+	content, err := os.ReadFile(schemaFile)
+	assert.NoError(t, err)
+
+	schema := &Schema{}
+	json.Unmarshal(content, schema)
+
+	return schema
 }
