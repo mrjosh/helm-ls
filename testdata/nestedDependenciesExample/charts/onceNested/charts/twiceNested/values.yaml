@@ -6,3 +6,4 @@
 replicaCount: 1
 
 fromTwiceNested: hi
+onlyInTwiceNested: hi

@@ -1,3 +1,4 @@
 global:
   subchart: works
 subchartWithoutGlobal: works
+onlyInSubchartValues: hi

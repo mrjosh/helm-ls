@@ -9,3 +9,8 @@ fromRoot: one
 
 global:
   globalFromRoot: hi
+
+onlyInRoot: true
+
+onceNested:
+  fromRootForOnceNested: true

@@ -1,0 +1,5 @@
+fromTheFileA: hallo
+image:
+  tag: hallo
+
+replicaCount: 5

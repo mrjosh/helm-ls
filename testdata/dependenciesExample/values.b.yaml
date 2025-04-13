@@ -1,0 +1,15 @@
+image:
+
+fromThefileA:
+
+ingress:
+  wrong: this
+  hosts:
+    - host: hdsa
+      paths:
+        - path: hallo
+          pathType:
+
+replicaCount: 1
+
+fromTheFileB: hi
