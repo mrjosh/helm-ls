@@ -46,10 +46,11 @@ serviceAccount:
   automount: true
   create: true
   name: ""
+tolerations: []
+volumeMounts: []
+volumes: []
+
 subchartWithoutGlobal: works
 subchartexample:
   subchartWithoutGlobal: worksToo
   fromParent: true
-tolerations: []
-volumeMounts: []
-volumes: []

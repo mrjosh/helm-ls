@@ -8,7 +8,7 @@ fromOnceNested: true
 
 twiceNested:
   replicaCount: 1
-  fromTwiceNested: hi
+  fromOnceNestedForTwiceNested: true
 
 global:
   globalFromOnceNested: true

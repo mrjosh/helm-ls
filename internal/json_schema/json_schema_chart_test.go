@@ -59,24 +59,25 @@ func TestHasParentValuesInSchema(t *testing.T) {
 	refsContains(t, schema, expectedRef)
 }
 
-func TestCreateJsonSchemaForChart(t *testing.T) {
-	rootUri := uri.File("../../testdata/dependenciesExample/")
-
+func TestHasParentValuesForNestedInSchema(t *testing.T) {
+	rootUri := uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/")
 	schema := getSchemaForChart(t, rootUri)
 
-	definitionsDoesContainProperty(t, schema, "subchartexample", []string{"subchartexample", "onlyInSubchartValues"})
-	definitionsDoesContainProperty(t, schema, "subchartexample", []string{"subchartexample", "subchartWithoutGlobal"})
-	expectedRef := &Schema{Ref: "#/$defs/subchartexample"}
-	refsContains(t, schema, expectedRef)
+	definitionsDoesContainProperty(t, schema, "nestedDependenciesExample", []string{"fromRootForOnceNested"})
+}
 
-	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"autoscaling", "targetCPUUtilizationPercentage"})
-	definitionsDoesContainProperty(t, schema, "common", []string{"common", "exampleValue"})
+func TestHasParentValuesForTwiceNestedInSchema(t *testing.T) {
+	rootUri := uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/")
+	schema := getSchemaForChart(t, rootUri)
 
-	expectedRef = &Schema{Ref: "#/$defs/dependeciesExample"}
-	refsContains(t, schema, expectedRef)
+	definitionsDoesContainProperty(t, schema, "nestedDependenciesExample", []string{"twiceNested", "fromRootForOnceNested"})
+	definitionsDoesContainProperty(t, schema, "onceNested", []string{"fromOnceNestedForTwiceNested"})
+}
 
-	expectedRef = &Schema{Ref: "#/$defs/common"}
-	refsContains(t, schema, expectedRef)
+func TestHasValuesFromSubChartNestedInSchema(t *testing.T) {
+	rootUri := uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/")
+	schema := getSchemaForChart(t, rootUri)
+	definitionsDoesContainProperty(t, schema, "twiceNested", []string{"twiceNested", "onlyInTwiceNested"})
 }
 
 func definitionsDoesContainProperty(t *testing.T, schema *Schema, definitionName string, propertyPath []string) {
@@ -139,29 +140,6 @@ func refsContains(t *testing.T, schema *Schema, expectedRef *Schema) {
 		allOfConverted = append(allOfConverted, schemaToJSON(schema))
 	}
 	assert.Contains(t, allOfConverted, expectedRefsJSON, "Schema should contain ref %s, but does not", expectedRefsJSON)
-}
-
-func TestCreateJsonSchemaForChartNested(t *testing.T) {
-	rootUri := uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/")
-	addChartCallback := func(chart *charts.Chart) {}
-	chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
-	chart, err := chartStore.GetChartForURI(rootUri)
-
-	assert.NoError(t, err)
-	schemaFile, err := createJsonSchemaForChart(chart, chartStore)
-
-	content, err := os.ReadFile(schemaFile)
-	assert.NoError(t, err)
-
-	schema := &Schema{}
-	json.Unmarshal(content, schema)
-
-	assert.NoError(t, err)
-	assert.NotNil(t, schema)
-
-	definitionsDoesContainProperty(t, schema, "twiceNested", []string{"twiceNested", "onlyInTwiceNested"})
-	definitionsDoesContainProperty(t, schema, "nestedDependenciesExample", []string{"fromRootForOnceNested"})
-	println(schemaFile)
 }
 
 func getSchemaForChart(t *testing.T, rootUri uri.URI) *Schema {

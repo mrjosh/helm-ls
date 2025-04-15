@@ -14,3 +14,5 @@ onlyInRoot: true
 
 onceNested:
   fromRootForOnceNested: true
+  twiceNested:
+    fromRootForTwiceNested: true
