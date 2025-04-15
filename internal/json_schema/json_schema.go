@@ -44,9 +44,9 @@ func (g *SchemaGenerator) Generate() (string, error) {
 		if len(innerSubSchemas) > 0 {
 			schema := g.createDefinitionSchema(scopedValuesfiles.Name, innerSubSchemas)
 			definitions[scopedValuesfiles.Name] = schema
-			references = append(references, &Schema{
+			references = append(references, g.nestSchemaInScopes(&Schema{
 				Ref: fmt.Sprintf("#/$defs/%s", scopedValuesfiles.Name),
-			})
+			}, scopedValuesfiles.Scope))
 		}
 	}
 
@@ -79,13 +79,24 @@ func (g *SchemaGenerator) processScopedValuesFiles(scopedValuesfiles *charts.Sco
 		}
 
 		// Process scopes
-		subVals = g.processScopes(subVals, scopedValuesfiles.Scope)
+		// subVals = g.nestValuesInScopes(subVals, scopedValuesfiles.Scope)
 
 		// Generate schema for processed values
-		schema, err := generateJSONSchema(subVals)
+		schema, err := generateJSONSchema(subVals, fmt.Sprintf("%s values from the file %s", scopedValuesfiles.Name, valuesFile.URI))
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate JSON schema: %w", err)
 		}
+		innerSubSchemas = append(innerSubSchemas, schema)
+	}
+
+	if scopedValuesfiles.Schema != nil {
+		// parse the json schema
+		schema := &Schema{}
+		err := json.Unmarshal(scopedValuesfiles.Schema, schema)
+		if err != nil {
+			return innerSubSchemas, fmt.Errorf("failed to unmarshal schema: %w", err)
+		}
+
 		innerSubSchemas = append(innerSubSchemas, schema)
 	}
 
@@ -105,7 +116,7 @@ func (g *SchemaGenerator) processGlobalValues(values map[string]interface{}, glo
 	}
 
 	delete(values, "global")
-	globalSchema, err := generateJSONSchema(globalValsMap)
+	globalSchema, err := generateJSONSchema(globalValsMap, "global values")
 	if err != nil {
 		return fmt.Errorf("failed to generate global schema: %w", err)
 	}
@@ -127,9 +138,9 @@ func (g *SchemaGenerator) getSubScope(values map[string]interface{}, subScopes [
 	return values, nil
 }
 
-// processScopes processes the scopes in the values map
-	// e.g. given values: {a: {b: {c: 1}}}, scopes: ["a", "b"] returns {c: 1}
-func (g *SchemaGenerator) processScopes(values map[string]interface{}, scopes []string) map[string]interface{} {
+// nestValuesInScopes nests the given values by the given scopes
+// e.g. given values: {a: 1}, scopes: ["b", "c"] returns {b: {c: {a: 1}}}
+func (g *SchemaGenerator) nestValuesInScopes(values map[string]interface{}, scopes []string) map[string]interface{} {
 	scopeList := slices.Clone(scopes)
 	slices.Reverse(scopeList)
 
@@ -139,6 +150,21 @@ func (g *SchemaGenerator) processScopes(values map[string]interface{}, scopes []
 		values = tmpVals
 	}
 	return values
+}
+
+func (g *SchemaGenerator) nestSchemaInScopes(schema *Schema, scopes []string) *Schema {
+	scopeList := slices.Clone(scopes)
+	slices.Reverse(scopeList)
+
+	for _, scope := range scopeList {
+		tmpSchema := &Schema{
+			Properties: map[string]*Schema{
+				scope: schema,
+			},
+		}
+		schema = tmpSchema
+	}
+	return schema
 }
 
 // createDefinitionSchema creates a schema definition with the given name and subschemas

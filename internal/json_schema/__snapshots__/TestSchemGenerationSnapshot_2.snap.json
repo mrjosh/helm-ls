@@ -6,13 +6,16 @@
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
      "properties": {
       "fromParent": {
        "default": true,
+       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
        "type": "boolean"
       },
       "subchartWithoutGlobal": {
        "default": "worksToo",
+       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
        "type": "string"
       }
      },
@@ -28,13 +31,16 @@
      "allOf": [
       {
        "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "description": "global values",
        "properties": {
         "globalFromSubchart": {
          "default": "works",
+         "description": "global values",
          "type": "string"
         },
         "subchart": {
          "default": "works",
+         "description": "global values",
          "type": "string"
         }
        },
@@ -42,9 +48,11 @@
       },
       {
        "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "description": "global values",
        "properties": {
         "subchart": {
          "default": "works",
+         "description": "global values",
          "type": "string"
         }
        },
@@ -52,9 +60,11 @@
       },
       {
        "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "description": "global values",
        "properties": {
         "globalFromFileA": {
          "default": "hi",
+         "description": "global values",
          "type": "string"
         }
        },
@@ -71,13 +81,16 @@
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "description": "subchartexample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/charts/subchartexample/values.yaml",
      "properties": {
       "onlyInSubchartValues": {
        "default": "hi",
+       "description": "subchartexample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/charts/subchartexample/values.yaml",
        "type": "string"
       },
       "subchartWithoutGlobal": {
        "default": "works",
+       "description": "subchartexample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/charts/subchartexample/values.yaml",
        "type": "string"
       }
      },

@@ -20,6 +20,10 @@ func TestSchemGenerationSnapshot(t *testing.T) {
 	snapshotTest(t, "../../testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/")
 }
 
+func TestSchemGenerationSnapshotExternal(t *testing.T) {
+	snapshotTest(t, "../../testdata/moredepstest/moredepstest/")
+}
+
 func snapshotTest(t *testing.T, path string) {
 	schema := getSchemaForChart(t, uri.File(path))
 	snaps.MatchStandaloneJSON(t, schema)
