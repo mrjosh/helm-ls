@@ -1,0 +1,103 @@
+{
+ "$defs": {
+  "dependeciesExample": {
+   "$id": "dependeciesExample",
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "fromParent": {
+       "default": true,
+       "type": "boolean"
+      },
+      "subchartWithoutGlobal": {
+       "default": "worksToo",
+       "type": "string"
+      }
+     },
+     "type": "object"
+    }
+   ],
+   "type": "object"
+  },
+  "global": {
+   "properties": {
+    "global": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "allOf": [
+      {
+       "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "properties": {
+        "globalFromSubchart": {
+         "default": "works",
+         "type": "string"
+        },
+        "subchart": {
+         "default": "works",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      {
+       "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "properties": {
+        "subchart": {
+         "default": "works",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      {
+       "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "properties": {
+        "globalFromFileA": {
+         "default": "hi",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      }
+     ],
+     "type": "object"
+    }
+   }
+  },
+  "subchartexample": {
+   "$id": "subchartexample",
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "onlyInSubchartValues": {
+       "default": "hi",
+       "type": "string"
+      },
+      "subchartWithoutGlobal": {
+       "default": "works",
+       "type": "string"
+      }
+     },
+     "type": "object"
+    }
+   ],
+   "type": "object"
+  }
+ },
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "allOf": [
+  {
+   "$ref": "#/$defs/subchartexample"
+  },
+  {
+   "$ref": "#/$defs/dependeciesExample"
+  },
+  {
+   "$ref": "#/$defs/global"
+  }
+ ],
+ "type": "object"
+}

@@ -1,0 +1,167 @@
+{
+ "$defs": {
+  "global": {
+   "properties": {
+    "global": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "allOf": [
+      {
+       "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "properties": {
+        "globalFromRoot": {
+         "default": "hi",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      {
+       "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "properties": {
+        "globalFromOnceNested": {
+         "default": true,
+         "type": "boolean"
+        }
+       },
+       "type": "object"
+      }
+     ],
+     "type": "object"
+    }
+   }
+  },
+  "nestedDependenciesExample": {
+   "$id": "nestedDependenciesExample",
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "fromRoot": {
+       "default": "one",
+       "type": "string"
+      },
+      "onceNested": {
+       "properties": {
+        "fromRootForOnceNested": {
+         "default": true,
+         "type": "boolean"
+        },
+        "twiceNested": {
+         "properties": {
+          "fromRootForTwiceNested": {
+           "default": true,
+           "type": "boolean"
+          }
+         },
+         "type": "object"
+        }
+       },
+       "type": "object"
+      },
+      "onlyInRoot": {
+       "default": true,
+       "type": "boolean"
+      },
+      "replicaCount": {
+       "default": 1,
+       "type": "number"
+      }
+     },
+     "type": "object"
+    }
+   ],
+   "type": "object"
+  },
+  "onceNested": {
+   "$id": "onceNested",
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "onceNested": {
+       "properties": {
+        "fromOnceNested": {
+         "default": true,
+         "type": "boolean"
+        },
+        "replicaCount": {
+         "default": 1,
+         "type": "number"
+        },
+        "twiceNested": {
+         "properties": {
+          "fromOnceNestedForTwiceNested": {
+           "default": true,
+           "type": "boolean"
+          },
+          "replicaCount": {
+           "default": 1,
+           "type": "number"
+          }
+         },
+         "type": "object"
+        }
+       },
+       "type": "object"
+      }
+     },
+     "type": "object"
+    }
+   ],
+   "type": "object"
+  },
+  "twiceNested": {
+   "$id": "twiceNested",
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "onceNested": {
+       "properties": {
+        "twiceNested": {
+         "properties": {
+          "fromTwiceNested": {
+           "default": "hi",
+           "type": "string"
+          },
+          "onlyInTwiceNested": {
+           "default": "hi",
+           "type": "string"
+          },
+          "replicaCount": {
+           "default": 1,
+           "type": "number"
+          }
+         },
+         "type": "object"
+        }
+       },
+       "type": "object"
+      }
+     },
+     "type": "object"
+    }
+   ],
+   "type": "object"
+  }
+ },
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "allOf": [
+  {
+   "$ref": "#/$defs/nestedDependenciesExample"
+  },
+  {
+   "$ref": "#/$defs/onceNested"
+  },
+  {
+   "$ref": "#/$defs/twiceNested"
+  },
+  {
+   "$ref": "#/$defs/global"
+  }
+ ],
+ "type": "object"
+}

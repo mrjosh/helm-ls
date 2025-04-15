@@ -22,7 +22,7 @@ func TestSchemGenerationSnapshot(t *testing.T) {
 
 func snapshotTest(t *testing.T, path string) {
 	schema := getSchemaForChart(t, uri.File(path))
-	snaps.MatchSnapshot(t, schemaToJSON(schema))
+	snaps.MatchStandaloneJSON(t, schema)
 }
 
 func TestHasOtherValueFilesInSameChartInSchema(t *testing.T) {
@@ -147,6 +147,14 @@ func schemaToJSON(schema *Schema) string {
 	return string(schemaJSON)
 }
 
+func schemaJSONPretty(schema *Schema) string {
+	schemaJSON, err := json.MarshalIndent(schema, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	return string(schemaJSON)
+}
+
 func refsContains(t *testing.T, schema *Schema, expectedRef *Schema) {
 	expectedRefsJSON := schemaToJSON(expectedRef)
 
@@ -163,7 +171,7 @@ func getSchemaForChart(t *testing.T, rootUri uri.URI) *Schema {
 	chart, err := chartStore.GetChartForURI(rootUri)
 
 	assert.NoError(t, err)
-	schemaFile, err := createJsonSchemaForChart(chart, chartStore)
+	schemaFile, err := CreateJsonSchemaForChart(chart, chartStore)
 	println(schemaFile)
 	assert.NoError(t, err)
 

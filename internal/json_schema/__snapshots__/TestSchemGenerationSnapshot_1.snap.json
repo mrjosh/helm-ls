@@ -1,0 +1,435 @@
+{
+ "$defs": {
+  "common": {
+   "$id": "common",
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "common": {
+       "properties": {
+        "exampleValue": {
+         "default": "common-chart",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      }
+     },
+     "type": "object"
+    }
+   ],
+   "type": "object"
+  },
+  "dependeciesExample": {
+   "$id": "dependeciesExample",
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "affinity": {
+       "type": "object"
+      },
+      "autoscaling": {
+       "properties": {
+        "enabled": {
+         "default": false,
+         "type": "boolean"
+        },
+        "maxReplicas": {
+         "default": 100,
+         "type": "number"
+        },
+        "minReplicas": {
+         "default": 1,
+         "type": "number"
+        },
+        "targetCPUUtilizationPercentage": {
+         "default": 80,
+         "type": "number"
+        }
+       },
+       "type": "object"
+      },
+      "fullnameOverride": {
+       "default": "",
+       "type": "string"
+      },
+      "image": {
+       "properties": {
+        "pullPolicy": {
+         "default": "IfNotPresent",
+         "type": "string"
+        },
+        "repository": {
+         "default": "nginx",
+         "type": "string"
+        },
+        "tag": {
+         "default": "",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      "imagePullSecrets": {
+       "items": {
+        "type": "null"
+       },
+       "type": "array"
+      },
+      "ingress": {
+       "properties": {
+        "annotations": {
+         "type": "object"
+        },
+        "className": {
+         "default": "",
+         "type": "string"
+        },
+        "enabled": {
+         "default": false,
+         "type": "boolean"
+        },
+        "hosts": {
+         "items": {
+          "properties": {
+           "host": {
+            "default": "chart-example.local",
+            "type": "string"
+           },
+           "paths": {
+            "items": {
+             "properties": {
+              "path": {
+               "default": "/",
+               "type": "string"
+              },
+              "pathType": {
+               "default": "ImplementationSpecific",
+               "type": "string"
+              }
+             },
+             "type": "object"
+            },
+            "type": "array"
+           }
+          },
+          "type": "object"
+         },
+         "type": "array"
+        },
+        "tls": {
+         "items": {
+          "type": "null"
+         },
+         "type": "array"
+        }
+       },
+       "type": "object"
+      },
+      "livenessProbe": {
+       "properties": {
+        "httpGet": {
+         "properties": {
+          "path": {
+           "default": "/",
+           "type": "string"
+          },
+          "port": {
+           "default": "http",
+           "type": "string"
+          }
+         },
+         "type": "object"
+        }
+       },
+       "type": "object"
+      },
+      "nameOverride": {
+       "default": "",
+       "type": "string"
+      },
+      "nodeSelector": {
+       "type": "object"
+      },
+      "podAnnotations": {
+       "type": "object"
+      },
+      "podLabels": {
+       "type": "object"
+      },
+      "podSecurityContext": {
+       "type": "object"
+      },
+      "readinessProbe": {
+       "properties": {
+        "httpGet": {
+         "properties": {
+          "path": {
+           "default": "/",
+           "type": "string"
+          },
+          "port": {
+           "default": "http",
+           "type": "string"
+          }
+         },
+         "type": "object"
+        }
+       },
+       "type": "object"
+      },
+      "replicaCount": {
+       "default": 1,
+       "type": "number"
+      },
+      "resources": {
+       "type": "object"
+      },
+      "securityContext": {
+       "type": "object"
+      },
+      "service": {
+       "properties": {
+        "port": {
+         "default": 80,
+         "type": "number"
+        },
+        "type": {
+         "default": "ClusterIP",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      "serviceAccount": {
+       "properties": {
+        "annotations": {
+         "type": "object"
+        },
+        "automount": {
+         "default": true,
+         "type": "boolean"
+        },
+        "create": {
+         "default": true,
+         "type": "boolean"
+        },
+        "name": {
+         "default": "",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      "subchartWithoutGlobal": {
+       "default": "works",
+       "type": "string"
+      },
+      "subchartexample": {
+       "properties": {
+        "fromParent": {
+         "default": true,
+         "type": "boolean"
+        },
+        "subchartWithoutGlobal": {
+         "default": "worksToo",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      "tolerations": {
+       "items": {
+        "type": "null"
+       },
+       "type": "array"
+      },
+      "volumeMounts": {
+       "items": {
+        "type": "null"
+       },
+       "type": "array"
+      },
+      "volumes": {
+       "items": {
+        "type": "null"
+       },
+       "type": "array"
+      }
+     },
+     "type": "object"
+    },
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "fromTheFileA": {
+       "default": "hallo",
+       "type": "string"
+      },
+      "image": {
+       "properties": {
+        "tag": {
+         "default": "hallo",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      "replicaCount": {
+       "default": 5,
+       "type": "number"
+      }
+     },
+     "type": "object"
+    },
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "fromTheFileB": {
+       "default": "hi",
+       "type": "string"
+      },
+      "fromThefileA": {
+       "type": "null"
+      },
+      "image": {
+       "type": "null"
+      },
+      "ingress": {
+       "properties": {
+        "hosts": {
+         "items": {
+          "properties": {
+           "host": {
+            "default": "hdsa",
+            "type": "string"
+           },
+           "paths": {
+            "items": {
+             "properties": {
+              "path": {
+               "default": "hallo",
+               "type": "string"
+              },
+              "pathType": {
+               "type": "null"
+              }
+             },
+             "type": "object"
+            },
+            "type": "array"
+           }
+          },
+          "type": "object"
+         },
+         "type": "array"
+        },
+        "wrong": {
+         "default": "this",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      "replicaCount": {
+       "default": 1,
+       "type": "number"
+      }
+     },
+     "type": "object"
+    }
+   ],
+   "type": "object"
+  },
+  "global": {
+   "properties": {
+    "global": {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "allOf": [
+      {
+       "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "properties": {
+        "subchart": {
+         "default": "works",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      {
+       "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "properties": {
+        "globalFromFileA": {
+         "default": "hi",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      },
+      {
+       "$schema": "https://json-schema.org/draft/2020-12/schema",
+       "properties": {
+        "globalFromSubchart": {
+         "default": "works",
+         "type": "string"
+        },
+        "subchart": {
+         "default": "works",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      }
+     ],
+     "type": "object"
+    }
+   }
+  },
+  "subchartexample": {
+   "$id": "subchartexample",
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "properties": {
+      "subchartexample": {
+       "properties": {
+        "onlyInSubchartValues": {
+         "default": "hi",
+         "type": "string"
+        },
+        "subchartWithoutGlobal": {
+         "default": "works",
+         "type": "string"
+        }
+       },
+       "type": "object"
+      }
+     },
+     "type": "object"
+    }
+   ],
+   "type": "object"
+  }
+ },
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "allOf": [
+  {
+   "$ref": "#/$defs/dependeciesExample"
+  },
+  {
+   "$ref": "#/$defs/common"
+  },
+  {
+   "$ref": "#/$defs/subchartexample"
+  },
+  {
+   "$ref": "#/$defs/global"
+  }
+ ],
+ "type": "object"
+}
