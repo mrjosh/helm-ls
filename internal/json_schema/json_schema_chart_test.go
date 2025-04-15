@@ -5,10 +5,25 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gkampitakis/go-snaps/snaps"
+
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
 )
+
+func TestSchemGenerationSnapshot(t *testing.T) {
+	snapshotTest(t, "../../testdata/dependenciesExample/")
+	snapshotTest(t, "../../testdata/dependenciesExample/charts/subchartexample/")
+	snapshotTest(t, "../../testdata/nestedDependenciesExample/")
+	snapshotTest(t, "../../testdata/nestedDependenciesExample/charts/onceNested/")
+	snapshotTest(t, "../../testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/")
+}
+
+func snapshotTest(t *testing.T, path string) {
+	schema := getSchemaForChart(t, uri.File(path))
+	snaps.MatchSnapshot(t, schemaToJSON(schema))
+}
 
 func TestHasOtherValueFilesInSameChartInSchema(t *testing.T) {
 	rootUri := uri.File("../../testdata/dependenciesExample/")
