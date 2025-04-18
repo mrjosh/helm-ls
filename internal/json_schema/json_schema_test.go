@@ -15,7 +15,7 @@ func TestGenerateJSONSchema(t *testing.T) {
 		"tags":    []interface{}{"go", "json", "schema"},
 	}
 
-	schema, err := generateJSONSchema(input, "test schema")
+	schema, err := generateJSONSchema(input, "description")
 	assert.NoError(t, err)
 
 	schemaJSON, err := json.MarshalIndent(schema, "", "  ")
@@ -25,21 +25,24 @@ func TestGenerateJSONSchema(t *testing.T) {
 		Version: "https://json-schema.org/draft/2020-12/schema",
 		Type:    "object",
 		Properties: map[string]*Schema{
-			"name": {Type: "string", Default: "example"},
-			"age":  {Type: "number", Default: 30},
+			"name": {Type: "string", Default: "example", Description: "description"},
+			"age":  {Type: "number", Default: 30, Description: "description"},
 			"address": {
 				Type: "object",
 				Properties: map[string]*Schema{
 					"city": {
-						Type: "string", Default: "ExampleCity",
+						Type:    "string",
+						Default: "ExampleCity",
 					},
 					"zip": {
 						Type: "string", Default: "12345",
 					},
 				},
+				Description: "description",
 			},
-			"tags": {Type: "array", Items: &Schema{Type: "string", Default: "go"}},
+			"tags": {Type: "array", Items: &Schema{Type: "string", Default: "go"}, Description: "description"},
 		},
+		Description: "description",
 	}
 
 	expectedJSON, err := json.MarshalIndent(expected, "", "  ")
