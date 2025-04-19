@@ -40,15 +40,15 @@
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "nestedDependenciesExample values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/values.yaml",
+     "description": "nestedDependenciesExample values from the file values.yaml",
      "properties": {
       "fromRootForOnceNested": {
        "default": true,
-       "description": "nestedDependenciesExample values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/values.yaml",
+       "description": "nestedDependenciesExample values from the file values.yaml",
        "type": "boolean"
       },
       "twiceNested": {
-       "description": "nestedDependenciesExample values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/values.yaml",
+       "description": "nestedDependenciesExample values from the file values.yaml",
        "properties": {
         "fromRootForTwiceNested": {
          "default": true,
@@ -69,20 +69,20 @@
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "onceNested values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/charts/onceNested/values.yaml",
+     "description": "onceNested values from the file values.yaml",
      "properties": {
       "fromOnceNested": {
        "default": true,
-       "description": "onceNested values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/charts/onceNested/values.yaml",
+       "description": "onceNested values from the file values.yaml",
        "type": "boolean"
       },
       "replicaCount": {
        "default": 1,
-       "description": "onceNested values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/charts/onceNested/values.yaml",
+       "description": "onceNested values from the file values.yaml",
        "type": "number"
       },
       "twiceNested": {
-       "description": "onceNested values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/charts/onceNested/values.yaml",
+       "description": "onceNested values from the file values.yaml",
        "properties": {
         "fromOnceNestedForTwiceNested": {
          "default": true,
@@ -97,11 +97,6 @@
       }
      },
      "type": "object"
-    },
-    {
-     "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "onceNested values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/charts/onceNested/values.b.yaml",
-     "type": "object"
     }
    ],
    "type": "object"
@@ -112,21 +107,21 @@
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "twiceNested values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/values.yaml",
+     "description": "twiceNested values from the file values.yaml",
      "properties": {
       "fromTwiceNested": {
        "default": "hi",
-       "description": "twiceNested values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/values.yaml",
+       "description": "twiceNested values from the file values.yaml",
        "type": "string"
       },
       "onlyInTwiceNested": {
        "default": "hi",
-       "description": "twiceNested values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/values.yaml",
+       "description": "twiceNested values from the file values.yaml",
        "type": "string"
       },
       "replicaCount": {
        "default": 1,
-       "description": "twiceNested values from the file file:///home/qv/dev/helm-ls/testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/values.yaml",
+       "description": "twiceNested values from the file values.yaml",
        "type": "number"
       }
      },

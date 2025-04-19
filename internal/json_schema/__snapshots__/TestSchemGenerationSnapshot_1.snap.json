@@ -6,11 +6,11 @@
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "common values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/charts/.helm_ls_cache/common/values.yaml",
+     "description": "common values from the file values.yaml",
      "properties": {
       "exampleValue": {
        "default": "common-chart",
-       "description": "common values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/charts/.helm_ls_cache/common/values.yaml",
+       "description": "common values from the file values.yaml",
        "type": "string"
       }
      },
@@ -25,14 +25,14 @@
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+     "description": "dependeciesExample values from the file values.yaml",
      "properties": {
       "affinity": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "object"
       },
       "autoscaling": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "enabled": {
          "default": false,
@@ -55,11 +55,11 @@
       },
       "fullnameOverride": {
        "default": "",
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "string"
       },
       "image": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "pullPolicy": {
          "default": "IfNotPresent",
@@ -77,14 +77,14 @@
        "type": "object"
       },
       "imagePullSecrets": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "items": {
         "type": "null"
        },
        "type": "array"
       },
       "ingress": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "annotations": {
          "type": "object"
@@ -135,7 +135,7 @@
        "type": "object"
       },
       "livenessProbe": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "httpGet": {
          "properties": {
@@ -155,27 +155,27 @@
       },
       "nameOverride": {
        "default": "",
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "string"
       },
       "nodeSelector": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "object"
       },
       "podAnnotations": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "object"
       },
       "podLabels": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "object"
       },
       "podSecurityContext": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "object"
       },
       "readinessProbe": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "httpGet": {
          "properties": {
@@ -195,19 +195,19 @@
       },
       "replicaCount": {
        "default": 1,
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "number"
       },
       "resources": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "object"
       },
       "securityContext": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "object"
       },
       "service": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "port": {
          "default": 80,
@@ -221,7 +221,7 @@
        "type": "object"
       },
       "serviceAccount": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "annotations": {
          "type": "object"
@@ -243,11 +243,11 @@
       },
       "subchartWithoutGlobal": {
        "default": "works",
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "type": "string"
       },
       "subchartexample": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "fromParent": {
          "default": true,
@@ -261,21 +261,21 @@
        "type": "object"
       },
       "tolerations": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "items": {
         "type": "null"
        },
        "type": "array"
       },
       "volumeMounts": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "items": {
         "type": "null"
        },
        "type": "array"
       },
       "volumes": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.yaml",
+       "description": "dependeciesExample values from the file values.yaml",
        "items": {
         "type": "null"
        },
@@ -286,15 +286,15 @@
     },
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.a.yaml",
+     "description": "dependeciesExample values from the file values.a.yaml",
      "properties": {
       "fromTheFileA": {
        "default": "hallo",
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.a.yaml",
+       "description": "dependeciesExample values from the file values.a.yaml",
        "type": "string"
       },
       "image": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.a.yaml",
+       "description": "dependeciesExample values from the file values.a.yaml",
        "properties": {
         "tag": {
          "default": "hallo",
@@ -305,7 +305,7 @@
       },
       "replicaCount": {
        "default": 5,
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.a.yaml",
+       "description": "dependeciesExample values from the file values.a.yaml",
        "type": "number"
       }
      },
@@ -313,23 +313,23 @@
     },
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.b.yaml",
+     "description": "dependeciesExample values from the file values.b.yaml",
      "properties": {
       "fromTheFileB": {
        "default": "hi",
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.b.yaml",
+       "description": "dependeciesExample values from the file values.b.yaml",
        "type": "string"
       },
       "fromThefileA": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.b.yaml",
+       "description": "dependeciesExample values from the file values.b.yaml",
        "type": "null"
       },
       "image": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.b.yaml",
+       "description": "dependeciesExample values from the file values.b.yaml",
        "type": "null"
       },
       "ingress": {
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.b.yaml",
+       "description": "dependeciesExample values from the file values.b.yaml",
        "properties": {
         "hosts": {
          "items": {
@@ -367,8 +367,19 @@
       },
       "replicaCount": {
        "default": 1,
-       "description": "dependeciesExample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/values.b.yaml",
+       "description": "dependeciesExample values from the file values.b.yaml",
        "type": "number"
+      }
+     },
+     "type": "object"
+    },
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "description": "dependeciesExample values from the file values.prod.yaml",
+     "properties": {
+      "affinity": {
+       "description": "dependeciesExample values from the file values.prod.yaml",
+       "type": "object"
       }
      },
      "type": "object"
@@ -433,16 +444,16 @@
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "subchartexample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/charts/subchartexample/values.yaml",
+     "description": "subchartexample values from the file values.yaml",
      "properties": {
       "onlyInSubchartValues": {
        "default": "hi",
-       "description": "subchartexample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/charts/subchartexample/values.yaml",
+       "description": "subchartexample values from the file values.yaml",
        "type": "string"
       },
       "subchartWithoutGlobal": {
        "default": "works",
-       "description": "subchartexample values from the file file:///home/qv/dev/helm-ls/testdata/dependenciesExample/charts/subchartexample/values.yaml",
+       "description": "subchartexample values from the file values.yaml",
        "type": "string"
       }
      },

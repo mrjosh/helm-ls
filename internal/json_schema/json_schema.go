@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
@@ -82,7 +83,7 @@ func (g *SchemaGenerator) processScopedValuesFiles(scopedValuesfiles *charts.Sco
 		// subVals = g.nestValuesInScopes(subVals, scopedValuesfiles.Scope)
 
 		// Generate schema for processed values
-		schema, err := generateJSONSchema(subVals, fmt.Sprintf("%s values from the file %s", scopedValuesfiles.Name, valuesFile.URI))
+		schema, err := generateJSONSchema(subVals, fmt.Sprintf("%s values from the file %s", scopedValuesfiles.Name, filepath.Base(valuesFile.URI.Filename())))
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate JSON schema: %w", err)
 		}
