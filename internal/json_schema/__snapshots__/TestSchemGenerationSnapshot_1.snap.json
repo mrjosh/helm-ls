@@ -372,17 +372,6 @@
       }
      },
      "type": "object"
-    },
-    {
-     "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "dependeciesExample values from the file values.prod.yaml",
-     "properties": {
-      "affinity": {
-       "description": "dependeciesExample values from the file values.prod.yaml",
-       "type": "object"
-      }
-     },
-     "type": "object"
     }
    ],
    "type": "object"

@@ -79,9 +79,6 @@ func (g *SchemaGenerator) processScopedValuesFiles(scopedValuesfiles *charts.Sco
 			continue
 		}
 
-		// Process scopes
-		// subVals = g.nestValuesInScopes(subVals, scopedValuesfiles.Scope)
-
 		// Generate schema for processed values
 		schema, err := generateJSONSchema(subVals, fmt.Sprintf("%s values from the file %s", scopedValuesfiles.Name, filepath.Base(valuesFile.URI.Filename())))
 		if err != nil {
