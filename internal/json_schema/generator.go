@@ -66,7 +66,7 @@ func generateSchemaWithSubSchemas(subSchemas []*Schema) *Schema {
 	return schema
 }
 
-func generateSchemaWithReferences(definitions map[string]*Schema, references []*Schema) *Schema {
+func generateSchemaWithAllOf(definitions map[string]*Schema, references []*Schema) *Schema {
 	schema := &Schema{
 		Type:        "object",
 		Version:     Version,

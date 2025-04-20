@@ -1,6 +1,8 @@
 package charts
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type ScopedValuesFiles struct {
 	// Scope defines a scope of the values files within the current chart.
@@ -10,9 +12,7 @@ type ScopedValuesFiles struct {
 	// SubScope is used for dependency charts to indicate the scope of the parents values that is relevant for the current chart
 	SubScope    []string
 	ValuesFiles *ValuesFiles
-	Name        string
-	// Schema is an optional JSON schema for imposing structure on Values, **it does not respect the scope**
-	Schema []byte `json:"schema"`
+	Chart       *Chart
 }
 
 // For a given chart, return all values files
@@ -23,7 +23,7 @@ type ScopedValuesFiles struct {
 // e.g. a subchart called subchart should be returned with the scope subchart (nested subcharts should have the scope subchart/subchart)
 func (c *Chart) GetScopedValuesFiles(chartStore *ChartStore) []*ScopedValuesFiles {
 	result := []*ScopedValuesFiles{
-		{Scope: []string{}, SubScope: []string{}, ValuesFiles: c.ValuesFiles, Name: c.HelmChart.Name(), Schema: c.HelmChart.Schema},
+		{Scope: []string{}, SubScope: []string{}, ValuesFiles: c.ValuesFiles, Chart: c},
 	}
 
 	result = append(result, c.GetScopedValuesFileDependencies(chartStore)...)
@@ -44,7 +44,13 @@ func (c *Chart) GetScopedValuesFileParents(chartStore *ChartStore) []*ScopedValu
 
 	ownParentResult := parent.ValuesFiles
 
-	result = append(result, &ScopedValuesFiles{Scope: []string{}, SubScope: []string{c.HelmChart.Name()}, ValuesFiles: ownParentResult, Name: parent.HelmChart.Name(), Schema: parent.HelmChart.Schema})
+	result = append(result, &ScopedValuesFiles{
+		Scope: []string{}, SubScope: []string{
+			c.HelmChart.Name(),
+		},
+		ValuesFiles: ownParentResult,
+		Chart:       parent,
+	})
 
 	recResult := parent.GetScopedValuesFileParents(chartStore)
 
@@ -67,7 +73,12 @@ func (c *Chart) GetScopedValuesFileDependencies(chartStore *ChartStore) []*Scope
 		}
 
 		dependencyResult := dependencyChart.ValuesFiles
-		result = append(result, &ScopedValuesFiles{Scope: []string{dependency.Name()}, SubScope: []string{}, ValuesFiles: dependencyResult, Name: dependencyChart.HelmChart.Name(), Schema: dependencyChart.HelmChart.Schema})
+		result = append(result, &ScopedValuesFiles{
+			Scope:       []string{dependency.Name()},
+			SubScope:    []string{},
+			ValuesFiles: dependencyResult,
+			Chart:       dependencyChart,
+		})
 
 		recResult := dependencyChart.GetScopedValuesFileDependencies(chartStore)
 
