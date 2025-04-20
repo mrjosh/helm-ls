@@ -17,7 +17,7 @@ func generateProperties(data map[string]interface{}, description string) map[str
 	properties := make(map[string]*Schema)
 
 	for key, value := range data {
-		properties[key] = generateSchemaType(value)
+		properties[key] = generateSchemaType(value, description)
 		properties[key].Description = description
 	}
 
@@ -25,7 +25,7 @@ func generateProperties(data map[string]interface{}, description string) map[str
 }
 
 // generateSchemaType infers the JSON schema type based on the value's Go type
-func generateSchemaType(value interface{}) *Schema {
+func generateSchemaType(value interface{}, description string) *Schema {
 	schema := &Schema{}
 
 	switch v := value.(type) {
@@ -41,11 +41,11 @@ func generateSchemaType(value interface{}) *Schema {
 		schema.Default = v
 	case map[string]interface{}:
 		schema.Type = "object"
-		schema.Properties = generateProperties(v, "")
+		schema.Properties = generateProperties(v, description)
 	case []interface{}:
 		schema.Type = "array"
 		if len(v) > 0 {
-			schema.Items = generateSchemaType(v[0])
+			schema.Items = generateSchemaType(v[0], description)
 		} else {
 			schema.Items = &Schema{Type: "null"} // Default for empty arrays
 		}
