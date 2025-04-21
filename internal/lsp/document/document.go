@@ -32,12 +32,11 @@ func TemplateDocumentTypeForLangID(langID lsp.LanguageIdentifier) DocumentType {
 }
 
 type Document struct {
-	URI          lsp.DocumentURI
-	DocumentType DocumentType
-	Path         string
-	Content      []byte
-	lines        []string
-	IsOpen       bool
+	URI     lsp.DocumentURI
+	Path    string
+	Content []byte
+	lines   []string
+	IsOpen  bool
 }
 
 type DocumentInterface interface {

@@ -35,7 +35,7 @@ func NewJSONSchemaCache(chartStore *charts.ChartStore) *JSONSchemaCache {
 
 	return &JSONSchemaCache{
 		cache:          make(map[uri.URI]cachedGeneratedJSONSchema),
-		schemaCreation: CreateJsonSchemaForChart,
+		schemaCreation: CreateJSONSchemaForChart,
 		chartStore:     chartStore,
 		schemaFilesDir: schemaFilesDir,
 	}

@@ -220,7 +220,7 @@ func getSchemaForChart(t *testing.T, rootURI uri.URI) (*Schema, string) {
 	}
 
 	assert.NoError(t, err)
-	generatedChartJSONSchema, err := CreateJsonSchemaForChart(chart, chartStore, getSchemaPathForChart)
+	generatedChartJSONSchema, err := CreateJSONSchemaForChart(chart, chartStore, getSchemaPathForChart)
 	assert.NoError(t, err)
 
 	return generatedChartJSONSchema.schema, getSchemaPathForChart(chart)

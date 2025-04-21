@@ -50,7 +50,7 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 				globalVals, ok := subVals["global"]
 				if ok {
 
-					subValsTmp := map[string]interface{}{}
+					subValsTmp := map[string]any{}
 					for k, v := range subVals {
 						if k != "global" {
 							subValsTmp[k] = v
@@ -58,7 +58,7 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 					}
 					subVals = subValsTmp
 
-					globalValsMap, ok := globalVals.(map[string]interface{})
+					globalValsMap, ok := globalVals.(map[string]any)
 					if ok {
 						globalSchema, err := generateJSONSchema(globalValsMap, "global values from the file "+filepath.Base(valuesFile.URI.Filename()))
 						if err != nil {
@@ -152,72 +152,9 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 	}, nil // TODO: collect errors
 }
 
-// processScopedValuesFiles processes a single set of scoped values files
-func (g *SchemaGenerator) processScopedValuesFiles(scopedValuesfiles *charts.ScopedValuesFiles, globalDefs *[]*Schema) ([]*Schema, error) {
-	innerSubSchemas := []*Schema{}
-
-	for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
-		subVals := valuesFile.Values.AsMap()
-
-		// Handle global values
-		if err := g.processGlobalValues(subVals, globalDefs); err != nil {
-			logger.Error("Failed to process global values:", err)
-		}
-
-		// Process subscopes
-		subVals, err := g.getSubScope(subVals, scopedValuesfiles.SubScope)
-		if err != nil {
-			logger.Error("Failed to process subscopes:", err)
-			continue
-		}
-
-		// Generate schema for processed values
-		schema, err := generateJSONSchema(subVals, fmt.Sprintf("%s values from the file %s", scopedValuesfiles.Chart.HelmChart.Name(), filepath.Base(valuesFile.URI.Filename())))
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate JSON schema: %w", err)
-		}
-		innerSubSchemas = append(innerSubSchemas, schema)
-	}
-
-	if scopedValuesfiles.Chart.HelmChart.Schema != nil {
-		// parse the json schema
-		schema := &Schema{}
-		err := json.Unmarshal(scopedValuesfiles.Chart.HelmChart.Schema, schema)
-		if err != nil {
-			return innerSubSchemas, fmt.Errorf("failed to unmarshal schema: %w", err)
-		}
-
-		innerSubSchemas = append(innerSubSchemas, schema)
-	}
-
-	return innerSubSchemas, nil
-}
-
-// processGlobalValues extracts and processes global values from the given values map
-func (g *SchemaGenerator) processGlobalValues(values map[string]interface{}, globalDefs *[]*Schema) error {
-	globalVals, ok := values["global"]
-	if !ok {
-		return nil
-	}
-
-	globalValsMap, ok := globalVals.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("global values is not a map")
-	}
-
-	delete(values, "global")
-	globalSchema, err := generateJSONSchema(globalValsMap, "global values")
-	if err != nil {
-		return fmt.Errorf("failed to generate global schema: %w", err)
-	}
-
-	*globalDefs = append(*globalDefs, globalSchema)
-	return nil
-}
-
 // getSubScope returns the values for the given subscope
 // e.g. given values: {a: {b: {c: 1}}}, subScopes: ["a", "b"] returns {c: 1}
-func (g *SchemaGenerator) getSubScope(values map[string]interface{}, subScopes []string) (map[string]interface{}, error) {
+func (g *SchemaGenerator) getSubScope(values map[string]any, subScopes []string) (map[string]interface{}, error) {
 	for _, subScope := range subScopes {
 		sub, ok := values[subScope].(map[string]interface{})
 		if !ok || sub == nil {
@@ -226,20 +163,6 @@ func (g *SchemaGenerator) getSubScope(values map[string]interface{}, subScopes [
 		values = sub
 	}
 	return values, nil
-}
-
-// nestValuesInScopes nests the given values by the given scopes
-// e.g. given values: {a: 1}, scopes: ["b", "c"] returns {b: {c: {a: 1}}}
-func (g *SchemaGenerator) nestValuesInScopes(values map[string]interface{}, scopes []string) map[string]interface{} {
-	scopeList := slices.Clone(scopes)
-	slices.Reverse(scopeList)
-
-	for _, scope := range scopeList {
-		tmpVals := make(map[string]interface{})
-		tmpVals[scope] = values
-		values = tmpVals
-	}
-	return values
 }
 
 func (g *SchemaGenerator) nestSchemaInScopes(schema *Schema, scopes []string) *Schema {
@@ -257,26 +180,8 @@ func (g *SchemaGenerator) nestSchemaInScopes(schema *Schema, scopes []string) *S
 	return schema
 }
 
-// createDefinitionSchema creates a schema definition with the given name and subschemas
-func (g *SchemaGenerator) createDefinitionSchema(name string, subSchemas []*Schema) *Schema {
-	schema := generateSchemaWithSubSchemas(subSchemas)
-	schema.ID = name
-	return schema
-}
-
-// createGlobalSchema creates the global schema definition
-func (g *SchemaGenerator) createGlobalSchema(globalDefs []*Schema) *Schema {
-	return &Schema{
-		Properties: map[string]*Schema{
-			"global": generateSchemaWithSubSchemas(globalDefs),
-		},
-	}
-}
-
-// writeSchemaToFile writes the schema to a temporary file and returns its path
-
-// CreateJsonSchemaForChart is the public entry point for creating a JSON schema for a chart
-func CreateJsonSchemaForChart(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error) {
+// CreateJSONSchemaForChart is the public entry point for creating a JSON schema for a chart
+func CreateJSONSchemaForChart(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error) {
 	generator := NewSchemaGenerator(chart, chartStore, getSchemaPathForChart)
 	return generator.Generate()
 }

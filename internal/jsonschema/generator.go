@@ -39,10 +39,10 @@ func generateSchemaType(value interface{}, description string) *Schema {
 	case bool:
 		schema.Type = "boolean"
 		schema.Default = v
-	case map[string]interface{}:
+	case map[string]any:
 		schema.Type = "object"
 		schema.Properties = generateProperties(v, description)
-	case []interface{}:
+	case []any:
 		schema.Type = "array"
 		if len(v) > 0 {
 			schema.Items = generateSchemaType(v[0], description)
@@ -54,15 +54,6 @@ func generateSchemaType(value interface{}, description string) *Schema {
 		schema.Type = "null"
 	}
 
-	return schema
-}
-
-func generateSchemaWithSubSchemas(subSchemas []*Schema) *Schema {
-	schema := &Schema{
-		Type:    "object",
-		Version: Version,
-		AllOf:   subSchemas,
-	}
 	return schema
 }
 
