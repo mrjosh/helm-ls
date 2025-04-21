@@ -133,9 +133,8 @@ func definitionsDoesContainPropertyInAllOf(t *testing.T, schema *Schema, definit
 				}
 				subSchema = tmpSubSchema
 			}
-			return true
 		}
-		return false
+		return true
 	}, "Definition global should contain property %s, but does not, schema: %s", propertyPath, schemaToJSON(subSchema))
 }
 
@@ -178,15 +177,7 @@ func definitionsDoesContainPropertyGeneric(t *testing.T, schema *Schema, definit
 func schemaToJSON(schema *Schema) string {
 	schemaJSON, err := json.Marshal(schema)
 	if err != nil {
-		panic(err)
-	}
-	return string(schemaJSON)
-}
-
-func schemaJSONPretty(schema *Schema) string {
-	schemaJSON, err := json.MarshalIndent(schema, "", "  ")
-	if err != nil {
-		panic(err)
+		return fmt.Sprintf("<error marshaling schema: %v>", err)
 	}
 	return string(schemaJSON)
 }
@@ -213,10 +204,10 @@ func refsContains(t *testing.T, schema *Schema, expectedRef *Schema) {
 	assert.Contains(t, allOfConverted, expectedRefsJSON, "Schema should contain ref %s, but does not", expectedRefsJSON)
 }
 
-func getSchemaForChart(t *testing.T, rootUri uri.URI) (*Schema, string) {
+func getSchemaForChart(t *testing.T, rootURI uri.URI) (*Schema, string) {
 	addChartCallback := func(chart *charts.Chart) {}
-	chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
-	chart, err := chartStore.GetChartForURI(rootUri)
+	chartStore := charts.NewChartStore(rootURI, charts.NewChart, addChartCallback)
+	chart, err := chartStore.GetChartForURI(rootURI)
 
 	getSchemaPathForChart := func(chart *charts.Chart) string {
 		return "/" + chart.HelmChart.Name()

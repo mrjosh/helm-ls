@@ -18,6 +18,7 @@ type cachedGeneratedJSONSchema struct {
 }
 
 type JSONSchemaCache struct {
+	mu             sync.RWMutex
 	cache          map[uri.URI]cachedGeneratedJSONSchema
 	schemaCreation func(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error)
 	chartStore     *charts.ChartStore
@@ -40,21 +41,34 @@ func NewJSONSchemaCache(chartStore *charts.ChartStore) *JSONSchemaCache {
 	}
 }
 
-func (c *JSONSchemaCache) GetJsonSchemaForChart(chart *charts.Chart) (string, error) {
-	chached, ok := c.cache[chart.RootURI]
+func (c *JSONSchemaCache) readCache(uri uri.URI) (cachedGeneratedJSONSchema, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	s, ok := c.cache[uri]
+	return s, ok
+}
+
+func (c *JSONSchemaCache) writeCache(uri uri.URI, cachedGeneratedJSONSchema cachedGeneratedJSONSchema) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cache[uri] = cachedGeneratedJSONSchema
+}
+
+func (c *JSONSchemaCache) GetJSONSchemaForChart(chart *charts.Chart) (string, error) {
+	chached, ok := c.readCache(chart.RootURI)
 
 	if !ok {
-		return c.createJsonSchemaAndCache(chart)
+		return c.createJSONSchemaAndCache(chart)
 	}
 	if chached.checksum != getChecksum(chart) {
-		return c.createJsonSchemaAndCache(chart)
+		return c.createJSONSchemaAndCache(chart)
 	} else {
 		return chached.schemaFilePath, nil
 	}
 }
 
-func (c *JSONSchemaCache) createJsonSchemaAndCache(chart *charts.Chart) (string, error) {
-	logger.Println("Creating JSON schema for chart", chart.HelmChart.Name())
+func (c *JSONSchemaCache) createJSONSchemaAndCache(chart *charts.Chart) (string, error) {
+	logger.Debug("Creating JSON schema for chart", chart.HelmChart.Name())
 	generatedChartJSONSchema, err := c.schemaCreation(chart, c.chartStore, c.GetSchemaPathForChart)
 	if err != nil {
 		logger.Error(err)
@@ -65,16 +79,13 @@ func (c *JSONSchemaCache) createJsonSchemaAndCache(chart *charts.Chart) (string,
 		logger.Error(err)
 		return "", err
 	}
-	c.cache[chart.RootURI] = cachedGeneratedJSONSchema{
-		checksum:       getChecksum(chart),
-		schemaFilePath: fileName,
-	}
+	c.writeCache(chart.RootURI,
+		cachedGeneratedJSONSchema{
+			checksum:       getChecksum(chart),
+			schemaFilePath: fileName,
+		})
 
 	c.processDependencies(generatedChartJSONSchema)
-	// for _, dependency := range generatedChartJSONSchema.dependencies {
-	// 	// IDEA: parallel this
-	// 	c.GetJsonSchemaForChart(dependency)
-	// }
 
 	return fileName, nil
 }
@@ -88,7 +99,7 @@ func (c *JSONSchemaCache) processDependencies(generatedChartJSONSchema Generated
 		dep := dependency
 		go func() {
 			defer wg.Done()
-			c.GetJsonSchemaForChart(dep)
+			c.GetJSONSchemaForChart(dep)
 		}()
 	}
 
