@@ -124,18 +124,24 @@ func definitionsDoesContainPropertyInAllOf(t *testing.T, schema *Schema, definit
 	allOf := subSchema.AllOf
 	assert.NotNil(t, allOf, "Subschema has no AllOf property: %s", schemaToJSON(subSchema))
 	assert.Condition(t, func() bool {
+		found := false
 		for _, subSchema := range allOf {
 			for _, property := range propertyPath {
 				props := subSchema.Properties
 				tmpSubSchema, ok := props[property]
 				if !ok {
-					return false
+					found = false
+					break
 				}
 				subSchema = tmpSubSchema
+				found = true
+			}
+			if found {
+				return true
 			}
 		}
-		return true
-	}, "Definition global should contain property %s, but does not, schema: %s", propertyPath, schemaToJSON(subSchema))
+		return false
+	}, "Definition %s should contain property %s, but does not, schema: %s", definitionName, propertyPath, schemaToJSON(subSchema))
 }
 
 func definitionsDoesContainPropertyGeneric(t *testing.T, schema *Schema, definitionName string, prePropertyPath []string, propertyPath []string) {
