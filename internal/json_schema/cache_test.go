@@ -6,6 +6,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 func TestCreateNewSchema(t *testing.T) {
@@ -13,21 +14,25 @@ func TestCreateNewSchema(t *testing.T) {
 
 	sut := &JSONSchemaCache{
 		cache: make(map[uri.URI]cachedGeneratedJSONSchema),
-		schemaCreation: func(chart *charts.Chart, chartStore *charts.ChartStore) (string, error) {
+		schemaCreation: func(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error) {
 			callCount++
-			return `filepath`, nil
+			return GeneratedChartJSONSchema{
+				schema:       &Schema{},
+				dependencies: []*charts.Chart{},
+			}, nil
 		},
 	}
 
-	chart := &charts.Chart{
+	testChart := &charts.Chart{
+		HelmChart: &chart.Chart{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
-				Values: map[string]interface{}{
+				Values: map[string]any{
 					"key": "value",
 				},
 			},
 			OverlayValuesFile: &charts.ValuesFile{
-				Values: map[string]interface{}{
+				Values: map[string]any{
 					"other": "value",
 				},
 			},
@@ -36,27 +41,29 @@ func TestCreateNewSchema(t *testing.T) {
 		ChartMetadata: &charts.ChartMetadata{},
 		RootURI:       "chart0",
 	}
-	result, err := sut.GetJsonSchemaForChart(chart)
+	result, err := sut.GetJsonSchemaForChart(testChart)
+	expectedPath := "403899339-.json"
 
 	assert.NoError(t, err)
-	assert.Equal(t, `filepath`, result)
+	assert.Equal(t, expectedPath, result)
 
-	result2, err := sut.GetJsonSchemaForChart(chart)
+	result2, err := sut.GetJsonSchemaForChart(testChart)
 
 	assert.NoError(t, err)
-	assert.Equal(t, `filepath`, result2)
+	assert.Equal(t, expectedPath, result2)
 	assert.Equal(t, 1, callCount)
 
-	chart.ValuesFiles.MainValuesFile.Values["key"] = "value2"
-	result3, err := sut.GetJsonSchemaForChart(chart)
+	testChart.ValuesFiles.MainValuesFile.Values["key"] = "value2"
+	result3, err := sut.GetJsonSchemaForChart(testChart)
 	assert.NoError(t, err)
-	assert.Equal(t, `filepath`, result3)
+	assert.Equal(t, "473433085-.json", result3)
 	assert.Equal(t, 2, callCount)
 
 	otherChart := &charts.Chart{
+		HelmChart: &chart.Chart{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
-				Values: map[string]interface{}{
+				Values: map[string]any{
 					"key": "value",
 				},
 			},
@@ -67,6 +74,6 @@ func TestCreateNewSchema(t *testing.T) {
 	}
 	result4, err := sut.GetJsonSchemaForChart(otherChart)
 	assert.NoError(t, err)
-	assert.Equal(t, `filepath`, result4)
+	assert.Equal(t, "403899339-.json", result4)
 	assert.Equal(t, 3, callCount)
 }

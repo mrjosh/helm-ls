@@ -55,7 +55,7 @@ func (c *Chart) GetScopedValuesFileParents(chartStore *ChartStore) []*ScopedValu
 	recResult := parent.GetScopedValuesFileParents(chartStore)
 
 	for i := range recResult {
-		recResult[i].Scope = append([]string{c.HelmChart.Name()}, recResult[i].Scope...)
+		recResult[i].SubScope = append(recResult[i].SubScope, c.HelmChart.Name())
 	}
 
 	result = append(result, recResult...)

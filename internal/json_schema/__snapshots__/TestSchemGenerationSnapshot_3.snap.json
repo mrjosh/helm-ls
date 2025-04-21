@@ -1,42 +1,22 @@
 {
  "$defs": {
   "global": {
-   "properties": {
-    "global": {
+   "allOf": [
+    {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "allOf": [
-      {
-       "$schema": "https://json-schema.org/draft/2020-12/schema",
-       "description": "global values",
-       "properties": {
-        "globalFromRoot": {
-         "default": "hi",
-         "description": "global values",
-         "type": "string"
-        }
-       },
-       "type": "object"
-      },
-      {
-       "$schema": "https://json-schema.org/draft/2020-12/schema",
-       "description": "global values",
-       "properties": {
-        "globalFromOnceNested": {
-         "default": true,
-         "description": "global values",
-         "type": "boolean"
-        }
-       },
-       "type": "object"
+     "description": "global values from the file values.yaml",
+     "properties": {
+      "globalFromRoot": {
+       "default": "hi",
+       "description": "global values from the file values.yaml",
+       "type": "string"
       }
-     ],
+     },
      "type": "object"
     }
-   }
+   ]
   },
   "nestedDependenciesExample": {
-   "$id": "nestedDependenciesExample",
-   "$schema": "https://json-schema.org/draft/2020-12/schema",
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -52,12 +32,15 @@
        "properties": {
         "fromRootForOnceNested": {
          "default": true,
+         "description": "nestedDependenciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "twiceNested": {
+         "description": "nestedDependenciesExample values from the file values.yaml",
          "properties": {
           "fromRootForTwiceNested": {
            "default": true,
+           "description": "nestedDependenciesExample values from the file values.yaml",
            "type": "boolean"
           }
          },
@@ -79,75 +62,7 @@
      },
      "type": "object"
     }
-   ],
-   "type": "object"
-  },
-  "onceNested": {
-   "$id": "onceNested",
-   "$schema": "https://json-schema.org/draft/2020-12/schema",
-   "allOf": [
-    {
-     "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "onceNested values from the file values.yaml",
-     "properties": {
-      "fromOnceNested": {
-       "default": true,
-       "description": "onceNested values from the file values.yaml",
-       "type": "boolean"
-      },
-      "replicaCount": {
-       "default": 1,
-       "description": "onceNested values from the file values.yaml",
-       "type": "number"
-      },
-      "twiceNested": {
-       "description": "onceNested values from the file values.yaml",
-       "properties": {
-        "fromOnceNestedForTwiceNested": {
-         "default": true,
-         "type": "boolean"
-        },
-        "replicaCount": {
-         "default": 1,
-         "type": "number"
-        }
-       },
-       "type": "object"
-      }
-     },
-     "type": "object"
-    }
-   ],
-   "type": "object"
-  },
-  "twiceNested": {
-   "$id": "twiceNested",
-   "$schema": "https://json-schema.org/draft/2020-12/schema",
-   "allOf": [
-    {
-     "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "twiceNested values from the file values.yaml",
-     "properties": {
-      "fromTwiceNested": {
-       "default": "hi",
-       "description": "twiceNested values from the file values.yaml",
-       "type": "string"
-      },
-      "onlyInTwiceNested": {
-       "default": "hi",
-       "description": "twiceNested values from the file values.yaml",
-       "type": "string"
-      },
-      "replicaCount": {
-       "default": 1,
-       "description": "twiceNested values from the file values.yaml",
-       "type": "number"
-      }
-     },
-     "type": "object"
-    }
-   ],
-   "type": "object"
+   ]
   }
  },
  "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -156,9 +71,19 @@
    "$ref": "#/$defs/nestedDependenciesExample"
   },
   {
+   "$ref": "#/$defs/global"
+  },
+  {
    "properties": {
     "onceNested": {
-     "$ref": "#/$defs/onceNested"
+     "$ref": "file:///onceNested#/$defs/onceNested"
+    }
+   }
+  },
+  {
+   "properties": {
+    "global": {
+     "$ref": "file:///onceNested#/$defs/global"
     }
    }
   },
@@ -167,14 +92,18 @@
     "onceNested": {
      "properties": {
       "twiceNested": {
-       "$ref": "#/$defs/twiceNested"
+       "$ref": "file:///twiceNested#/$defs/twiceNested"
       }
      }
     }
    }
   },
   {
-   "$ref": "#/$defs/global"
+   "properties": {
+    "global": {
+     "$ref": "file:///twiceNested#/$defs/global"
+    }
+   }
   }
  ],
  "type": "object"

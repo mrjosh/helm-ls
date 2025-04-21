@@ -13,3 +13,6 @@ ingress:
 replicaCount: 1
 
 fromTheFileB: hi
+
+subchartexample:
+  fromParentFileB: hi

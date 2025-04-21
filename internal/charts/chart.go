@@ -49,6 +49,10 @@ func loadHelmChart(rootURI uri.URI) (helmChart *chart.Chart) {
 		logger.Error(fmt.Sprintf("Error loading chart %s: %s", rootURI.Filename(), err.Error()))
 	}
 
+	if helmChart == nil {
+		return &chart.Chart{}
+	}
+
 	return helmChart
 }
 

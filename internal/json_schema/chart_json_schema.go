@@ -3,7 +3,6 @@ package jsonschema
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"slices"
 
@@ -31,7 +30,7 @@ func NewSchemaGenerator(chart *charts.Chart, chartStore *charts.ChartStore, getS
 }
 
 type GeneratedChartJSONSchema struct {
-	path         string
+	schema       *Schema
 	dependencies []*charts.Chart
 }
 
@@ -147,11 +146,11 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 	}
 
 	schema := generateSchemaWithAllOf(definitions, allOf)
-	path, err := g.writeSchemaToFile(schema)
+
 	return GeneratedChartJSONSchema{
-		path:         path,
+		schema:       schema,
 		dependencies: dependencies,
-	}, err
+	}, nil // TODO: collect errors
 }
 
 // processScopedValuesFiles processes a single set of scoped values files
@@ -276,25 +275,6 @@ func (g *SchemaGenerator) createGlobalSchema(globalDefs []*Schema) *Schema {
 }
 
 // writeSchemaToFile writes the schema to a temporary file and returns its path
-func (g *SchemaGenerator) writeSchemaToFile(schema *Schema) (string, error) {
-	bytes, err := json.MarshalIndent(schema, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal schema: %w", err)
-	}
-
-	path := g.getSchemaPathForChart(g.chart)
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
-	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %w", err)
-	}
-	defer file.Close()
-
-	if _, err := file.Write(bytes); err != nil {
-		return "", fmt.Errorf("failed to write schema to file: %w", err)
-	}
-
-	return file.Name(), nil
-}
 
 // CreateJsonSchemaForChart is the public entry point for creating a JSON schema for a chart
 func CreateJsonSchemaForChart(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error) {

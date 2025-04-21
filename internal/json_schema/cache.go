@@ -1,6 +1,7 @@
 package jsonschema
 
 import (
+	"encoding/json"
 	"fmt"
 	"hash/adler32"
 	"os"
@@ -59,18 +60,23 @@ func (c *JSONSchemaCache) createJsonSchemaAndCache(chart *charts.Chart) (string,
 		logger.Error(err)
 		return "", err
 	}
+	fileName, err := c.writeSchemaToFile(generatedChartJSONSchema.schema, chart)
+	if err != nil {
+		logger.Error(err)
+		return "", err
+	}
 	c.cache[chart.RootURI] = cachedGeneratedJSONSchema{
 		checksum:       getChecksum(chart),
-		schemaFilePath: generatedChartJSONSchema.path,
+		schemaFilePath: fileName,
 	}
 
-	// c.processDependencies(generatedChartJSONSchema)
-	for _, dependency := range generatedChartJSONSchema.dependencies {
-		// IDEA: parallel this
-		c.GetJsonSchemaForChart(dependency)
-	}
+	c.processDependencies(generatedChartJSONSchema)
+	// for _, dependency := range generatedChartJSONSchema.dependencies {
+	// 	// IDEA: parallel this
+	// 	c.GetJsonSchemaForChart(dependency)
+	// }
 
-	return generatedChartJSONSchema.path, nil
+	return fileName, nil
 }
 
 func (c *JSONSchemaCache) processDependencies(generatedChartJSONSchema GeneratedChartJSONSchema) {
@@ -108,4 +114,25 @@ func (c *JSONSchemaCache) GetSchemaPathForChart(chart *charts.Chart) string {
 	id := getChecksum(chart)
 
 	return filepath.Join(c.schemaFilesDir, fmt.Sprintf("%d-%s.json", id, chart.HelmChart.Name()))
+}
+
+func (c *JSONSchemaCache) writeSchemaToFile(schema *Schema, chart *charts.Chart) (string, error) {
+	// TODO: do this only if log level is debug
+	bytes, err := json.MarshalIndent(schema, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal schema: %w", err)
+	}
+
+	path := c.GetSchemaPathForChart(chart)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file: %w", err)
+	}
+	defer file.Close()
+
+	if _, err := file.Write(bytes); err != nil {
+		return "", fmt.Errorf("failed to write schema to file: %w", err)
+	}
+
+	return file.Name(), nil
 }

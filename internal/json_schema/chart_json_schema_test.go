@@ -2,7 +2,7 @@ package jsonschema
 
 import (
 	"encoding/json"
-	"os"
+	"fmt"
 	"slices"
 	"testing"
 
@@ -22,13 +22,13 @@ func TestSchemGenerationSnapshot(t *testing.T) {
 }
 
 func snapshotTest(t *testing.T, path string) {
-	schema := getSchemaForChart(t, uri.File(path))
+	schema, _ := getSchemaForChart(t, uri.File(path))
 	snaps.MatchStandaloneJSON(t, schema)
 }
 
 func TestHasOtherValueFilesInSameChartInSchema(t *testing.T) {
 	rootUri := uri.File("../../testdata/dependenciesExample/")
-	schema := getSchemaForChart(t, rootUri)
+	schema, _ := getSchemaForChart(t, rootUri)
 
 	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"autoscaling", "targetCPUUtilizationPercentage"})
 	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"fromTheFileA"})
@@ -38,28 +38,26 @@ func TestHasOtherValueFilesInSameChartInSchema(t *testing.T) {
 	refsContains(t, schema, expectedRef)
 }
 
-func TestHasValuesFromSubChartInSchema(t *testing.T) {
-	rootUri := uri.File("../../testdata/dependenciesExample/")
-	schema := getSchemaForChart(t, rootUri)
+func TestPointsToValuesFromSubChart(t *testing.T) {
+	schema, _ := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/"))
+	subchartexampleSchema, path := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/charts/subchartexample/"))
 
-	definitionsDoesContainProperty(t, schema, "subchartexample", []string{"onlyInSubchartValues"})
-	definitionsDoesContainProperty(t, schema, "subchartexample", []string{"subchartWithoutGlobal"})
-	expectedRef := &Schema{Ref: "#/$defs/subchartexample"}
+	definitionsDoesContainProperty(t, subchartexampleSchema, "subchartexample", []string{"onlyInSubchartValues"})
+	definitionsDoesContainProperty(t, subchartexampleSchema, "subchartexample", []string{"subchartWithoutGlobal"})
+	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/subchartexample", uri.File(path))}
 	refsContainsNested(t, schema, expectedRef, []string{"subchartexample"})
 }
 
-func TestHasValuesFromDependencySubChartInSchema(t *testing.T) {
-	rootUri := uri.File("../../testdata/dependenciesExample/")
-	schema := getSchemaForChart(t, rootUri)
+func TestPointsToValuesValuesFromDependencySubChart(t *testing.T) {
+	schema, _ := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/"))
 
-	definitionsDoesContainProperty(t, schema, "common", []string{"exampleValue"})
-	expectedRef := &Schema{Ref: "#/$defs/common"}
+	// TODO: this test does not check if the schema for the dependency is correct
+	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/common", uri.File("/common"))}
 	refsContainsNested(t, schema, expectedRef, []string{"common"})
 }
 
 func TestHasGlobalValuesInSchema(t *testing.T) {
-	rootUri := uri.File("../../testdata/dependenciesExample/charts/subchartexample/")
-	schema := getSchemaForChart(t, rootUri)
+	schema, _ := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/charts/subchartexample/"))
 
 	definitionsDoesContainPropertyGlobalProperty(t, schema, []string{"subchart"})
 	expectedRef := &Schema{Ref: "#/$defs/global"}
@@ -67,33 +65,45 @@ func TestHasGlobalValuesInSchema(t *testing.T) {
 }
 
 func TestHasParentValuesInSchema(t *testing.T) {
-	rootUri := uri.File("../../testdata/dependenciesExample/charts/subchartexample/")
-	schema := getSchemaForChart(t, rootUri)
+	schema, _ := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/charts/subchartexample/"))
+	parentSchema, parentPath := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/"))
 
-	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"fromParent"})
-	expectedRef := &Schema{Ref: "#/$defs/dependeciesExample"}
+	definitionsDoesContainPropertyInAllOf(t, parentSchema, "dependeciesExample", []string{"subchartexample", "fromParent"})
+	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/dependeciesExample/allOf/0/properties/subchartexample", uri.File(parentPath))}
 	refsContains(t, schema, expectedRef)
 }
 
 func TestHasParentValuesForNestedInSchema(t *testing.T) {
-	rootUri := uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/")
-	schema := getSchemaForChart(t, rootUri)
+	schema, _ := getSchemaForChart(t, uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/"))
+	parentSchema, parentPath := getSchemaForChart(t, uri.File("../../testdata/nestedDependenciesExample"))
 
-	definitionsDoesContainProperty(t, schema, "nestedDependenciesExample", []string{"fromRootForOnceNested"})
+	definitionsDoesContainPropertyInAllOf(t, parentSchema, "nestedDependenciesExample", []string{"onceNested", "fromRootForOnceNested"})
+	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/nestedDependenciesExample/allOf/0/properties/onceNested", uri.File(parentPath))}
+	refsContains(t, schema, expectedRef)
 }
 
 func TestHasParentValuesForTwiceNestedInSchema(t *testing.T) {
-	rootUri := uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/")
-	schema := getSchemaForChart(t, rootUri)
+	schema, _ := getSchemaForChart(t, uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/"))
+	assert.NotNil(t, schema)
+	parentSchema, parentPath := getSchemaForChart(t, uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/"))
+	rootSchema, rootPath := getSchemaForChart(t, uri.File("../../testdata/nestedDependenciesExample"))
 
-	definitionsDoesContainProperty(t, schema, "nestedDependenciesExample", []string{"fromRootForOnceNested"})
-	definitionsDoesContainProperty(t, schema, "onceNested", []string{"fromOnceNestedForTwiceNested"})
+	definitionsDoesContainPropertyInAllOf(t, parentSchema, "onceNested", []string{"twiceNested", "fromOnceNestedForTwiceNested"})
+	definitionsDoesContainPropertyInAllOf(t, rootSchema, "nestedDependenciesExample", []string{"onceNested", "twiceNested", "fromRootForTwiceNested"})
+
+	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/onceNested/allOf/0/properties/twiceNested", uri.File(parentPath))}
+	refsContains(t, schema, expectedRef)
+	expectedRef = &Schema{Ref: fmt.Sprintf("%s#/$defs/nestedDependenciesExample/allOf/0/properties/onceNested/properties/twiceNested", uri.File(rootPath))}
+	refsContains(t, schema, expectedRef)
 }
 
 func TestHasValuesFromSubChartNestedInSchema(t *testing.T) {
-	rootUri := uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/")
-	schema := getSchemaForChart(t, rootUri)
-	definitionsDoesContainProperty(t, schema, "twiceNested", []string{"onlyInTwiceNested"})
+	schema, _ := getSchemaForChart(t, uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/"))
+	subChart, subChartPath := getSchemaForChart(t, uri.File("../../testdata/nestedDependenciesExample/charts/onceNested/charts/twiceNested/"))
+	definitionsDoesContainPropertyInAllOf(t, subChart, "twiceNested", []string{"onlyInTwiceNested"})
+
+	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/twiceNested", uri.File(subChartPath))}
+	refsContainsNested(t, schema, expectedRef, []string{"twiceNested"})
 }
 
 func definitionsDoesContainProperty(t *testing.T, schema *Schema, definitionName string, propertyPath []string) {
@@ -101,7 +111,28 @@ func definitionsDoesContainProperty(t *testing.T, schema *Schema, definitionName
 }
 
 func definitionsDoesContainPropertyGlobalProperty(t *testing.T, schema *Schema, propertyPath []string) {
-	definitionsDoesContainPropertyGeneric(t, schema, "global", []string{"global"}, propertyPath)
+	definitionsDoesContainPropertyInAllOf(t, schema, "global", propertyPath)
+}
+
+func definitionsDoesContainPropertyInAllOf(t *testing.T, schema *Schema, definitionName string, propertyPath []string) {
+	subSchema := schema.Definitions[definitionName]
+	assert.NotNil(t, subSchema, "Definition %s should exist on schema, but does not, schema: %s", definitionName, schemaToJSON(schema))
+	allOf := subSchema.AllOf
+	assert.NotNil(t, allOf, "Subschema has no AllOf property: %s", schemaToJSON(subSchema))
+	assert.Condition(t, func() bool {
+		for _, subSchema := range allOf {
+			for _, property := range propertyPath {
+				props := subSchema.Properties
+				tmpSubSchema, ok := props[property]
+				if !ok {
+					return false
+				}
+				subSchema = tmpSubSchema
+			}
+			return true
+		}
+		return false
+	}, "Definition global should contain property %s, but does not, schema: %s", propertyPath, schemaToJSON(subSchema))
 }
 
 func definitionsDoesContainPropertyGeneric(t *testing.T, schema *Schema, definitionName string, prePropertyPath []string, propertyPath []string) {
@@ -178,21 +209,18 @@ func refsContains(t *testing.T, schema *Schema, expectedRef *Schema) {
 	assert.Contains(t, allOfConverted, expectedRefsJSON, "Schema should contain ref %s, but does not", expectedRefsJSON)
 }
 
-func getSchemaForChart(t *testing.T, rootUri uri.URI) *Schema {
+func getSchemaForChart(t *testing.T, rootUri uri.URI) (*Schema, string) {
 	addChartCallback := func(chart *charts.Chart) {}
 	chartStore := charts.NewChartStore(rootUri, charts.NewChart, addChartCallback)
 	chart, err := chartStore.GetChartForURI(rootUri)
 
+	getSchemaPathForChart := func(chart *charts.Chart) string {
+		return "/" + chart.HelmChart.Name()
+	}
+
 	assert.NoError(t, err)
-	schemaFile, err := CreateJsonSchemaForChart(chart, chartStore)
-	println(schemaFile)
+	generatedChartJSONSchema, err := CreateJsonSchemaForChart(chart, chartStore, getSchemaPathForChart)
 	assert.NoError(t, err)
 
-	content, err := os.ReadFile(schemaFile)
-	assert.NoError(t, err)
-
-	schema := &Schema{}
-	json.Unmarshal(content, schema)
-
-	return schema
+	return generatedChartJSONSchema.schema, getSchemaPathForChart(chart)
 }

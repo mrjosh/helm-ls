@@ -1,27 +1,6 @@
 {
  "$defs": {
-  "common": {
-   "$id": "common",
-   "$schema": "https://json-schema.org/draft/2020-12/schema",
-   "allOf": [
-    {
-     "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "common values from the file values.yaml",
-     "properties": {
-      "exampleValue": {
-       "default": "common-chart",
-       "description": "common values from the file values.yaml",
-       "type": "string"
-      }
-     },
-     "type": "object"
-    }
-   ],
-   "type": "object"
-  },
   "dependeciesExample": {
-   "$id": "dependeciesExample",
-   "$schema": "https://json-schema.org/draft/2020-12/schema",
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -36,18 +15,22 @@
        "properties": {
         "enabled": {
          "default": false,
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "maxReplicas": {
          "default": 100,
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "number"
         },
         "minReplicas": {
          "default": 1,
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "number"
         },
         "targetCPUUtilizationPercentage": {
          "default": 80,
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "number"
         }
        },
@@ -63,14 +46,17 @@
        "properties": {
         "pullPolicy": {
          "default": "IfNotPresent",
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "string"
         },
         "repository": {
          "default": "nginx",
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "string"
         },
         "tag": {
          "default": "",
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "string"
         }
        },
@@ -87,32 +73,40 @@
        "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "annotations": {
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "object"
         },
         "className": {
          "default": "",
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "string"
         },
         "enabled": {
          "default": false,
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "hosts": {
+         "description": "dependeciesExample values from the file values.yaml",
          "items": {
           "properties": {
            "host": {
             "default": "chart-example.local",
+            "description": "dependeciesExample values from the file values.yaml",
             "type": "string"
            },
            "paths": {
+            "description": "dependeciesExample values from the file values.yaml",
             "items": {
              "properties": {
               "path": {
                "default": "/",
+               "description": "dependeciesExample values from the file values.yaml",
                "type": "string"
               },
               "pathType": {
                "default": "ImplementationSpecific",
+               "description": "dependeciesExample values from the file values.yaml",
                "type": "string"
               }
              },
@@ -126,6 +120,7 @@
          "type": "array"
         },
         "tls": {
+         "description": "dependeciesExample values from the file values.yaml",
          "items": {
           "type": "null"
          },
@@ -138,13 +133,16 @@
        "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "httpGet": {
+         "description": "dependeciesExample values from the file values.yaml",
          "properties": {
           "path": {
            "default": "/",
+           "description": "dependeciesExample values from the file values.yaml",
            "type": "string"
           },
           "port": {
            "default": "http",
+           "description": "dependeciesExample values from the file values.yaml",
            "type": "string"
           }
          },
@@ -178,13 +176,16 @@
        "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "httpGet": {
+         "description": "dependeciesExample values from the file values.yaml",
          "properties": {
           "path": {
            "default": "/",
+           "description": "dependeciesExample values from the file values.yaml",
            "type": "string"
           },
           "port": {
            "default": "http",
+           "description": "dependeciesExample values from the file values.yaml",
            "type": "string"
           }
          },
@@ -211,10 +212,12 @@
        "properties": {
         "port": {
          "default": 80,
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "number"
         },
         "type": {
          "default": "ClusterIP",
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "string"
         }
        },
@@ -224,18 +227,22 @@
        "description": "dependeciesExample values from the file values.yaml",
        "properties": {
         "annotations": {
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "object"
         },
         "automount": {
          "default": true,
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "create": {
          "default": true,
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "name": {
          "default": "",
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "string"
         }
        },
@@ -251,10 +258,12 @@
        "properties": {
         "fromParent": {
          "default": true,
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "subchartWithoutGlobal": {
          "default": "worksToo",
+         "description": "dependeciesExample values from the file values.yaml",
          "type": "string"
         }
        },
@@ -298,6 +307,7 @@
        "properties": {
         "tag": {
          "default": "hallo",
+         "description": "dependeciesExample values from the file values.a.yaml",
          "type": "string"
         }
        },
@@ -332,20 +342,25 @@
        "description": "dependeciesExample values from the file values.b.yaml",
        "properties": {
         "hosts": {
+         "description": "dependeciesExample values from the file values.b.yaml",
          "items": {
           "properties": {
            "host": {
             "default": "hdsa",
+            "description": "dependeciesExample values from the file values.b.yaml",
             "type": "string"
            },
            "paths": {
+            "description": "dependeciesExample values from the file values.b.yaml",
             "items": {
              "properties": {
               "path": {
                "default": "hallo",
+               "description": "dependeciesExample values from the file values.b.yaml",
                "type": "string"
               },
               "pathType": {
+               "description": "dependeciesExample values from the file values.b.yaml",
                "type": "null"
               }
              },
@@ -360,6 +375,7 @@
         },
         "wrong": {
          "default": "this",
+         "description": "dependeciesExample values from the file values.b.yaml",
          "type": "string"
         }
        },
@@ -369,87 +385,50 @@
        "default": 1,
        "description": "dependeciesExample values from the file values.b.yaml",
        "type": "number"
+      },
+      "subchartexample": {
+       "description": "dependeciesExample values from the file values.b.yaml",
+       "properties": {
+        "fromParentFileB": {
+         "default": "hi",
+         "description": "dependeciesExample values from the file values.b.yaml",
+         "type": "string"
+        }
+       },
+       "type": "object"
       }
      },
      "type": "object"
     }
-   ],
-   "type": "object"
+   ]
   },
   "global": {
-   "properties": {
-    "global": {
-     "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "allOf": [
-      {
-       "$schema": "https://json-schema.org/draft/2020-12/schema",
-       "description": "global values",
-       "properties": {
-        "subchart": {
-         "default": "works",
-         "description": "global values",
-         "type": "string"
-        }
-       },
-       "type": "object"
-      },
-      {
-       "$schema": "https://json-schema.org/draft/2020-12/schema",
-       "description": "global values",
-       "properties": {
-        "globalFromFileA": {
-         "default": "hi",
-         "description": "global values",
-         "type": "string"
-        }
-       },
-       "type": "object"
-      },
-      {
-       "$schema": "https://json-schema.org/draft/2020-12/schema",
-       "description": "global values",
-       "properties": {
-        "globalFromSubchart": {
-         "default": "works",
-         "description": "global values",
-         "type": "string"
-        },
-        "subchart": {
-         "default": "works",
-         "description": "global values",
-         "type": "string"
-        }
-       },
-       "type": "object"
-      }
-     ],
-     "type": "object"
-    }
-   }
-  },
-  "subchartexample": {
-   "$id": "subchartexample",
-   "$schema": "https://json-schema.org/draft/2020-12/schema",
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "subchartexample values from the file values.yaml",
+     "description": "global values from the file values.yaml",
      "properties": {
-      "onlyInSubchartValues": {
-       "default": "hi",
-       "description": "subchartexample values from the file values.yaml",
-       "type": "string"
-      },
-      "subchartWithoutGlobal": {
+      "subchart": {
        "default": "works",
-       "description": "subchartexample values from the file values.yaml",
+       "description": "global values from the file values.yaml",
+       "type": "string"
+      }
+     },
+     "type": "object"
+    },
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "description": "global values from the file values.a.yaml",
+     "properties": {
+      "globalFromFileA": {
+       "default": "hi",
+       "description": "global values from the file values.a.yaml",
        "type": "string"
       }
      },
      "type": "object"
     }
-   ],
-   "type": "object"
+   ]
   }
  },
  "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -458,21 +437,35 @@
    "$ref": "#/$defs/dependeciesExample"
   },
   {
+   "$ref": "#/$defs/global"
+  },
+  {
    "properties": {
     "common": {
-     "$ref": "#/$defs/common"
+     "$ref": "file:///common#/$defs/common"
+    }
+   }
+  },
+  {
+   "properties": {
+    "global": {
+     "$ref": "file:///common#/$defs/global"
     }
    }
   },
   {
    "properties": {
     "subchartexample": {
-     "$ref": "#/$defs/subchartexample"
+     "$ref": "file:///subchartexample#/$defs/subchartexample"
     }
    }
   },
   {
-   "$ref": "#/$defs/global"
+   "properties": {
+    "global": {
+     "$ref": "file:///subchartexample#/$defs/global"
+    }
+   }
   }
  ],
  "type": "object"

@@ -88,7 +88,7 @@ func TestDefinitionChart(t *testing.T) {
 		{
 			`{{ .Values.subch^artexample.subchartWithoutGlobal }}`,
 			"values.yaml",
-			2,
+			3,
 			lsp.Position{Line: 53, Character: 0},
 			nil,
 			false,
@@ -96,7 +96,7 @@ func TestDefinitionChart(t *testing.T) {
 		{
 			`{{ .Values.subch^artexample.subchartWithoutGlobal }}`,
 			"charts/subchartexample/values.yaml",
-			2,
+			3,
 			lsp.Position{Line: 0, Character: 0},
 			nil,
 			false,

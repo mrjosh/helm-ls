@@ -31,11 +31,13 @@ func TestGenerateJSONSchema(t *testing.T) {
 				Type: "object",
 				Properties: map[string]*Schema{
 					"city": {
-						Type:    "string",
-						Default: "ExampleCity",
+						Type:        "string",
+						Description: "description",
+						Default:     "ExampleCity",
 					},
 					"zip": {
 						Type: "string", Default: "12345",
+						Description: "description",
 					},
 				},
 				Description: "description",

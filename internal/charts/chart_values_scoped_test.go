@@ -15,6 +15,15 @@ func TestGetScopedValuesFiles(t *testing.T) {
 		expected     []*ScopedValuesFiles
 	}{
 		{
+			name:         "Test with nestedDependenciesExample for parent",
+			chartRootDir: "../../testdata/nestedDependenciesExample/",
+			expected: []*ScopedValuesFiles{
+				{Scope: []string{}, SubScope: []string{}, ValuesFiles: nil},
+				{Scope: []string{"onceNested"}, SubScope: []string{}, ValuesFiles: nil},
+				{Scope: []string{"onceNested", "twiceNested"}, SubScope: []string{}, ValuesFiles: nil},
+			},
+		},
+		{
 			name:         "Test with dependenciesExample",
 			chartRootDir: "../../testdata/dependenciesExample/",
 			expected: []*ScopedValuesFiles{
@@ -40,15 +49,6 @@ func TestGetScopedValuesFiles(t *testing.T) {
 				{Scope: []string{}, SubScope: []string{"onceNested", "twiceNested"}, ValuesFiles: nil},
 			},
 		},
-		{
-			name:         "Test with nestedDependenciesExample for parent",
-			chartRootDir: "../../testdata/nestedDependenciesExample/",
-			expected: []*ScopedValuesFiles{
-				{Scope: []string{}, SubScope: []string{}, ValuesFiles: nil},
-				{Scope: []string{"onceNested"}, SubScope: []string{}, ValuesFiles: nil},
-				{Scope: []string{"nestedDependenciesExample", "subchartexample"}, SubScope: []string{}, ValuesFiles: nil},
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -63,13 +63,11 @@ func TestGetScopedValuesFiles(t *testing.T) {
 
 			assert.Len(t, result, len(tt.expected))
 
-			assert.True(t, slices.ContainsFunc(result,
-				func(actual *ScopedValuesFiles) bool {
-					return slices.ContainsFunc(tt.expected, func(expected *ScopedValuesFiles) bool {
-						return slices.Equal(actual.Scope, expected.Scope)
-					})
-				},
-			))
+			for _, exp := range tt.expected {
+				assert.True(t, slices.ContainsFunc(result, func(actual *ScopedValuesFiles) bool {
+					return slices.Equal(actual.Scope, exp.Scope) && slices.Equal(actual.SubScope, exp.SubScope)
+				}), "result missing expected item: %+v but was %+v", exp, result)
+			}
 		})
 	}
 }

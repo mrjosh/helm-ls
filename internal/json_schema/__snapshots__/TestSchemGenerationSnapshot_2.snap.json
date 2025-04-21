@@ -1,83 +1,27 @@
 {
  "$defs": {
-  "dependeciesExample": {
-   "$id": "dependeciesExample",
-   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "global": {
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "dependeciesExample values from the file values.yaml",
+     "description": "global values from the file values.yaml",
      "properties": {
-      "fromParent": {
-       "default": true,
-       "description": "dependeciesExample values from the file values.yaml",
-       "type": "boolean"
+      "globalFromSubchart": {
+       "default": "works",
+       "description": "global values from the file values.yaml",
+       "type": "string"
       },
-      "subchartWithoutGlobal": {
-       "default": "worksToo",
-       "description": "dependeciesExample values from the file values.yaml",
+      "subchart": {
+       "default": "works",
+       "description": "global values from the file values.yaml",
        "type": "string"
       }
      },
      "type": "object"
     }
-   ],
-   "type": "object"
-  },
-  "global": {
-   "properties": {
-    "global": {
-     "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "allOf": [
-      {
-       "$schema": "https://json-schema.org/draft/2020-12/schema",
-       "description": "global values",
-       "properties": {
-        "globalFromSubchart": {
-         "default": "works",
-         "description": "global values",
-         "type": "string"
-        },
-        "subchart": {
-         "default": "works",
-         "description": "global values",
-         "type": "string"
-        }
-       },
-       "type": "object"
-      },
-      {
-       "$schema": "https://json-schema.org/draft/2020-12/schema",
-       "description": "global values",
-       "properties": {
-        "subchart": {
-         "default": "works",
-         "description": "global values",
-         "type": "string"
-        }
-       },
-       "type": "object"
-      },
-      {
-       "$schema": "https://json-schema.org/draft/2020-12/schema",
-       "description": "global values",
-       "properties": {
-        "globalFromFileA": {
-         "default": "hi",
-         "description": "global values",
-         "type": "string"
-        }
-       },
-       "type": "object"
-      }
-     ],
-     "type": "object"
-    }
-   }
+   ]
   },
   "subchartexample": {
-   "$id": "subchartexample",
-   "$schema": "https://json-schema.org/draft/2020-12/schema",
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -96,8 +40,7 @@
      },
      "type": "object"
     }
-   ],
-   "type": "object"
+   ]
   }
  },
  "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -106,10 +49,20 @@
    "$ref": "#/$defs/subchartexample"
   },
   {
-   "$ref": "#/$defs/dependeciesExample"
+   "$ref": "#/$defs/global"
   },
   {
-   "$ref": "#/$defs/global"
+   "$ref": "file:///dependeciesExample#/$defs/dependeciesExample/allOf/0/properties/subchartexample"
+  },
+  {
+   "$ref": "file:///dependeciesExample#/$defs/dependeciesExample/allOf/2/properties/subchartexample"
+  },
+  {
+   "properties": {
+    "global": {
+     "$ref": "file:///dependeciesExample#/$defs/global"
+    }
+   }
   }
  ],
  "type": "object"
