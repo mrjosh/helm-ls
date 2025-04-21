@@ -3,6 +3,7 @@ package jsonschema
 import (
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"slices"
 	"testing"
 
@@ -14,6 +15,9 @@ import (
 )
 
 func TestSchemGenerationSnapshot(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping test on windows because snapshots are not platform independent")
+	}
 	snapshotTest(t, "../../testdata/dependenciesExample/")
 	snapshotTest(t, "../../testdata/dependenciesExample/charts/subchartexample/")
 	snapshotTest(t, "../../testdata/nestedDependenciesExample/")
@@ -27,8 +31,8 @@ func snapshotTest(t *testing.T, path string) {
 }
 
 func TestHasOtherValueFilesInSameChartInSchema(t *testing.T) {
-	rootUri := uri.File("../../testdata/dependenciesExample/")
-	schema, _ := getSchemaForChart(t, rootUri)
+	rootURI := uri.File("../../testdata/dependenciesExample/")
+	schema, _ := getSchemaForChart(t, rootURI)
 
 	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"autoscaling", "targetCPUUtilizationPercentage"})
 	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"fromTheFileA"})
