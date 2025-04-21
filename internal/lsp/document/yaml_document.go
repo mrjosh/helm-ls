@@ -50,8 +50,8 @@ func parseYaml(content []byte) (yaml.Node, map[string]any, error) {
 	var parsedYaml map[string]any
 	unmarshalErr := yaml.Unmarshal(content, &parsedYaml)
 	if unmarshalErr != nil {
-		return yaml.Node{}, map[string]any{}, unmarshalErr
+		return node, map[string]any{}, unmarshalErr
 	}
 
-	return node, parsedYaml, err
+	return node, parsedYaml, nil
 }

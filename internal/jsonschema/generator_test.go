@@ -8,11 +8,11 @@ import (
 )
 
 func TestGenerateJSONSchema(t *testing.T) {
-	input := map[string]interface{}{
+	input := map[string]any{
 		"name":    "example",
 		"age":     30,
-		"address": map[string]interface{}{"city": "ExampleCity", "zip": "12345"},
-		"tags":    []interface{}{"go", "json", "schema"},
+		"address": map[string]any{"city": "ExampleCity", "zip": "12345"},
+		"tags":    []any{"go", "json", "schema"},
 	}
 
 	schema, err := generateJSONSchema(input, "description")
