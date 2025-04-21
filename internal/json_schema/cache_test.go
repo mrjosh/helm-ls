@@ -1,6 +1,7 @@
 package jsonschema
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
@@ -11,6 +12,7 @@ import (
 
 func TestCreateNewSchema(t *testing.T) {
 	callCount := 0
+	tempDir := t.TempDir()
 
 	sut := &JSONSchemaCache{
 		cache: make(map[uri.URI]cachedGeneratedJSONSchema),
@@ -21,6 +23,7 @@ func TestCreateNewSchema(t *testing.T) {
 				dependencies: []*charts.Chart{},
 			}, nil
 		},
+		schemaFilesDir: tempDir,
 	}
 
 	testChart := &charts.Chart{
@@ -42,7 +45,7 @@ func TestCreateNewSchema(t *testing.T) {
 		RootURI:       "chart0",
 	}
 	result, err := sut.GetJsonSchemaForChart(testChart)
-	expectedPath := "403899339-.json"
+	expectedPath := filepath.Join(tempDir, "403899339-.json")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedPath, result)
@@ -56,7 +59,8 @@ func TestCreateNewSchema(t *testing.T) {
 	testChart.ValuesFiles.MainValuesFile.Values["key"] = "value2"
 	result3, err := sut.GetJsonSchemaForChart(testChart)
 	assert.NoError(t, err)
-	assert.Equal(t, "473433085-.json", result3)
+	expectedPath = filepath.Join(tempDir, "473433085-.json")
+	assert.Equal(t, expectedPath, result3)
 	assert.Equal(t, 2, callCount)
 
 	otherChart := &charts.Chart{
@@ -74,6 +78,7 @@ func TestCreateNewSchema(t *testing.T) {
 	}
 	result4, err := sut.GetJsonSchemaForChart(otherChart)
 	assert.NoError(t, err)
-	assert.Equal(t, "403899339-.json", result4)
+	expectedPath = filepath.Join(tempDir, "403899339-.json")
+	assert.Equal(t, expectedPath, result4)
 	assert.Equal(t, 3, callCount)
 }

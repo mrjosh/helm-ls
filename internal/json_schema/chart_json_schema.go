@@ -37,14 +37,13 @@ type GeneratedChartJSONSchema struct {
 func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 	dependencies := []*charts.Chart{}
 	definitions := map[string]*Schema{}
-	// globalDefs := []*Schema{}
+	globalSchemas := []*Schema{}
 	allOf := []*Schema{}
 
 	// Process all scoped values files
 	for _, scopedValuesfiles := range g.chart.GetScopedValuesFiles(g.chartStore) {
 		if len(scopedValuesfiles.Scope) == 0 && len(scopedValuesfiles.SubScope) == 0 {
 			valuesSchemas := []*Schema{}
-			globalSchemas := []*Schema{}
 			for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
 				subVals := valuesFile.Values.AsMap()
 
@@ -94,9 +93,6 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 			definitions[scopedValuesfiles.Chart.HelmChart.Name()] = &Schema{
 				AllOf: valuesSchemas,
 			}
-			definitions["global"] = &Schema{
-				AllOf: globalSchemas,
-			}
 			allOf = append(allOf, &Schema{
 				Ref: fmt.Sprintf("#/$defs/%s", scopedValuesfiles.Chart.HelmChart.Name()),
 			})
@@ -143,6 +139,9 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 			globalSchema := &Schema{Ref: globalSchemaRef}
 			allOf = append(allOf, g.nestSchemaInScopes(globalSchema, []string{"global"}))
 		}
+	}
+	definitions["global"] = &Schema{
+		AllOf: globalSchemas,
 	}
 
 	schema := generateSchemaWithAllOf(definitions, allOf)
