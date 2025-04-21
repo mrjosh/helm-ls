@@ -2,7 +2,7 @@ package languagefeatures
 
 import (
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
-	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	lsp "go.lsp.dev/protocol"
 )

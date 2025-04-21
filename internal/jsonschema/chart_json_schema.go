@@ -97,7 +97,7 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 				Ref: fmt.Sprintf("#/$defs/%s", scopedValuesfiles.Chart.HelmChart.Name()),
 			})
 			allOf = append(allOf, &Schema{
-				Ref: fmt.Sprintf("#/$defs/global"),
+				Ref: "#/$defs/global",
 			})
 		} else {
 			schemFilePath := uri.File(g.getSchemaPathForChart(scopedValuesfiles.Chart))

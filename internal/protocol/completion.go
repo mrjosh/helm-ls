@@ -3,7 +3,7 @@ package protocol
 import (
 	"github.com/mrjosh/helm-ls/internal/documentation/godocs"
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
-	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	lsp "go.lsp.dev/protocol"
 )
 

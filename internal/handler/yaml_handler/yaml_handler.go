@@ -5,7 +5,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
-	jsonschema "github.com/mrjosh/helm-ls/internal/json_schema"
+	"github.com/mrjosh/helm-ls/internal/jsonschema"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"go.lsp.dev/protocol"

@@ -9,7 +9,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
-	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"

@@ -1,7 +1,7 @@
 package document
 
 import (
-	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"

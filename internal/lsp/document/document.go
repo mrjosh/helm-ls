@@ -18,7 +18,7 @@ type DocumentType string
 
 const (
 	TemplateDocumentType DocumentType = "helm"
-	YamlDocumentType                  = `yaml`
+	YamlDocumentType     DocumentType = "yaml"
 )
 
 func TemplateDocumentTypeForLangID(langID lsp.LanguageIdentifier) DocumentType {
