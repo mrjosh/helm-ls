@@ -10,6 +10,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"go.lsp.dev/uri"
+	"golang.org/x/sync/singleflight"
 )
 
 type cachedGeneratedJSONSchema struct {
@@ -18,11 +19,12 @@ type cachedGeneratedJSONSchema struct {
 }
 
 type JSONSchemaCache struct {
-	mu             sync.RWMutex
-	cache          map[uri.URI]cachedGeneratedJSONSchema
-	schemaCreation func(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error)
-	chartStore     *charts.ChartStore
-	schemaFilesDir string
+	mu                sync.RWMutex
+	cache             map[uri.URI]cachedGeneratedJSONSchema
+	singleflightGroup singleflight.Group
+	schemaCreation    func(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error)
+	chartStore        *charts.ChartStore
+	schemaFilesDir    string
 }
 
 func NewJSONSchemaCache(chartStore *charts.ChartStore) *JSONSchemaCache {
@@ -60,11 +62,16 @@ func (c *JSONSchemaCache) GetJSONSchemaForChart(chart *charts.Chart) (string, er
 	if !ok {
 		return c.createJSONSchemaAndCache(chart)
 	}
-	if chached.checksum != getChecksum(chart) {
-		return c.createJSONSchemaAndCache(chart)
-	} else {
-		return chached.schemaFilePath, nil
-	}
+
+	res, resErr, _ := c.singleflightGroup.Do(chart.RootURI.Filename(), func() (any, error) {
+		if chached.checksum != getChecksum(chart) {
+			return c.createJSONSchemaAndCache(chart)
+		} else {
+			return chached.schemaFilePath, nil
+		}
+	})
+
+	return res.(string), resErr
 }
 
 func (c *JSONSchemaCache) createJSONSchemaAndCache(chart *charts.Chart) (string, error) {
