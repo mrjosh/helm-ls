@@ -114,7 +114,7 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 
 				for i, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
 					vals := valuesFile.Values.AsMap()
-					_, err := g.getSubScope(vals, scopedValuesfiles.SubScope)
+					_, err := getSubScope(vals, scopedValuesfiles.SubScope)
 					if err == nil {
 						refPointers = append(refPointers, fmt.Sprintf("/allOf/%d%s", i, refPointer))
 					}
@@ -129,7 +129,7 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 				)
 
 				schema := &Schema{Ref: ref}
-				schema = g.nestSchemaInScopes(schema, scopedValuesfiles.Scope)
+				schema = nestSchemaInScopes(schema, scopedValuesfiles.Scope)
 				allOf = append(allOf, schema)
 			}
 			globalSchemaRef := fmt.Sprintf("%s#/$defs/%s",
@@ -137,7 +137,7 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 				"global",
 			)
 			globalSchema := &Schema{Ref: globalSchemaRef}
-			allOf = append(allOf, g.nestSchemaInScopes(globalSchema, []string{"global"}))
+			allOf = append(allOf, nestSchemaInScopes(globalSchema, []string{"global"}))
 		}
 	}
 	definitions["global"] = &Schema{
@@ -154,9 +154,9 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 
 // getSubScope returns the values for the given subscope
 // e.g. given values: {a: {b: {c: 1}}}, subScopes: ["a", "b"] returns {c: 1}
-func (g *SchemaGenerator) getSubScope(values map[string]any, subScopes []string) (map[string]interface{}, error) {
+func getSubScope(values map[string]any, subScopes []string) (map[string]any, error) {
 	for _, subScope := range subScopes {
-		sub, ok := values[subScope].(map[string]interface{})
+		sub, ok := values[subScope].(map[string]any)
 		if !ok || sub == nil {
 			return nil, fmt.Errorf("subscope value is nil for scope: %s", subScope)
 		}
@@ -165,7 +165,7 @@ func (g *SchemaGenerator) getSubScope(values map[string]any, subScopes []string)
 	return values, nil
 }
 
-func (g *SchemaGenerator) nestSchemaInScopes(schema *Schema, scopes []string) *Schema {
+func nestSchemaInScopes(schema *Schema, scopes []string) *Schema {
 	scopeList := slices.Clone(scopes)
 	slices.Reverse(scopeList)
 
