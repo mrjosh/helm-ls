@@ -438,20 +438,6 @@
   },
   {
    "properties": {
-    "common": {
-     "$ref": "file:///common#/$defs/common"
-    }
-   }
-  },
-  {
-   "properties": {
-    "global": {
-     "$ref": "file:///common#/$defs/global"
-    }
-   }
-  },
-  {
-   "properties": {
     "subchartexample": {
      "$ref": "file:///subchartexample#/$defs/subchartexample"
     }
@@ -461,6 +447,20 @@
    "properties": {
     "global": {
      "$ref": "file:///subchartexample#/$defs/global"
+    }
+   }
+  },
+  {
+   "properties": {
+    "common": {
+     "$ref": "file:///common#/$defs/common"
+    }
+   }
+  },
+  {
+   "properties": {
+    "global": {
+     "$ref": "file:///common#/$defs/global"
     }
    }
   },

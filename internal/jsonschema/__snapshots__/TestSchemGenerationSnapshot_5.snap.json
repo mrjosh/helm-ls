@@ -1,6 +1,5 @@
 {
  "$defs": {
-  "global": {},
   "twiceNested": {
    "allOf": [
     {
@@ -52,9 +51,6 @@
      "$ref": "file:///nestedDependenciesExample#/$defs/global"
     }
    }
-  },
-  {
-   "$ref": "#/$defs/global"
   }
  ],
  "type": "object"
