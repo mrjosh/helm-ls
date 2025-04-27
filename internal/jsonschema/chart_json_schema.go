@@ -161,7 +161,8 @@ func (g *SchemaGenerator) addGlobalDef() {
 	if len(g.globalSchemas) == 0 {
 		return
 	}
-	g.addDef("global", &Schema{AllOf: g.globalSchemas})
+
+	g.addNestedDef("global", &Schema{AllOf: g.globalSchemas}, []string{"global"})
 }
 
 func (g *SchemaGenerator) addDef(name string, schema *Schema) {
@@ -169,6 +170,17 @@ func (g *SchemaGenerator) addDef(name string, schema *Schema) {
 	g.allOf = append(g.allOf, &Schema{
 		Ref: fmt.Sprintf("#/$defs/%s", name),
 	})
+}
+
+func (g *SchemaGenerator) addNestedDef(name string, schema *Schema, nesting []string) {
+	g.definitions[name] = schema
+	g.allOf = append(g.allOf, nestSchemaInScopes(
+		&Schema{
+			Ref: fmt.Sprintf("#/$defs/%s", name),
+		},
+		nesting,
+	),
+	)
 }
 
 // Gets the schema from the values.schema.json file if the chart has one

@@ -103,7 +103,11 @@
    }
   },
   {
-   "$ref": "#/$defs/global"
+   "properties": {
+    "global": {
+     "$ref": "#/$defs/global"
+    }
+   }
   }
  ],
  "type": "object"

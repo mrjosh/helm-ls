@@ -64,7 +64,7 @@ func TestHasGlobalValuesInSchema(t *testing.T) {
 	schema, _ := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/charts/subchartexample/"))
 
 	definitionsDoesContainPropertyGlobalProperty(t, schema, []string{"subchart"})
-	expectedRef := &Schema{Ref: "#/$defs/global"}
+	expectedRef := &Schema{Properties: map[string]*Schema{"global": {Ref: "#/$defs/global"}}}
 	refsContains(t, schema, expectedRef)
 }
 
