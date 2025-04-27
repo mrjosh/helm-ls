@@ -119,6 +119,7 @@ func (g *SchemaGenerator) generateSchemaForRelatedChart(scopedValuesfiles *chart
 	g.addGlobalRef(scopedValuesfiles, schemFilePath)
 }
 
+// Will add a reference to the global schema if any global values are found
 func (g *SchemaGenerator) addGlobalRef(scopedValuesfiles *charts.ScopedValuesFiles, schemFilePath uri.URI) {
 	for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
 		vals := valuesFile.Values.AsMap()
