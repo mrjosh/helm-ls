@@ -33,9 +33,11 @@ func generateSchemaType(value interface{}, description string) *Schema {
 		schema.Type = "string"
 		schema.Default = v
 
-	case int, int32, int64, float32, float64:
-		schema.Type = "number"
+	case int, int32, int64:
+		schema.Type = "integer"
 		schema.Default = v
+	case float32, float64:
+		schema.Type = "number"
 	case bool:
 		schema.Type = "boolean"
 		schema.Default = v
@@ -45,12 +47,13 @@ func generateSchemaType(value interface{}, description string) *Schema {
 	case []any:
 		schema.Type = "array"
 		if len(v) > 0 {
+			// Only use the first element of the array to keep the schema simple.
+			// Using allOf would create a possible large schema
 			schema.Items = generateSchemaType(v[0], description)
 		} else {
 			schema.Items = &Schema{Type: "null"} // Default for empty arrays
 		}
 	default:
-		// schema["type"] = "null" // Fallback to null for unknown types
 		schema.Type = "null"
 	}
 
