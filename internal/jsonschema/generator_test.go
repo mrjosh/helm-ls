@@ -15,8 +15,7 @@ func TestGenerateJSONSchema(t *testing.T) {
 		"tags":    []any{"go", "json", "schema"},
 	}
 
-	schema, err := generateJSONSchema(input, "description")
-	assert.NoError(t, err)
+	schema := generateJSONSchema(input, "description")
 
 	schemaJSON, err := json.MarshalIndent(schema, "", "  ")
 	assert.NoError(t, err)

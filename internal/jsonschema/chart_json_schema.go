@@ -22,6 +22,7 @@ type SchemaGenerator struct {
 	allOf                 []*Schema
 	globalSchemas         []*Schema
 	definitions           map[string]*Schema
+	errors                []error
 }
 
 // NewSchemaGenerator creates a new SchemaGenerator instance
@@ -33,6 +34,7 @@ func NewSchemaGenerator(chart *charts.Chart, chartStore *charts.ChartStore, getS
 		allOf:                 []*Schema{},
 		globalSchemas:         []*Schema{},
 		definitions:           map[string]*Schema{},
+		errors:                []error{},
 	}
 }
 
@@ -103,37 +105,9 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *charts.ScopedValuesFiles) {
 	valuesSchemas := []*Schema{}
 	for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
-		subVals := valuesFile.Values.AsMap()
+		subVals := g.processGlobalValsForCurrentChart(valuesFile)
 
-		globalVals, ok := subVals["global"]
-		if ok {
-			subValsTmp := map[string]any{}
-			for k, v := range subVals {
-				if k != "global" {
-					subValsTmp[k] = v
-				}
-			}
-			subVals = subValsTmp
-
-			globalValsMap, ok := globalVals.(map[string]any)
-			if ok {
-				globalSchema, err := generateJSONSchema(globalValsMap, "global values from the file "+filepath.Base(valuesFile.URI.Filename()))
-				if err != nil {
-					logger.Error("Failed to generate JSON schema:", err)
-				} else {
-					g.globalSchemas = append(g.globalSchemas, globalSchema)
-				}
-			}
-		}
-
-		schema, err := generateJSONSchema(subVals,
-			fmt.Sprintf("%s values from the file %s",
-				scopedValuesfiles.Chart.Name(),
-				filepath.Base(valuesFile.URI.Filename())))
-		if err != nil {
-			logger.Error("Failed to generate JSON schema:", err)
-			continue
-		}
+		schema := generateJSONSchema(subVals, g.getDescriptionForValuesSchema(valuesFile))
 
 		valuesSchemas = append(valuesSchemas, schema)
 	}
@@ -145,11 +119,48 @@ func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *chart
 	g.addCurrentChartDef(scopedValuesfiles.Chart, valuesSchemas)
 }
 
+func (g *SchemaGenerator) getDescriptionForValuesSchema(valuesFile *charts.ValuesFile) string {
+	return fmt.Sprintf("%s values from the file %s", g.chart.Name(), filepath.Base(valuesFile.URI.Filename()))
+}
+
+func (g *SchemaGenerator) getDescriptionForGlobalValues(valuesFile *charts.ValuesFile) string {
+	// return fmt.Sprintf("%s global values from the file %s", g.chart.Name(), filepath.Base(valuesFile.URI.Filename()))
+	return fmt.Sprintf("global values from the file %s", filepath.Base(valuesFile.URI.Filename()))
+}
+
+func (g *SchemaGenerator) processGlobalValsForCurrentChart(valuesFile *charts.ValuesFile) map[string]any {
+	subVals := valuesFile.Values.AsMap()
+
+	globalVals, ok := subVals["global"]
+	if !ok {
+		return subVals
+	}
+
+	globalValsMap, ok := globalVals.(map[string]any)
+	if !ok {
+		return subVals
+	}
+
+	globalSchema := generateJSONSchema(globalValsMap, g.getDescriptionForGlobalValues(valuesFile))
+	g.globalSchemas = append(g.globalSchemas, globalSchema)
+
+	subValsTmp := map[string]any{}
+	for k, v := range subVals {
+		if k != "global" {
+			subValsTmp[k] = v
+		}
+	}
+	return subValsTmp
+}
+
 func (g *SchemaGenerator) addCurrentChartDef(chart *charts.Chart, valuesSchemas []*Schema) {
 	g.addDef(chart.Name(), &Schema{AllOf: valuesSchemas})
 }
 
 func (g *SchemaGenerator) addGlobalDef() {
+	if len(g.globalSchemas) == 0 {
+		return
+	}
 	g.addDef("global", &Schema{AllOf: g.globalSchemas})
 }
 
@@ -160,6 +171,7 @@ func (g *SchemaGenerator) addDef(name string, schema *Schema) {
 	})
 }
 
+// Gets the schema from the values.schema.json file if the chart has one
 func getSchemaFileSchema(chart *charts.Chart) *Schema {
 	if chart.HelmChart.Schema != nil {
 		schemaFileSchema := &Schema{}

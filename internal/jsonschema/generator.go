@@ -1,7 +1,7 @@
 package jsonschema
 
 // generateJSONSchema generates a JSON schema from a map[string]interface{} instance
-func generateJSONSchema(data map[string]interface{}, description string) (*Schema, error) {
+func generateJSONSchema(data map[string]any, description string) *Schema {
 	schema := &Schema{
 		Version:     Version,
 		Type:        "object",
@@ -9,7 +9,7 @@ func generateJSONSchema(data map[string]interface{}, description string) (*Schem
 		Description: description,
 	}
 
-	return schema, nil
+	return schema
 }
 
 // generateProperties recursively inspects data and generates schema properties
