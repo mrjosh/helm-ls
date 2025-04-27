@@ -45,7 +45,7 @@ func TestDefinitionChart(t *testing.T) {
 			false,
 		},
 		{
-			`{{- include "dependeciesEx^ample.labels" . | nindent 4 }}`,
+			`{{- include "dependenciesEx^ample.labels" . | nindent 4 }}`,
 			"templates/_helpers.tpl",
 			1,
 			lsp.Position{Line: 35, Character: 0},

@@ -24,8 +24,8 @@
    ],
    "type": "object"
   },
-  "dependeciesExample": {
-   "$id": "dependeciesExample",
+  "dependenciesExample": {
+   "$id": "dependenciesExample",
    "$schema": "https://json-schema.org/draft/2020-12/schema",
    "allOf": [
     {
@@ -421,7 +421,7 @@
  "$schema": "https://json-schema.org/draft/2020-12/schema",
  "allOf": [
   {
-   "$ref": "#/$defs/dependeciesExample"
+   "$ref": "#/$defs/dependenciesExample"
   },
   {
    "$ref": "#/$defs/common"
@@ -440,8 +440,8 @@
 [TestSchemGenerationSnapshot - 2]
 {
  "$defs": {
-  "dependeciesExample": {
-   "$id": "dependeciesExample",
+  "dependenciesExample": {
+   "$id": "dependenciesExample",
    "$schema": "https://json-schema.org/draft/2020-12/schema",
    "allOf": [
     {
@@ -533,7 +533,7 @@
    "$ref": "#/$defs/subchartexample"
   },
   {
-   "$ref": "#/$defs/dependeciesExample"
+   "$ref": "#/$defs/dependenciesExample"
   },
   {
    "$ref": "#/$defs/global"

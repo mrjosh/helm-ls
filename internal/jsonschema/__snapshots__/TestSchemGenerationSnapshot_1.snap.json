@@ -1,36 +1,36 @@
 {
  "$defs": {
-  "dependeciesExample": {
+  "dependenciesExample": {
    "allOf": [
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "dependeciesExample values from the file values.yaml",
+     "description": "dependenciesExample values from the file values.yaml",
      "properties": {
       "affinity": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "object"
       },
       "autoscaling": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "properties": {
         "enabled": {
          "default": false,
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "maxReplicas": {
          "default": 100,
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "number"
         },
         "minReplicas": {
          "default": 1,
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "number"
         },
         "targetCPUUtilizationPercentage": {
          "default": 80,
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "number"
         }
        },
@@ -38,75 +38,75 @@
       },
       "fullnameOverride": {
        "default": "",
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "string"
       },
       "image": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "properties": {
         "pullPolicy": {
          "default": "IfNotPresent",
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "string"
         },
         "repository": {
          "default": "nginx",
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "string"
         },
         "tag": {
          "default": "",
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "string"
         }
        },
        "type": "object"
       },
       "imagePullSecrets": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "items": {
         "type": "null"
        },
        "type": "array"
       },
       "ingress": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "properties": {
         "annotations": {
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "object"
         },
         "className": {
          "default": "",
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "string"
         },
         "enabled": {
          "default": false,
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "hosts": {
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "items": {
           "properties": {
            "host": {
             "default": "chart-example.local",
-            "description": "dependeciesExample values from the file values.yaml",
+            "description": "dependenciesExample values from the file values.yaml",
             "type": "string"
            },
            "paths": {
-            "description": "dependeciesExample values from the file values.yaml",
+            "description": "dependenciesExample values from the file values.yaml",
             "items": {
              "properties": {
               "path": {
                "default": "/",
-               "description": "dependeciesExample values from the file values.yaml",
+               "description": "dependenciesExample values from the file values.yaml",
                "type": "string"
               },
               "pathType": {
                "default": "ImplementationSpecific",
-               "description": "dependeciesExample values from the file values.yaml",
+               "description": "dependenciesExample values from the file values.yaml",
                "type": "string"
               }
              },
@@ -120,7 +120,7 @@
          "type": "array"
         },
         "tls": {
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "items": {
           "type": "null"
          },
@@ -130,19 +130,19 @@
        "type": "object"
       },
       "livenessProbe": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "properties": {
         "httpGet": {
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "properties": {
           "path": {
            "default": "/",
-           "description": "dependeciesExample values from the file values.yaml",
+           "description": "dependenciesExample values from the file values.yaml",
            "type": "string"
           },
           "port": {
            "default": "http",
-           "description": "dependeciesExample values from the file values.yaml",
+           "description": "dependenciesExample values from the file values.yaml",
            "type": "string"
           }
          },
@@ -153,39 +153,39 @@
       },
       "nameOverride": {
        "default": "",
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "string"
       },
       "nodeSelector": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "object"
       },
       "podAnnotations": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "object"
       },
       "podLabels": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "object"
       },
       "podSecurityContext": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "object"
       },
       "readinessProbe": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "properties": {
         "httpGet": {
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "properties": {
           "path": {
            "default": "/",
-           "description": "dependeciesExample values from the file values.yaml",
+           "description": "dependenciesExample values from the file values.yaml",
            "type": "string"
           },
           "port": {
            "default": "http",
-           "description": "dependeciesExample values from the file values.yaml",
+           "description": "dependenciesExample values from the file values.yaml",
            "type": "string"
           }
          },
@@ -196,53 +196,53 @@
       },
       "replicaCount": {
        "default": 1,
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "number"
       },
       "resources": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "object"
       },
       "securityContext": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "object"
       },
       "service": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "properties": {
         "port": {
          "default": 80,
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "number"
         },
         "type": {
          "default": "ClusterIP",
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "string"
         }
        },
        "type": "object"
       },
       "serviceAccount": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "properties": {
         "annotations": {
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "object"
         },
         "automount": {
          "default": true,
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "create": {
          "default": true,
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "name": {
          "default": "",
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "string"
         }
        },
@@ -250,41 +250,41 @@
       },
       "subchartWithoutGlobal": {
        "default": "works",
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "type": "string"
       },
       "subchartexample": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "properties": {
         "fromParent": {
          "default": true,
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "boolean"
         },
         "subchartWithoutGlobal": {
          "default": "worksToo",
-         "description": "dependeciesExample values from the file values.yaml",
+         "description": "dependenciesExample values from the file values.yaml",
          "type": "string"
         }
        },
        "type": "object"
       },
       "tolerations": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "items": {
         "type": "null"
        },
        "type": "array"
       },
       "volumeMounts": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "items": {
         "type": "null"
        },
        "type": "array"
       },
       "volumes": {
-       "description": "dependeciesExample values from the file values.yaml",
+       "description": "dependenciesExample values from the file values.yaml",
        "items": {
         "type": "null"
        },
@@ -295,19 +295,19 @@
     },
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "dependeciesExample values from the file values.a.yaml",
+     "description": "dependenciesExample values from the file values.a.yaml",
      "properties": {
       "fromTheFileA": {
        "default": "hallo",
-       "description": "dependeciesExample values from the file values.a.yaml",
+       "description": "dependenciesExample values from the file values.a.yaml",
        "type": "string"
       },
       "image": {
-       "description": "dependeciesExample values from the file values.a.yaml",
+       "description": "dependenciesExample values from the file values.a.yaml",
        "properties": {
         "tag": {
          "default": "hallo",
-         "description": "dependeciesExample values from the file values.a.yaml",
+         "description": "dependenciesExample values from the file values.a.yaml",
          "type": "string"
         }
        },
@@ -315,7 +315,7 @@
       },
       "replicaCount": {
        "default": 5,
-       "description": "dependeciesExample values from the file values.a.yaml",
+       "description": "dependenciesExample values from the file values.a.yaml",
        "type": "number"
       }
      },
@@ -323,44 +323,44 @@
     },
     {
      "$schema": "https://json-schema.org/draft/2020-12/schema",
-     "description": "dependeciesExample values from the file values.b.yaml",
+     "description": "dependenciesExample values from the file values.b.yaml",
      "properties": {
       "fromTheFileB": {
        "default": "hi",
-       "description": "dependeciesExample values from the file values.b.yaml",
+       "description": "dependenciesExample values from the file values.b.yaml",
        "type": "string"
       },
       "fromThefileA": {
-       "description": "dependeciesExample values from the file values.b.yaml",
+       "description": "dependenciesExample values from the file values.b.yaml",
        "type": "null"
       },
       "image": {
-       "description": "dependeciesExample values from the file values.b.yaml",
+       "description": "dependenciesExample values from the file values.b.yaml",
        "type": "null"
       },
       "ingress": {
-       "description": "dependeciesExample values from the file values.b.yaml",
+       "description": "dependenciesExample values from the file values.b.yaml",
        "properties": {
         "hosts": {
-         "description": "dependeciesExample values from the file values.b.yaml",
+         "description": "dependenciesExample values from the file values.b.yaml",
          "items": {
           "properties": {
            "host": {
             "default": "hdsa",
-            "description": "dependeciesExample values from the file values.b.yaml",
+            "description": "dependenciesExample values from the file values.b.yaml",
             "type": "string"
            },
            "paths": {
-            "description": "dependeciesExample values from the file values.b.yaml",
+            "description": "dependenciesExample values from the file values.b.yaml",
             "items": {
              "properties": {
               "path": {
                "default": "hallo",
-               "description": "dependeciesExample values from the file values.b.yaml",
+               "description": "dependenciesExample values from the file values.b.yaml",
                "type": "string"
               },
               "pathType": {
-               "description": "dependeciesExample values from the file values.b.yaml",
+               "description": "dependenciesExample values from the file values.b.yaml",
                "type": "null"
               }
              },
@@ -375,7 +375,7 @@
         },
         "wrong": {
          "default": "this",
-         "description": "dependeciesExample values from the file values.b.yaml",
+         "description": "dependenciesExample values from the file values.b.yaml",
          "type": "string"
         }
        },
@@ -383,15 +383,15 @@
       },
       "replicaCount": {
        "default": 1,
-       "description": "dependeciesExample values from the file values.b.yaml",
+       "description": "dependenciesExample values from the file values.b.yaml",
        "type": "number"
       },
       "subchartexample": {
-       "description": "dependeciesExample values from the file values.b.yaml",
+       "description": "dependenciesExample values from the file values.b.yaml",
        "properties": {
         "fromParentFileB": {
          "default": "hi",
-         "description": "dependeciesExample values from the file values.b.yaml",
+         "description": "dependenciesExample values from the file values.b.yaml",
          "type": "string"
         }
        },
@@ -434,7 +434,7 @@
  "$schema": "https://json-schema.org/draft/2020-12/schema",
  "allOf": [
   {
-   "$ref": "#/$defs/dependeciesExample"
+   "$ref": "#/$defs/dependenciesExample"
   },
   {
    "properties": {

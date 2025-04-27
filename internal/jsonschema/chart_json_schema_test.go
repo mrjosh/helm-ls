@@ -34,11 +34,11 @@ func TestHasOtherValueFilesInSameChartInSchema(t *testing.T) {
 	rootURI := uri.File("../../testdata/dependenciesExample/")
 	schema, _ := getSchemaForChart(t, rootURI)
 
-	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"autoscaling", "targetCPUUtilizationPercentage"})
-	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"fromTheFileA"})
-	definitionsDoesContainProperty(t, schema, "dependeciesExample", []string{"fromTheFileB"})
+	definitionsDoesContainProperty(t, schema, "dependenciesExample", []string{"autoscaling", "targetCPUUtilizationPercentage"})
+	definitionsDoesContainProperty(t, schema, "dependenciesExample", []string{"fromTheFileA"})
+	definitionsDoesContainProperty(t, schema, "dependenciesExample", []string{"fromTheFileB"})
 
-	expectedRef := &Schema{Ref: "#/$defs/dependeciesExample"}
+	expectedRef := &Schema{Ref: "#/$defs/dependenciesExample"}
 	refsContains(t, schema, expectedRef)
 }
 
@@ -72,8 +72,8 @@ func TestHasParentValuesInSchema(t *testing.T) {
 	schema, _ := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/charts/subchartexample/"))
 	parentSchema, parentPath := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/"))
 
-	definitionsDoesContainPropertyInAllOf(t, parentSchema, "dependeciesExample", []string{"subchartexample", "fromParent"})
-	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/dependeciesExample/allOf/0/properties/subchartexample", uri.File(parentPath))}
+	definitionsDoesContainPropertyInAllOf(t, parentSchema, "dependenciesExample", []string{"subchartexample", "fromParent"})
+	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/dependenciesExample/allOf/0/properties/subchartexample", uri.File(parentPath))}
 	refsContains(t, schema, expectedRef)
 }
 

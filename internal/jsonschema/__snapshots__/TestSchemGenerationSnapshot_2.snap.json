@@ -49,15 +49,15 @@
    "$ref": "#/$defs/subchartexample"
   },
   {
-   "$ref": "file:///dependeciesExample#/$defs/dependeciesExample/allOf/0/properties/subchartexample"
+   "$ref": "file:///dependenciesExample#/$defs/dependenciesExample/allOf/0/properties/subchartexample"
   },
   {
-   "$ref": "file:///dependeciesExample#/$defs/dependeciesExample/allOf/2/properties/subchartexample"
+   "$ref": "file:///dependenciesExample#/$defs/dependenciesExample/allOf/2/properties/subchartexample"
   },
   {
    "properties": {
     "global": {
-     "$ref": "file:///dependeciesExample#/$defs/global"
+     "$ref": "file:///dependenciesExample#/$defs/global"
     }
    }
   },
