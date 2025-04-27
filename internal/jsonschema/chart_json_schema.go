@@ -8,6 +8,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
+	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
 )
 
@@ -62,7 +63,7 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 
 				for i, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
 					vals := valuesFile.Values.AsMap()
-					_, err := getSubScope(vals, scopedValuesfiles.SubScope)
+					_, err := util.GetSubValuesForSelector(vals, scopedValuesfiles.SubScope)
 					if err == nil {
 						refPointers = append(refPointers, fmt.Sprintf("/allOf/%d%s", i, refPointer))
 					}
@@ -72,7 +73,7 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 			for _, refPointer := range refPointers {
 				ref := fmt.Sprintf("%s#/$defs/%s%s",
 					schemFilePath,
-					scopedValuesfiles.Chart.HelmChart.Name(),
+					scopedValuesfiles.Chart.Name(),
 					refPointer,
 				)
 
@@ -97,15 +98,6 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 		schema:       schema,
 		dependencies: dependencies,
 	}, nil // TODO: collect errors
-}
-
-func (g *SchemaGenerator) addGlobalDef() {
-	g.definitions["global"] = &Schema{
-		AllOf: g.globalSchemas,
-	}
-	g.allOf = append(g.allOf, &Schema{
-		Ref: "#/$defs/global",
-	})
 }
 
 func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *charts.ScopedValuesFiles) {
@@ -136,7 +128,7 @@ func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *chart
 
 		schema, err := generateJSONSchema(subVals,
 			fmt.Sprintf("%s values from the file %s",
-				scopedValuesfiles.Chart.HelmChart.Name(),
+				scopedValuesfiles.Chart.Name(),
 				filepath.Base(valuesFile.URI.Filename())))
 		if err != nil {
 			logger.Error("Failed to generate JSON schema:", err)
@@ -150,11 +142,21 @@ func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *chart
 		valuesSchemas = append(valuesSchemas, schemaFileSchema)
 	}
 
-	g.definitions[scopedValuesfiles.Chart.HelmChart.Name()] = &Schema{
-		AllOf: valuesSchemas,
-	}
+	g.addCurrentChartDef(scopedValuesfiles.Chart, valuesSchemas)
+}
+
+func (g *SchemaGenerator) addCurrentChartDef(chart *charts.Chart, valuesSchemas []*Schema) {
+	g.addDef(chart.Name(), &Schema{AllOf: valuesSchemas})
+}
+
+func (g *SchemaGenerator) addGlobalDef() {
+	g.addDef("global", &Schema{AllOf: g.globalSchemas})
+}
+
+func (g *SchemaGenerator) addDef(name string, schema *Schema) {
+	g.definitions[name] = schema
 	g.allOf = append(g.allOf, &Schema{
-		Ref: fmt.Sprintf("#/$defs/%s", scopedValuesfiles.Chart.HelmChart.Name()),
+		Ref: fmt.Sprintf("#/$defs/%s", name),
 	})
 }
 
@@ -170,19 +172,6 @@ func getSchemaFileSchema(chart *charts.Chart) *Schema {
 	}
 
 	return nil
-}
-
-// getSubScope returns the values for the given subscope
-// e.g. given values: {a: {b: {c: 1}}}, subScopes: ["a", "b"] returns {c: 1}
-func getSubScope(values map[string]any, subScopes []string) (map[string]any, error) {
-	for _, subScope := range subScopes {
-		sub, ok := values[subScope].(map[string]any)
-		if !ok || sub == nil {
-			return nil, fmt.Errorf("subscope value is nil for scope: %s", subScope)
-		}
-		values = sub
-	}
-	return values, nil
 }
 
 func nestSchemaInScopes(schema *Schema, scopes []string) *Schema {

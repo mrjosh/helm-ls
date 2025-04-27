@@ -2,6 +2,7 @@ package charts
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/log"
@@ -73,4 +74,11 @@ func (c *Chart) GetMetadataLocation(templateContext []string) (lsp.Location, err
 	position, err := util.GetPositionOfNode(&c.ChartMetadata.YamlNode, modifyedVar)
 
 	return lsp.Location{URI: c.ChartMetadata.URI, Range: lsp.Range{Start: position}}, err
+}
+
+func (c *Chart) Name() string {
+	if name := c.HelmChart.Name(); name != "" {
+		return name
+	}
+	return filepath.Base(c.RootURI.Filename())
 }

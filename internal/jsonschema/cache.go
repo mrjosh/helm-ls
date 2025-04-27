@@ -75,7 +75,7 @@ func (c *JSONSchemaCache) GetJSONSchemaForChart(chart *charts.Chart) (string, er
 }
 
 func (c *JSONSchemaCache) createJSONSchemaAndCache(chart *charts.Chart) (string, error) {
-	logger.Debug("Creating JSON schema for chart", chart.HelmChart.Name())
+	logger.Debug("Creating JSON schema for chart", chart.Name())
 	generatedChartJSONSchema, err := c.schemaCreation(chart, c.chartStore, c.GetSchemaPathForChart)
 	if err != nil {
 		logger.Error(err)
@@ -131,7 +131,7 @@ func getChecksum(chart *charts.Chart) uint32 {
 func (c *JSONSchemaCache) GetSchemaPathForChart(chart *charts.Chart) string {
 	id := getChecksum(chart)
 
-	return filepath.Join(c.schemaFilesDir, fmt.Sprintf("%d-%s.json", id, chart.HelmChart.Name()))
+	return filepath.Join(c.schemaFilesDir, fmt.Sprintf("%d-%s.json", id, chart.Name()))
 }
 
 func (c *JSONSchemaCache) writeSchemaToFile(schema *Schema, chart *charts.Chart) (string, error) {

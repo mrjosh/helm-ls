@@ -45,7 +45,7 @@ func TestCreateNewSchema(t *testing.T) {
 		RootURI:       uri.File(filepath.Join(tempDir, "chart0")),
 	}
 	result, err := sut.GetJSONSchemaForChart(testChart)
-	expectedPath := filepath.Join(tempDir, "403899339-.json")
+	expectedPath := filepath.Join(tempDir, "403899339-chart0.json")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedPath, result)
@@ -59,7 +59,7 @@ func TestCreateNewSchema(t *testing.T) {
 	testChart.ValuesFiles.MainValuesFile.Values["key"] = "value2"
 	result3, err := sut.GetJSONSchemaForChart(testChart)
 	assert.NoError(t, err)
-	expectedPath = filepath.Join(tempDir, "473433085-.json")
+	expectedPath = filepath.Join(tempDir, "473433085-chart0.json")
 	assert.Equal(t, expectedPath, result3)
 	assert.Equal(t, 2, callCount)
 
@@ -78,7 +78,7 @@ func TestCreateNewSchema(t *testing.T) {
 	}
 	result4, err := sut.GetJSONSchemaForChart(otherChart)
 	assert.NoError(t, err)
-	expectedPath = filepath.Join(tempDir, "403899339-.json")
+	expectedPath = filepath.Join(tempDir, "403899339-chart1.json")
 	assert.Equal(t, expectedPath, result4)
 	assert.Equal(t, 3, callCount)
 }

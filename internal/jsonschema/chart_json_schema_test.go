@@ -216,7 +216,7 @@ func getSchemaForChart(t *testing.T, rootURI uri.URI) (*Schema, string) {
 	chart, err := chartStore.GetChartForURI(rootURI)
 
 	getSchemaPathForChart := func(chart *charts.Chart) string {
-		return "/" + chart.HelmChart.Name()
+		return "/" + chart.Name()
 	}
 
 	assert.NoError(t, err)

@@ -18,6 +18,25 @@ func GetTableOrValueForSelector(values chartutil.Values, selector []string) (str
 	return FormatToYAML(reflect.Indirect(reflect.ValueOf(value)), strings.Join(selector, ".")), err
 }
 
+func GetSubValuesForSelector(values chartutil.Values, selector []string) (map[string]any, error) {
+	if len(selector) <= 0 || selector[0] == "" {
+		return values, nil
+	}
+	res, err := pathLookup(values, selector)
+	if err != nil {
+		return map[string]any{}, err
+	}
+	if res == nil {
+		return map[string]any{}, fmt.Errorf("value not found")
+	}
+
+	if casted, ok := res.(map[string]any); !ok {
+		return map[string]any{}, fmt.Errorf("value is not a map")
+	} else {
+		return casted, nil
+	}
+}
+
 func GetValueCompletion(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
 	var (
 		err         error
