@@ -42,7 +42,7 @@ func TestCreateNewSchema(t *testing.T) {
 			AdditionalValuesFiles: []*charts.ValuesFile{},
 		},
 		ChartMetadata: &charts.ChartMetadata{},
-		RootURI:       "chart0",
+		RootURI:       uri.File(filepath.Join(tempDir, "chart0")),
 	}
 	result, err := sut.GetJSONSchemaForChart(testChart)
 	expectedPath := filepath.Join(tempDir, "403899339-.json")
@@ -73,7 +73,7 @@ func TestCreateNewSchema(t *testing.T) {
 			},
 		},
 		ChartMetadata: &charts.ChartMetadata{},
-		RootURI:       "chart1",
+		RootURI:       uri.File(filepath.Join(tempDir, "chart1")),
 		ParentChart:   charts.ParentChart{},
 	}
 	result4, err := sut.GetJSONSchemaForChart(otherChart)
