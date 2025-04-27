@@ -445,13 +445,6 @@
   },
   {
    "properties": {
-    "global": {
-     "$ref": "file:///common#/$defs/global"
-    }
-   }
-  },
-  {
-   "properties": {
     "subchartexample": {
      "$ref": "file:///subchartexample#/$defs/subchartexample"
     }

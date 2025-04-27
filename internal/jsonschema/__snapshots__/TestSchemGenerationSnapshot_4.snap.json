@@ -72,13 +72,6 @@
    }
   },
   {
-   "properties": {
-    "global": {
-     "$ref": "file:///twiceNested#/$defs/global"
-    }
-   }
-  },
-  {
    "$ref": "file:///nestedDependenciesExample#/$defs/nestedDependenciesExample/allOf/0/properties/onceNested"
   },
   {

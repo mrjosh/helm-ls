@@ -51,44 +51,8 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 		if len(scopedValuesfiles.Scope) == 0 && len(scopedValuesfiles.SubScope) == 0 {
 			g.generateSchemaForCurrentChart(scopedValuesfiles)
 		} else {
-			schemFilePath := uri.File(g.getSchemaPathForChart(scopedValuesfiles.Chart))
 			dependencies = append(dependencies, scopedValuesfiles.Chart)
-
-			refPointers := []string{""}
-
-			if len(scopedValuesfiles.SubScope) > 0 {
-				refPointers = []string{}
-				refPointer := ""
-				for _, v := range scopedValuesfiles.SubScope {
-					refPointer = fmt.Sprintf("%s/properties/%s", refPointer, v)
-				}
-
-				for i, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
-					vals := valuesFile.Values.AsMap()
-					_, err := util.GetSubValuesForSelector(vals, scopedValuesfiles.SubScope)
-					if err == nil {
-						refPointers = append(refPointers, fmt.Sprintf("/allOf/%d%s", i, refPointer))
-					}
-				}
-			}
-
-			for _, refPointer := range refPointers {
-				ref := fmt.Sprintf("%s#/$defs/%s%s",
-					schemFilePath,
-					scopedValuesfiles.Chart.Name(),
-					refPointer,
-				)
-
-				schema := &Schema{Ref: ref}
-				schema = nestSchemaInScopes(schema, scopedValuesfiles.Scope)
-				g.allOf = append(g.allOf, schema)
-			}
-			globalSchemaRef := fmt.Sprintf("%s#/$defs/%s",
-				schemFilePath,
-				"global",
-			)
-			globalSchema := &Schema{Ref: globalSchemaRef}
-			g.allOf = append(g.allOf, nestSchemaInScopes(globalSchema, []string{"global"}))
+			g.generateSchemaForRelatedChart(scopedValuesfiles)
 		}
 	}
 
@@ -119,12 +83,64 @@ func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *chart
 	g.addCurrentChartDef(scopedValuesfiles.Chart, valuesSchemas)
 }
 
+func (g *SchemaGenerator) generateSchemaForRelatedChart(scopedValuesfiles *charts.ScopedValuesFiles) {
+	schemFilePath := uri.File(g.getSchemaPathForChart(scopedValuesfiles.Chart))
+
+	refPointers := []string{""}
+
+	if len(scopedValuesfiles.SubScope) > 0 {
+		refPointers = []string{}
+		refPointer := ""
+		for _, v := range scopedValuesfiles.SubScope {
+			refPointer = fmt.Sprintf("%s/properties/%s", refPointer, v)
+		}
+
+		for i, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
+			vals := valuesFile.Values.AsMap()
+			_, err := util.GetSubValuesForSelector(vals, scopedValuesfiles.SubScope)
+			if err == nil {
+				refPointers = append(refPointers, fmt.Sprintf("/allOf/%d%s", i, refPointer))
+			}
+		}
+	}
+
+	for _, refPointer := range refPointers {
+		ref := fmt.Sprintf("%s#/$defs/%s%s",
+			schemFilePath,
+			scopedValuesfiles.Chart.Name(),
+			refPointer,
+		)
+
+		schema := &Schema{Ref: ref}
+		schema = nestSchemaInScopes(schema, scopedValuesfiles.Scope)
+		g.allOf = append(g.allOf, schema)
+	}
+
+	g.addGlobalRef(scopedValuesfiles, schemFilePath)
+}
+
+func (g *SchemaGenerator) addGlobalRef(scopedValuesfiles *charts.ScopedValuesFiles, schemFilePath uri.URI) {
+	for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
+		vals := valuesFile.Values.AsMap()
+		_, err := util.GetSubValuesForSelector(vals, []string{"global"})
+		if err == nil {
+			globalSchemaRef := fmt.Sprintf("%s#/$defs/%s",
+				schemFilePath,
+				"global",
+			)
+			globalSchema := &Schema{Ref: globalSchemaRef}
+			g.allOf = append(g.allOf, nestSchemaInScopes(globalSchema, []string{"global"}))
+			break
+		}
+	}
+}
+
+// TODO: think about good descriptions
 func (g *SchemaGenerator) getDescriptionForValuesSchema(valuesFile *charts.ValuesFile) string {
 	return fmt.Sprintf("%s values from the file %s", g.chart.Name(), filepath.Base(valuesFile.URI.Filename()))
 }
 
 func (g *SchemaGenerator) getDescriptionForGlobalValues(valuesFile *charts.ValuesFile) string {
-	// return fmt.Sprintf("%s global values from the file %s", g.chart.Name(), filepath.Base(valuesFile.URI.Filename()))
 	return fmt.Sprintf("global values from the file %s", filepath.Base(valuesFile.URI.Filename()))
 }
 

@@ -98,13 +98,6 @@
   {
    "properties": {
     "global": {
-     "$ref": "file:///twiceNested#/$defs/global"
-    }
-   }
-  },
-  {
-   "properties": {
-    "global": {
      "$ref": "#/$defs/global"
     }
    }
