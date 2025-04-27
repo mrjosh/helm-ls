@@ -2,6 +2,7 @@ package yamlhandler
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
@@ -46,7 +47,12 @@ func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, c
 func (h *YamlHandler) SetChartStore(chartStore *charts.ChartStore) {
 	h.chartStore = chartStore
 
-	jsonSchemas := jsonschema.NewJSONSchemaCache(chartStore)
+	jsonSchemas, err := jsonschema.NewJSONSchemaCache(jsonschema.JSONSchemaConfig{}, chartStore)
+	if err != nil {
+		h.client.ShowMessage(context.Background(), &protocol.ShowMessageParams{
+			Type: protocol.MessageTypeError, Message: fmt.Sprintf("Helm-ls: Failed to create JSON schema cache: %s", err.Error()),
+		})
+	}
 	h.jsonSchemas = jsonSchemas
 }
 

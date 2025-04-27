@@ -13,12 +13,17 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
+type JSONSchemaConfig struct {
+	prettyPrint bool
+}
+
 type cachedGeneratedJSONSchema struct {
 	checksum       uint32
 	schemaFilePath string
 }
 
 type JSONSchemaCache struct {
+	config            JSONSchemaConfig
 	mu                sync.RWMutex
 	cache             map[uri.URI]cachedGeneratedJSONSchema
 	singleflightGroup singleflight.Group
@@ -27,20 +32,21 @@ type JSONSchemaCache struct {
 	schemaFilesDir    string
 }
 
-func NewJSONSchemaCache(chartStore *charts.ChartStore) *JSONSchemaCache {
+func NewJSONSchemaCache(config JSONSchemaConfig, chartStore *charts.ChartStore) (*JSONSchemaCache, error) {
 	schemaFilesDir := filepath.Join(os.TempDir(), "helm-ls")
 
 	err := os.MkdirAll(schemaFilesDir, os.ModePerm)
 	if err != nil {
-		logger.Error("Failed to create schema files directory:", err)
+		return nil, fmt.Errorf("failed to create schema files directory: %w", err)
 	}
 
 	return &JSONSchemaCache{
+		config:         config,
 		cache:          make(map[uri.URI]cachedGeneratedJSONSchema),
 		schemaCreation: CreateJSONSchemaForChart,
 		chartStore:     chartStore,
 		schemaFilesDir: schemaFilesDir,
-	}
+	}, nil
 }
 
 func (c *JSONSchemaCache) readCache(uri uri.URI) (cachedGeneratedJSONSchema, bool) {
@@ -135,8 +141,14 @@ func (c *JSONSchemaCache) GetSchemaPathForChart(chart *charts.Chart) string {
 }
 
 func (c *JSONSchemaCache) writeSchemaToFile(schema *Schema, chart *charts.Chart) (string, error) {
-	// TODO: do this only if log level is debug
-	bytes, err := json.MarshalIndent(schema, "", "  ")
+	var err error
+	var bytes []byte
+	if c.config.prettyPrint {
+		bytes, err = json.MarshalIndent(schema, "", "  ")
+	} else {
+		bytes, err = json.Marshal(schema)
+	}
+
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal schema: %w", err)
 	}

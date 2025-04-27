@@ -2,9 +2,11 @@ package jsonschema
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
@@ -13,6 +15,8 @@ import (
 )
 
 var logger = log.GetLogger()
+
+var GlobalDefName = "global"
 
 // SchemaGenerator handles the generation of JSON schemas for Helm charts
 type SchemaGenerator struct {
@@ -60,10 +64,15 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 
 	schema := generateSchemaWithAllOf(g.definitions, g.allOf)
 
+	var err error = nil
+	if len(g.errors) > 0 {
+		err = errors.Join(g.errors...)
+	}
+
 	return GeneratedChartJSONSchema{
 		schema:       schema,
 		dependencies: dependencies,
-	}, nil // TODO: collect errors
+	}, err
 }
 
 func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *charts.ScopedValuesFiles) {
@@ -76,7 +85,7 @@ func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *chart
 		valuesSchemas = append(valuesSchemas, schema)
 	}
 
-	if schemaFileSchema := getSchemaFileSchema(scopedValuesfiles.Chart); schemaFileSchema != nil {
+	if schemaFileSchema := g.getSchemaFileSchema(scopedValuesfiles.Chart); schemaFileSchema != nil {
 		valuesSchemas = append(valuesSchemas, schemaFileSchema)
 	}
 
@@ -92,7 +101,7 @@ func (g *SchemaGenerator) generateSchemaForRelatedChart(scopedValuesfiles *chart
 		refPointers = []string{}
 		refPointer := ""
 		for _, v := range scopedValuesfiles.SubScope {
-			refPointer = fmt.Sprintf("%s/properties/%s", refPointer, v)
+			refPointer = fmt.Sprintf("%s/properties/%s", refPointer, espcapeJSONPointer(v))
 		}
 
 		for i, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
@@ -107,7 +116,7 @@ func (g *SchemaGenerator) generateSchemaForRelatedChart(scopedValuesfiles *chart
 	for _, refPointer := range refPointers {
 		ref := fmt.Sprintf("%s#/$defs/%s%s",
 			schemFilePath,
-			scopedValuesfiles.Chart.Name(),
+			espcapeJSONPointer(scopedValuesfiles.Chart.Name()),
 			refPointer,
 		)
 
@@ -123,14 +132,14 @@ func (g *SchemaGenerator) generateSchemaForRelatedChart(scopedValuesfiles *chart
 func (g *SchemaGenerator) addGlobalRef(scopedValuesfiles *charts.ScopedValuesFiles, schemFilePath uri.URI) {
 	for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
 		vals := valuesFile.Values.AsMap()
-		_, err := util.GetSubValuesForSelector(vals, []string{"global"})
+		_, err := util.GetSubValuesForSelector(vals, []string{GlobalDefName})
 		if err == nil {
 			globalSchemaRef := fmt.Sprintf("%s#/$defs/%s",
 				schemFilePath,
-				"global",
+				GlobalDefName,
 			)
 			globalSchema := &Schema{Ref: globalSchemaRef}
-			g.allOf = append(g.allOf, nestSchemaInScopes(globalSchema, []string{"global"}))
+			g.allOf = append(g.allOf, nestSchemaInScopes(globalSchema, []string{GlobalDefName}))
 			break
 		}
 	}
@@ -148,7 +157,7 @@ func (g *SchemaGenerator) getDescriptionForGlobalValues(valuesFile *charts.Value
 func (g *SchemaGenerator) processGlobalValsForCurrentChart(valuesFile *charts.ValuesFile) map[string]any {
 	subVals := valuesFile.Values.AsMap()
 
-	globalVals, ok := subVals["global"]
+	globalVals, ok := subVals[GlobalDefName]
 	if !ok {
 		return subVals
 	}
@@ -163,7 +172,7 @@ func (g *SchemaGenerator) processGlobalValsForCurrentChart(valuesFile *charts.Va
 
 	subValsTmp := map[string]any{}
 	for k, v := range subVals {
-		if k != "global" {
+		if k != GlobalDefName {
 			subValsTmp[k] = v
 		}
 	}
@@ -179,13 +188,13 @@ func (g *SchemaGenerator) addGlobalDef() {
 		return
 	}
 
-	g.addNestedDef("global", &Schema{AllOf: g.globalSchemas}, []string{"global"})
+	g.addNestedDef(GlobalDefName, &Schema{AllOf: g.globalSchemas}, []string{GlobalDefName})
 }
 
 func (g *SchemaGenerator) addDef(name string, schema *Schema) {
 	g.definitions[name] = schema
 	g.allOf = append(g.allOf, &Schema{
-		Ref: fmt.Sprintf("#/$defs/%s", name),
+		Ref: fmt.Sprintf("#/$defs/%s", espcapeJSONPointer(name)),
 	})
 }
 
@@ -193,7 +202,7 @@ func (g *SchemaGenerator) addNestedDef(name string, schema *Schema, nesting []st
 	g.definitions[name] = schema
 	g.allOf = append(g.allOf, nestSchemaInScopes(
 		&Schema{
-			Ref: fmt.Sprintf("#/$defs/%s", name),
+			Ref: fmt.Sprintf("#/$defs/%s", espcapeJSONPointer(name)),
 		},
 		nesting,
 	),
@@ -201,12 +210,13 @@ func (g *SchemaGenerator) addNestedDef(name string, schema *Schema, nesting []st
 }
 
 // Gets the schema from the values.schema.json file if the chart has one
-func getSchemaFileSchema(chart *charts.Chart) *Schema {
+func (g *SchemaGenerator) getSchemaFileSchema(chart *charts.Chart) *Schema {
 	if chart.HelmChart.Schema != nil {
 		schemaFileSchema := &Schema{}
 		err := json.Unmarshal(chart.HelmChart.Schema, schemaFileSchema)
 		if err != nil {
 			logger.Error("Failed to unmarshal schema from helm chart "+chart.RootURI, err)
+			g.errors = append(g.errors, fmt.Errorf("failed to unmarshal schema from helm chart %s: %w", chart.RootURI, err))
 		} else {
 			return schemaFileSchema
 		}
@@ -234,4 +244,8 @@ func nestSchemaInScopes(schema *Schema, scopes []string) *Schema {
 func CreateJSONSchemaForChart(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error) {
 	generator := NewSchemaGenerator(chart, chartStore, getSchemaPathForChart)
 	return generator.Generate()
+}
+
+func espcapeJSONPointer(pointer string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(pointer, "~", "~0"), "/", "~1")
 }

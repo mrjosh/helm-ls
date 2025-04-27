@@ -14,7 +14,7 @@ import (
 	"go.lsp.dev/uri"
 )
 
-func TestSchemGenerationSnapshot(t *testing.T) {
+func TestSchemaGenerationSnapshot(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Skipping test on windows because snapshots are not platform independent")
 	}
@@ -26,6 +26,7 @@ func TestSchemGenerationSnapshot(t *testing.T) {
 }
 
 func snapshotTest(t *testing.T, path string) {
+	t.Helper()
 	schema, _ := getSchemaForChart(t, uri.File(path))
 	snaps.MatchStandaloneJSON(t, schema)
 }
@@ -53,11 +54,23 @@ func TestPointsToValuesFromSubChart(t *testing.T) {
 }
 
 func TestPointsToValuesValuesFromDependencySubChart(t *testing.T) {
-	schema, _ := getSchemaForChart(t, uri.File("../../testdata/dependenciesExample/"))
+	rootURI := uri.File("../../testdata/dependenciesExample/")
+	generatedChartJSONSchema, _ := getGeneratedChartJSONSchema(t, rootURI)
 
-	// TODO: this test does not check if the schema for the dependency is correct
 	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/common", uri.File("/common"))}
-	refsContainsNested(t, schema, expectedRef, []string{"common"})
+	refsContainsNested(t, generatedChartJSONSchema.schema, expectedRef, []string{"common"})
+
+	for _, dependency := range generatedChartJSONSchema.dependencies {
+		if dependency.Name() == "common" {
+			getSchemaPathForChart := func(chart *charts.Chart) string {
+				return "/" + chart.Name()
+			}
+
+			generatedChartJSONSchemaDep, err := CreateJSONSchemaForChart(dependency, &charts.ChartStore{}, getSchemaPathForChart)
+			assert.NoError(t, err)
+			definitionsDoesContainPropertyInAllOf(t, generatedChartJSONSchemaDep.schema, "common", []string{"exampleValue"})
+		}
+	}
 }
 
 func TestHasGlobalValuesInSchema(t *testing.T) {
@@ -111,29 +124,32 @@ func TestHasValuesFromSubChartNestedInSchema(t *testing.T) {
 }
 
 func definitionsDoesContainProperty(t *testing.T, schema *Schema, definitionName string, propertyPath []string) {
+	t.Helper()
 	definitionsDoesContainPropertyGeneric(t, schema, definitionName, []string{}, propertyPath)
 }
 
 func definitionsDoesContainPropertyGlobalProperty(t *testing.T, schema *Schema, propertyPath []string) {
+	t.Helper()
 	definitionsDoesContainPropertyInAllOf(t, schema, "global", propertyPath)
 }
 
 func definitionsDoesContainPropertyInAllOf(t *testing.T, schema *Schema, definitionName string, propertyPath []string) {
+	t.Helper()
 	subSchema := schema.Definitions[definitionName]
 	assert.NotNil(t, subSchema, "Definition %s should exist on schema, but does not, schema: %s", definitionName, schemaToJSON(schema))
 	allOf := subSchema.AllOf
 	assert.NotNil(t, allOf, "Subschema has no AllOf property: %s", schemaToJSON(subSchema))
 	assert.Condition(t, func() bool {
 		found := false
-		for _, subSchema := range allOf {
+		for _, candidate := range allOf {
 			for _, property := range propertyPath {
-				props := subSchema.Properties
+				props := candidate.Properties
 				tmpSubSchema, ok := props[property]
 				if !ok {
 					found = false
 					break
 				}
-				subSchema = tmpSubSchema
+				candidate = tmpSubSchema
 				found = true
 			}
 			if found {
@@ -189,10 +205,16 @@ func schemaToJSON(schema *Schema) string {
 }
 
 func refsContainsNested(t *testing.T, schema *Schema, expectedRef *Schema, nesting []string) {
+	t.Helper()
 	slices.Reverse(nesting)
+
+	reversed := make([]string, len(nesting))
+	copy(reversed, nesting)
+	slices.Reverse(reversed)
+
 	nestedSchema := expectedRef
 
-	for _, nested := range nesting {
+	for _, nested := range reversed {
 		nestedSchema = &Schema{Properties: map[string]*Schema{
 			nested: nestedSchema,
 		}}
@@ -201,6 +223,7 @@ func refsContainsNested(t *testing.T, schema *Schema, expectedRef *Schema, nesti
 }
 
 func refsContains(t *testing.T, schema *Schema, expectedRef *Schema) {
+	t.Helper()
 	expectedRefsJSON := schemaToJSON(expectedRef)
 
 	allOfConverted := []string{}
@@ -211,6 +234,13 @@ func refsContains(t *testing.T, schema *Schema, expectedRef *Schema) {
 }
 
 func getSchemaForChart(t *testing.T, rootURI uri.URI) (*Schema, string) {
+	t.Helper()
+	generatedChartJSONSchema, path := getGeneratedChartJSONSchema(t, rootURI)
+	return generatedChartJSONSchema.schema, path
+}
+
+func getGeneratedChartJSONSchema(t *testing.T, rootURI uri.URI) (GeneratedChartJSONSchema, string) {
+	t.Helper()
 	addChartCallback := func(chart *charts.Chart) {}
 	chartStore := charts.NewChartStore(rootURI, charts.NewChart, addChartCallback)
 	chart, err := chartStore.GetChartForURI(rootURI)
@@ -223,5 +253,5 @@ func getSchemaForChart(t *testing.T, rootURI uri.URI) (*Schema, string) {
 	generatedChartJSONSchema, err := CreateJSONSchemaForChart(chart, chartStore, getSchemaPathForChart)
 	assert.NoError(t, err)
 
-	return generatedChartJSONSchema.schema, getSchemaPathForChart(chart)
+	return generatedChartJSONSchema, getSchemaPathForChart(chart)
 }
