@@ -18,6 +18,9 @@ type SchemaGenerator struct {
 	chart                 *charts.Chart
 	chartStore            *charts.ChartStore
 	getSchemaPathForChart func(chart *charts.Chart) string
+	allOf                 []*Schema
+	globalSchemas         []*Schema
+	definitions           map[string]*Schema
 }
 
 // NewSchemaGenerator creates a new SchemaGenerator instance
@@ -26,6 +29,9 @@ func NewSchemaGenerator(chart *charts.Chart, chartStore *charts.ChartStore, getS
 		chart:                 chart,
 		chartStore:            chartStore,
 		getSchemaPathForChart: getSchemaPathForChart,
+		allOf:                 []*Schema{},
+		globalSchemas:         []*Schema{},
+		definitions:           map[string]*Schema{},
 	}
 }
 
@@ -36,69 +42,11 @@ type GeneratedChartJSONSchema struct {
 
 func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 	dependencies := []*charts.Chart{}
-	definitions := map[string]*Schema{}
-	globalSchemas := []*Schema{}
-	allOf := []*Schema{}
 
 	// Process all scoped values files
 	for _, scopedValuesfiles := range g.chart.GetScopedValuesFiles(g.chartStore) {
 		if len(scopedValuesfiles.Scope) == 0 && len(scopedValuesfiles.SubScope) == 0 {
-			valuesSchemas := []*Schema{}
-			for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
-				subVals := valuesFile.Values.AsMap()
-
-				globalVals, ok := subVals["global"]
-				if ok {
-
-					subValsTmp := map[string]any{}
-					for k, v := range subVals {
-						if k != "global" {
-							subValsTmp[k] = v
-						}
-					}
-					subVals = subValsTmp
-
-					globalValsMap, ok := globalVals.(map[string]any)
-					if ok {
-						globalSchema, err := generateJSONSchema(globalValsMap, "global values from the file "+filepath.Base(valuesFile.URI.Filename()))
-						if err != nil {
-							logger.Error("Failed to generate JSON schema:", err)
-						} else {
-							globalSchemas = append(globalSchemas, globalSchema)
-						}
-					}
-				}
-
-				schema, err := generateJSONSchema(subVals,
-					fmt.Sprintf("%s values from the file %s",
-						scopedValuesfiles.Chart.HelmChart.Name(),
-						filepath.Base(valuesFile.URI.Filename())))
-				if err != nil {
-					logger.Error("Failed to generate JSON schema:", err)
-					continue
-				}
-
-				valuesSchemas = append(valuesSchemas, schema)
-			}
-			if scopedValuesfiles.Chart.HelmChart.Schema != nil {
-
-				schemaFileSchema := &Schema{}
-				err := json.Unmarshal(scopedValuesfiles.Chart.HelmChart.Schema, schemaFileSchema)
-				if err != nil {
-					logger.Error("Failed to unmarshal schema from helm chart "+scopedValuesfiles.Chart.RootURI, err)
-				} else {
-					valuesSchemas = append(valuesSchemas, schemaFileSchema)
-				}
-			}
-			definitions[scopedValuesfiles.Chart.HelmChart.Name()] = &Schema{
-				AllOf: valuesSchemas,
-			}
-			allOf = append(allOf, &Schema{
-				Ref: fmt.Sprintf("#/$defs/%s", scopedValuesfiles.Chart.HelmChart.Name()),
-			})
-			allOf = append(allOf, &Schema{
-				Ref: "#/$defs/global",
-			})
+			g.generateSchemaForCurrentChart(scopedValuesfiles)
 		} else {
 			schemFilePath := uri.File(g.getSchemaPathForChart(scopedValuesfiles.Chart))
 			dependencies = append(dependencies, scopedValuesfiles.Chart)
@@ -130,26 +78,98 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 
 				schema := &Schema{Ref: ref}
 				schema = nestSchemaInScopes(schema, scopedValuesfiles.Scope)
-				allOf = append(allOf, schema)
+				g.allOf = append(g.allOf, schema)
 			}
 			globalSchemaRef := fmt.Sprintf("%s#/$defs/%s",
 				schemFilePath,
 				"global",
 			)
 			globalSchema := &Schema{Ref: globalSchemaRef}
-			allOf = append(allOf, nestSchemaInScopes(globalSchema, []string{"global"}))
+			g.allOf = append(g.allOf, nestSchemaInScopes(globalSchema, []string{"global"}))
 		}
 	}
-	definitions["global"] = &Schema{
-		AllOf: globalSchemas,
-	}
 
-	schema := generateSchemaWithAllOf(definitions, allOf)
+	g.addGlobalDef()
+
+	schema := generateSchemaWithAllOf(g.definitions, g.allOf)
 
 	return GeneratedChartJSONSchema{
 		schema:       schema,
 		dependencies: dependencies,
 	}, nil // TODO: collect errors
+}
+
+func (g *SchemaGenerator) addGlobalDef() {
+	g.definitions["global"] = &Schema{
+		AllOf: g.globalSchemas,
+	}
+	g.allOf = append(g.allOf, &Schema{
+		Ref: "#/$defs/global",
+	})
+}
+
+func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *charts.ScopedValuesFiles) {
+	valuesSchemas := []*Schema{}
+	for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
+		subVals := valuesFile.Values.AsMap()
+
+		globalVals, ok := subVals["global"]
+		if ok {
+			subValsTmp := map[string]any{}
+			for k, v := range subVals {
+				if k != "global" {
+					subValsTmp[k] = v
+				}
+			}
+			subVals = subValsTmp
+
+			globalValsMap, ok := globalVals.(map[string]any)
+			if ok {
+				globalSchema, err := generateJSONSchema(globalValsMap, "global values from the file "+filepath.Base(valuesFile.URI.Filename()))
+				if err != nil {
+					logger.Error("Failed to generate JSON schema:", err)
+				} else {
+					g.globalSchemas = append(g.globalSchemas, globalSchema)
+				}
+			}
+		}
+
+		schema, err := generateJSONSchema(subVals,
+			fmt.Sprintf("%s values from the file %s",
+				scopedValuesfiles.Chart.HelmChart.Name(),
+				filepath.Base(valuesFile.URI.Filename())))
+		if err != nil {
+			logger.Error("Failed to generate JSON schema:", err)
+			continue
+		}
+
+		valuesSchemas = append(valuesSchemas, schema)
+	}
+
+	if schemaFileSchema := getSchemaFileSchema(scopedValuesfiles.Chart); schemaFileSchema != nil {
+		valuesSchemas = append(valuesSchemas, schemaFileSchema)
+	}
+
+	g.definitions[scopedValuesfiles.Chart.HelmChart.Name()] = &Schema{
+		AllOf: valuesSchemas,
+	}
+	g.allOf = append(g.allOf, &Schema{
+		Ref: fmt.Sprintf("#/$defs/%s", scopedValuesfiles.Chart.HelmChart.Name()),
+	})
+}
+
+func getSchemaFileSchema(chart *charts.Chart) *Schema {
+	if chart.HelmChart.Schema != nil {
+		schemaFileSchema := &Schema{}
+		err := json.Unmarshal(chart.HelmChart.Schema, schemaFileSchema)
+		if err != nil {
+			logger.Error("Failed to unmarshal schema from helm chart "+chart.RootURI, err)
+		} else {
+			return schemaFileSchema
+		}
+	}
+
+	return nil
 }
 
 // getSubScope returns the values for the given subscope

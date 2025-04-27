@@ -437,9 +437,6 @@
    "$ref": "#/$defs/dependeciesExample"
   },
   {
-   "$ref": "#/$defs/global"
-  },
-  {
    "properties": {
     "common": {
      "$ref": "file:///common#/$defs/common"
@@ -466,6 +463,9 @@
      "$ref": "file:///subchartexample#/$defs/global"
     }
    }
+  },
+  {
+   "$ref": "#/$defs/global"
   }
  ],
  "type": "object"

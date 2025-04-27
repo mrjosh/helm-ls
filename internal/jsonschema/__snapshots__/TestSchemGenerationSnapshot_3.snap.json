@@ -71,9 +71,6 @@
    "$ref": "#/$defs/nestedDependenciesExample"
   },
   {
-   "$ref": "#/$defs/global"
-  },
-  {
    "properties": {
     "onceNested": {
      "$ref": "file:///onceNested#/$defs/onceNested"
@@ -104,6 +101,9 @@
      "$ref": "file:///twiceNested#/$defs/global"
     }
    }
+  },
+  {
+   "$ref": "#/$defs/global"
   }
  ],
  "type": "object"

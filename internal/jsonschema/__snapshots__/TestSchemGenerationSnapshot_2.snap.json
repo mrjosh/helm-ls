@@ -49,9 +49,6 @@
    "$ref": "#/$defs/subchartexample"
   },
   {
-   "$ref": "#/$defs/global"
-  },
-  {
    "$ref": "file:///dependeciesExample#/$defs/dependeciesExample/allOf/0/properties/subchartexample"
   },
   {
@@ -63,6 +60,9 @@
      "$ref": "file:///dependeciesExample#/$defs/global"
     }
    }
+  },
+  {
+   "$ref": "#/$defs/global"
   }
  ],
  "type": "object"

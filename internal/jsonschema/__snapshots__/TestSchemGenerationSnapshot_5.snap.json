@@ -34,9 +34,6 @@
    "$ref": "#/$defs/twiceNested"
   },
   {
-   "$ref": "#/$defs/global"
-  },
-  {
    "$ref": "file:///onceNested#/$defs/onceNested/allOf/0/properties/twiceNested"
   },
   {
@@ -55,6 +52,9 @@
      "$ref": "file:///nestedDependenciesExample#/$defs/global"
     }
    }
+  },
+  {
+   "$ref": "#/$defs/global"
   }
  ],
  "type": "object"
