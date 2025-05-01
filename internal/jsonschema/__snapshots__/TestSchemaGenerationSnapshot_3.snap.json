@@ -1,0 +1,107 @@
+{
+ "$defs": {
+  "global": {
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "description": "global values from the file values.yaml",
+     "properties": {
+      "globalFromRoot": {
+       "default": "hi",
+       "description": "global values from the file values.yaml",
+       "type": "string"
+      }
+     },
+     "type": "object"
+    }
+   ]
+  },
+  "nestedDependenciesExample": {
+   "allOf": [
+    {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "description": "nestedDependenciesExample values from the file values.yaml",
+     "properties": {
+      "fromRoot": {
+       "default": "one",
+       "description": "nestedDependenciesExample values from the file values.yaml",
+       "type": "string"
+      },
+      "onceNested": {
+       "description": "nestedDependenciesExample values from the file values.yaml",
+       "properties": {
+        "fromRootForOnceNested": {
+         "default": true,
+         "description": "nestedDependenciesExample values from the file values.yaml",
+         "type": "boolean"
+        },
+        "twiceNested": {
+         "description": "nestedDependenciesExample values from the file values.yaml",
+         "properties": {
+          "fromRootForTwiceNested": {
+           "default": true,
+           "description": "nestedDependenciesExample values from the file values.yaml",
+           "type": "boolean"
+          }
+         },
+         "type": "object"
+        }
+       },
+       "type": "object"
+      },
+      "onlyInRoot": {
+       "default": true,
+       "description": "nestedDependenciesExample values from the file values.yaml",
+       "type": "boolean"
+      },
+      "replicaCount": {
+       "default": 1,
+       "description": "nestedDependenciesExample values from the file values.yaml",
+       "type": "number"
+      }
+     },
+     "type": "object"
+    }
+   ]
+  }
+ },
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "allOf": [
+  {
+   "$ref": "#/$defs/nestedDependenciesExample"
+  },
+  {
+   "properties": {
+    "onceNested": {
+     "$ref": "file:///onceNested#/$defs/onceNested"
+    }
+   }
+  },
+  {
+   "properties": {
+    "global": {
+     "$ref": "file:///onceNested#/$defs/global"
+    }
+   }
+  },
+  {
+   "properties": {
+    "onceNested": {
+     "properties": {
+      "twiceNested": {
+       "$ref": "file:///twiceNested#/$defs/twiceNested"
+      }
+     }
+    }
+   }
+  },
+  {
+   "properties": {
+    "global": {
+     "$ref": "#/$defs/global"
+    }
+   }
+  }
+ ],
+ "type": "object"
+}

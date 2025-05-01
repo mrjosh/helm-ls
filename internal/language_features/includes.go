@@ -4,7 +4,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -88,9 +88,7 @@ func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Locati
 	locations := []lsp.Location{}
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		referenceRanges := doc.SymbolTable.GetIncludeReference(includeName)
-		for _, referenceRange := range referenceRanges {
-			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
-		}
+		locations = append(locations, util.RangesToLocations(doc.URI, referenceRanges)...)
 		if len(locations) > 0 {
 			charts.SyncToDisk(doc)
 		}
@@ -102,10 +100,8 @@ func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Locati
 func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Location {
 	locations := []lsp.Location{}
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
-		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
-		for _, referenceRange := range referenceRanges {
-			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
-		}
+		definitionRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
+		locations = append(locations, util.RangesToLocations(doc.URI, definitionRanges)...)
 		if len(locations) > 0 {
 			charts.SyncToDisk(doc)
 		}
@@ -117,9 +113,9 @@ func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Locat
 func (f *IncludesFeature) getDefinitionsHover(includeName string) protocol.HoverResultsWithFiles {
 	result := protocol.HoverResultsWithFiles{}
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
-		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
-		for _, referenceRange := range referenceRanges {
-			node := doc.Ast.RootNode().NamedDescendantForPointRange(referenceRange.StartPoint, referenceRange.EndPoint)
+		definitionRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
+		for _, definitionRange := range definitionRanges {
+			node := doc.Ast.RootNode().NamedDescendantForPointRange(definitionRange.StartPoint, definitionRange.EndPoint)
 			if node != nil {
 				result = append(result, protocol.HoverResultWithFile{
 					Value: node.Content([]byte(doc.Content)),

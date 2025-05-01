@@ -26,11 +26,12 @@ type LangHandler interface {
 	PostDidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error)
 
 	Configure(ctx context.Context, helmlsConfig util.HelmlsConfiguration)
+	// Should return the diagnostics for the given document, this function is called after the document was opened or saved
 	GetDiagnostics(uri lsp.DocumentURI) []lsp.PublishDiagnosticsParams
 
 	// SetChartStore is called once the chart store has been initialized
 	SetChartStore(chartStore *charts.ChartStore)
-	// SetChartStore is called once the client has been initialized
+	// SetClient is called once the client has been initialized
 	SetClient(client protocol.Client)
 }
 
@@ -41,5 +42,11 @@ func (h *ServerHandler) selectLangHandler(_ context.Context, uri uri.URI) (LangH
 		return nil, fmt.Errorf("document %s not found or has invalid language", uri)
 	}
 
-	return h.langHandlers[documentType], nil
+	langHandler, ok := h.langHandlers[documentType]
+
+	if !ok {
+		return nil, fmt.Errorf("language %s not supported", documentType)
+	}
+
+	return langHandler, nil
 }

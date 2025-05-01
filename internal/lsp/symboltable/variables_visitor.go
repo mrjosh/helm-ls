@@ -2,7 +2,6 @@ package symboltable
 
 import (
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
-	"github.com/mrjosh/helm-ls/internal/util"
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
@@ -115,7 +114,7 @@ func (v *VariablesVisitor) addVariableDefinition(variableType VariableType, defi
 }
 
 func (v *VariablesVisitor) addVariableUsage(node *sitter.Node) {
-	v.symbolTable.AddVariableUsage(node.Content(v.content), util.GetRangeForNode(node))
+	v.symbolTable.AddVariableUsage(node.Content(v.content), node.Range())
 }
 
 func (v *VariablesVisitor) EnterContextShift(_ *sitter.Node, _ string) {}

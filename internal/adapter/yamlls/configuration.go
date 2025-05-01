@@ -13,5 +13,8 @@ func (y Connector) Configuration(_ context.Context, _ *protocol.ConfigurationPar
 }
 
 func (y Connector) DidChangeConfiguration(ctx context.Context) (err error) {
+	if y.server == nil {
+		return nil
+	}
 	return y.server.DidChangeConfiguration(ctx, &protocol.DidChangeConfigurationParams{})
 }

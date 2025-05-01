@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
-	symboltable "github.com/mrjosh/helm-ls/internal/lsp/symbol_table"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"

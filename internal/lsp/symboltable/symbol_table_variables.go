@@ -2,6 +2,7 @@ package symboltable
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -45,12 +46,20 @@ func (s *SymbolTable) getVariableDefinition(name string, accessRange sitter.Rang
 	return definition, nil
 }
 
+func (s *SymbolTable) GetAllVariableDefinitions() (result map[string][]VariableDefinition) {
+	result = map[string][]VariableDefinition{}
+	for name, definitions := range s.variableDefinitions {
+		result[name] = slices.Clone(definitions)
+	}
+	return result
+}
+
 func (s *SymbolTable) GetVariableDefinitionForNode(node *sitter.Node, content []byte) (VariableDefinition, error) {
 	name, err := getVariableName(node, content)
 	if err != nil {
 		return VariableDefinition{}, err
 	}
-	return s.getVariableDefinition(name, util.GetRangeForNode(node))
+	return s.getVariableDefinition(name, node.Range())
 }
 
 func (s *SymbolTable) GetVariableReferencesForNode(node *sitter.Node, content []byte) (ranges []sitter.Range, err error) {
@@ -74,13 +83,13 @@ func (s *SymbolTable) GetVariableReferencesForNode(node *sitter.Node, content []
 
 func getVariableName(node *sitter.Node, content []byte) (string, error) {
 	if node == nil {
-		return "", fmt.Errorf("Cannot get variable definition for node")
+		return "", fmt.Errorf("cannot get variable definition for node")
 	}
 	if node.Type() == gotemplate.NodeTypeIdentifier {
 		node = node.Parent()
 	}
 	if node.Type() != gotemplate.NodeTypeVariable {
-		return "", fmt.Errorf("Node is not a variable but is of type %s", node.Type())
+		return "", fmt.Errorf("node is not a variable but is of type %s", node.Type())
 	}
 	return node.Content(content), nil
 }

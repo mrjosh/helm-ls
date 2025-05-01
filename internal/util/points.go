@@ -24,11 +24,9 @@ func RangeToLocation(URI uri.URI, range_ sitter.Range) lsp.Location {
 	}
 }
 
-func GetRangeForNode(node *sitter.Node) sitter.Range {
-	return sitter.Range{
-		StartPoint: node.StartPoint(),
-		EndPoint:   node.EndPoint(),
-		StartByte:  node.StartByte(),
-		EndByte:    node.EndByte(),
+func RangesToLocations(URI uri.URI, ranges []sitter.Range) (locations []lsp.Location) {
+	for _, definitionRange := range ranges {
+		locations = append(locations, RangeToLocation(URI, definitionRange))
 	}
+	return locations
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"io"
+	"os"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	templatehandler "github.com/mrjosh/helm-ls/internal/handler/template_handler"
@@ -12,6 +13,7 @@ import (
 	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
 	"go.uber.org/zap"
 
 	"github.com/mrjosh/helm-ls/internal/log"
@@ -46,7 +48,6 @@ func StartHandler(stream io.ReadWriteCloser) {
 
 func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 	documents := document.NewDocumentStore()
-	var x LangHandler = yamlhandler.NewYamlHandler(client, documents, nil)
 	handler := &ServerHandler{
 		client:       client,
 		linterName:   "helm-lint",
@@ -55,15 +56,21 @@ func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 		helmlsConfig: util.DefaultConfig,
 		langHandlers: map[document.DocumentType]LangHandler{
 			document.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, nil),
-			document.YamlDocumentType:     x,
+			document.YamlDocumentType:     yamlhandler.NewYamlHandler(client, documents, nil, nil), // nil values are set by setChartStore
 		},
 	}
-	logger.Printf("helm-lint-langserver: connections opened")
 
+	currentDir, err := os.Getwd()
+	if err != nil {
+		logger.Error("Error getting current directory", err)
+	}
+	handler.setChartStore(charts.NewChartStore(uri.File(currentDir), charts.NewChart, handler.AddChartCallback))
+
+	logger.Printf("helm-ls: connections opened")
 	return handler
 }
 
-func (h *ServerHandler) setChartStrore(chartStore *charts.ChartStore) {
+func (h *ServerHandler) setChartStore(chartStore *charts.ChartStore) {
 	h.chartStore = chartStore
 
 	for _, handler := range h.langHandlers {

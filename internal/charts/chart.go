@@ -2,6 +2,7 @@ package charts
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/mrjosh/helm-ls/internal/log"
@@ -41,7 +42,7 @@ func loadHelmChart(rootURI uri.URI) (helmChart *chart.Chart) {
 	chartLoader, err := loader.Loader(rootURI.Filename())
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error loading chart %s: %s", rootURI.Filename(), err.Error()))
-		return nil
+		return getFallbackHelmChart()
 	}
 
 	helmChart, err = chartLoader.Load()
@@ -49,7 +50,21 @@ func loadHelmChart(rootURI uri.URI) (helmChart *chart.Chart) {
 		logger.Error(fmt.Sprintf("Error loading chart %s: %s", rootURI.Filename(), err.Error()))
 	}
 
+	if helmChart == nil {
+		return getFallbackHelmChart()
+	}
+
 	return helmChart
+}
+
+func getFallbackHelmChart() *chart.Chart {
+	return &chart.Chart{
+		Metadata:  &chart.Metadata{},
+		Templates: []*chart.File{},
+		Values:    map[string]any{},
+		Schema:    []byte{},
+		Files:     []*chart.File{},
+	}
 }
 
 func (c *Chart) GetMetadataLocation(templateContext []string) (lsp.Location, error) {
@@ -69,4 +84,11 @@ func (c *Chart) GetMetadataLocation(templateContext []string) (lsp.Location, err
 	position, err := util.GetPositionOfNode(&c.ChartMetadata.YamlNode, modifyedVar)
 
 	return lsp.Location{URI: c.ChartMetadata.URI, Range: lsp.Range{Start: position}}, err
+}
+
+func (c *Chart) Name() string {
+	if name := c.HelmChart.Name(); name != "" {
+		return name
+	}
+	return filepath.Base(c.RootURI.Filename())
 }

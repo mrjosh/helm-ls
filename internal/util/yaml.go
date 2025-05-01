@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	lsp "go.lsp.dev/protocol"
@@ -27,7 +28,7 @@ func GetPositionOfNode(node *yamlv3.Node, query []string) (lsp.Position, error) 
 	isRange := false
 
 	if strings.HasSuffix(query[0], "[]") {
-		query = append([]string{}, query...)
+		query = slices.Clone(query)
 		query[0] = strings.TrimSuffix(query[0], "[]")
 		isRange = true
 	}

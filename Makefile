@@ -60,19 +60,27 @@ install-testrunner:
 	@$(GO) install -v gotest.tools/gotestsum@latest
 
 install-yamlls:
-	npm install --global yaml-language-server
+	npm install --global yaml-language-server@1.15
 
 integration-test-deps:
 	@YAMLLS_BIN=$$(command -v yaml-language-server) || { echo "yaml-language-server command not found! Installing..." && $(MAKE) install-yamlls; };
 	git submodule init
 	git submodule update --depth 1
 
-test:
-	$(MAKE) integration-test-deps
+define run-tests
 	@$(TEST_RUNNER) ./... -v -race -tags=integration || { \
 		echo "gotestsum command not found or failed! Falling back to 'go test'..."; \
 		$(GO) test ./... -v -race -tags=integration; \
 	}
+endef
+
+test:
+	$(MAKE) integration-test-deps
+	$(call run-tests)
+
+test-update-snaps: 
+	$(MAKE) integration-test-deps
+	UPDATE_SNAPS=true $(call run-tests)
 
 coverage:
 	@$(GO) test -coverprofile=.coverage -tags=integration -coverpkg=./internal/... ./internal/... && go tool cover -html=.coverage

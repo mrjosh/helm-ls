@@ -2,12 +2,13 @@ package yamlhandler
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
+	"github.com/mrjosh/helm-ls/internal/jsonschema"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
-	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/protocol"
 )
 
@@ -16,39 +17,38 @@ var logger = log.GetLogger()
 type YamlHandler struct {
 	documents       *document.DocumentStore
 	chartStore      *charts.ChartStore
+	client          protocol.Client
 	yamllsConnector *yamlls.Connector
-}
-
-// Completion implements handler.LangHandler.
-func (h *YamlHandler) Completion(ctx context.Context, params *protocol.CompletionParams) (result *protocol.CompletionList, err error) {
-	// TODO
-	return nil, nil
-}
-
-// Configure implements handler.LangHandler.
-func (h *YamlHandler) Configure(ctx context.Context, helmlsConfig util.HelmlsConfiguration) {}
-
-// Definition implements handler.LangHandler.
-func (h *YamlHandler) Definition(ctx context.Context, params *protocol.DefinitionParams) (result []protocol.Location, err error) {
-	panic("unimplemented")
-}
-
-// References implements handler.LangHandler.
-func (h *YamlHandler) References(ctx context.Context, params *protocol.ReferenceParams) (result []protocol.Location, err error) {
-	panic("unimplemented")
+	jsonSchemas     *jsonschema.JSONSchemaCache
 }
 
 // SetClient implements handler.LangHandler.
-func (h *YamlHandler) SetClient(client protocol.Client) {}
+func (h *YamlHandler) SetClient(client protocol.Client) {
+	h.client = client
+}
 
-func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, chartStore *charts.ChartStore) *YamlHandler {
+func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, chartStore *charts.ChartStore, jsonSchemas *jsonschema.JSONSchemaCache) *YamlHandler {
 	return &YamlHandler{
 		documents:       documents,
 		chartStore:      chartStore,
 		yamllsConnector: &yamlls.Connector{},
+		jsonSchemas:     jsonSchemas,
 	}
 }
 
 func (h *YamlHandler) SetChartStore(chartStore *charts.ChartStore) {
 	h.chartStore = chartStore
+
+	jsonSchemas, err := jsonschema.NewJSONSchemaCache(jsonschema.JSONSchemaConfig{}, chartStore)
+	if err != nil {
+		h.client.ShowMessage(context.Background(), &protocol.ShowMessageParams{
+			Type: protocol.MessageTypeError, Message: fmt.Sprintf("Helm-ls: Failed to create JSON schema cache: %s", err.Error()),
+		})
+	} else {
+		h.jsonSchemas = jsonSchemas
+	}
+}
+
+func (h *YamlHandler) setYamllsConnector(yamllsConnector *yamlls.Connector) {
+	h.yamllsConnector = yamllsConnector
 }

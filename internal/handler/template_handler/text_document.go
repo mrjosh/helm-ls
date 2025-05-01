@@ -16,7 +16,7 @@ func (h *TemplateHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDo
 		return err
 	}
 
-	h.yamllsConnector.DocumentDidOpen(doc.Ast, *params)
+	h.yamllsConnector.DocumentDidOpenTemplate(doc.Ast, *params)
 
 	return nil
 }
@@ -27,7 +27,7 @@ func (h *TemplateHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDo
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 
-	h.yamllsConnector.DocumentDidSave(doc, *params)
+	h.yamllsConnector.DocumentDidSaveTemplate(doc, *params)
 
 	return nil
 }
@@ -36,6 +36,10 @@ func (h *TemplateHandler) PostDidChange(ctx context.Context, params *lsp.DidChan
 	doc, ok := h.documents.GetTemplateDoc(params.TextDocument.URI)
 	if !ok {
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
+	}
+
+	if doc.Ast == nil {
+		return errors.New("Could not get document AST: " + params.TextDocument.URI.Filename())
 	}
 
 	shouldSendFullUpdateToYamlls := false
@@ -47,9 +51,9 @@ func (h *TemplateHandler) PostDidChange(ctx context.Context, params *lsp.DidChan
 		}
 	}
 	if shouldSendFullUpdateToYamlls {
-		h.yamllsConnector.DocumentDidChangeFullSync(doc, *params)
+		h.yamllsConnector.DocumentDidChangeFullSyncTemplate(doc, *params)
 	} else {
-		h.yamllsConnector.DocumentDidChange(doc, *params)
+		h.yamllsConnector.DocumentDidChangeTemplate(doc, *params)
 	}
 
 	return nil
