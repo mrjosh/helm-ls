@@ -38,6 +38,7 @@ func generateSchemaType(value interface{}, description string) *Schema {
 		schema.Default = v
 	case float32, float64:
 		schema.Type = "number"
+		schema.Default = v
 	case bool:
 		schema.Type = "boolean"
 		schema.Default = v

@@ -25,7 +25,7 @@ func TestGenerateJSONSchema(t *testing.T) {
 		Type:    "object",
 		Properties: map[string]*Schema{
 			"name": {Type: "string", Default: "example", Description: "description"},
-			"age":  {Type: "number", Default: 30, Description: "description"},
+			"age":  {Type: "integer", Default: 30, Description: "description"},
 			"address": {
 				Type: "object",
 				Properties: map[string]*Schema{
