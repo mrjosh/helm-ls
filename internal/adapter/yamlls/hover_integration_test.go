@@ -64,7 +64,7 @@ func TestYamllsHoverIntegration(t *testing.T) {
 			openFile(t, documents, tt.file, yamllsConnector)
 
 			assert.Eventually(t, func() bool {
-				result, err := yamllsConnector.CallHover(context.Background(), lsp.HoverParams{
+				result, err := yamllsConnector.CallHoverOrComplete(context.Background(), lsp.HoverParams{
 					TextDocumentPositionParams: lsp.TextDocumentPositionParams{
 						TextDocument: lsp.TextDocumentIdentifier{
 							URI: uri.File(tt.file),

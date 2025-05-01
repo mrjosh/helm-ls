@@ -8,12 +8,21 @@ import (
 )
 
 // Calls the Hover method of yamlls to get a fitting hover response
+func (yamllsConnector Connector) CallHover(ctx context.Context, params lsp.HoverParams) (*lsp.Hover, error) {
+	if !yamllsConnector.shouldRun(params.TextDocument.URI) {
+		return nil, nil
+	}
+
+	return yamllsConnector.server.Hover(ctx, &params)
+}
+
+// Calls the Hover method of yamlls to get a fitting hover response
 // If hover returns nothing appropriate, calls yamlls for completions
 //
 // Yamlls can not handle hover if the schema validation returns errors,
 // thats why we fall back to calling completion
-func (yamllsConnector Connector) CallHover(ctx context.Context, params lsp.HoverParams, word string) (*lsp.Hover, error) {
-	if !yamllsConnector.shouldRun(params.TextDocumentPositionParams.TextDocument.URI) {
+func (yamllsConnector Connector) CallHoverOrComplete(ctx context.Context, params lsp.HoverParams, word string) (*lsp.Hover, error) {
+	if !yamllsConnector.shouldRun(params.TextDocument.URI) {
 		return nil, nil
 	}
 

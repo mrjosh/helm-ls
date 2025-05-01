@@ -176,7 +176,7 @@ func TestYamllsCustomSchemaProviderHoverIntegration(t *testing.T) {
 	})
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		result, _ := yamllsConnector.CallHover(context.Background(), lsp.HoverParams{
+		result, _ := yamllsConnector.CallHoverOrComplete(context.Background(), lsp.HoverParams{
 			TextDocumentPositionParams: lsp.TextDocumentPositionParams{
 				TextDocument: lsp.TextDocumentIdentifier{
 					URI: uri.File(testFile),

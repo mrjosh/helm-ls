@@ -37,7 +37,7 @@ func (h *TemplateHandler) Hover(ctx context.Context, params *lsp.HoverParams) (r
 		// Do not use the TextUsecase, as we don't want to map the hover response
 		// from yamlls to string and then back
 		word := genericDocumentUseCase.Document.WordAt(params.Position)
-		response, err := h.yamllsConnector.CallHover(ctx, *params, word)
+		response, err := h.yamllsConnector.CallHoverOrComplete(ctx, *params, word)
 		return response, err
 	}
 
