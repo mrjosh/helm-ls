@@ -22,16 +22,6 @@ type YamlHandler struct {
 	jsonSchemas     *jsonschema.JSONSchemaCache
 }
 
-// Definition implements handler.LangHandler.
-func (h *YamlHandler) Definition(ctx context.Context, params *protocol.DefinitionParams) (result []protocol.Location, err error) {
-	panic("unimplemented")
-}
-
-// References implements handler.LangHandler.
-func (h *YamlHandler) References(ctx context.Context, params *protocol.ReferenceParams) (result []protocol.Location, err error) {
-	panic("unimplemented")
-}
-
 // SetClient implements handler.LangHandler.
 func (h *YamlHandler) SetClient(client protocol.Client) {
 	h.client = client

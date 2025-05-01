@@ -31,7 +31,7 @@ type LangHandler interface {
 
 	// SetChartStore is called once the chart store has been initialized
 	SetChartStore(chartStore *charts.ChartStore)
-	// SetChartStore is called once the client has been initialized
+	// SetClient is called once the client has been initialized
 	SetClient(client protocol.Client)
 }
 

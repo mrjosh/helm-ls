@@ -49,12 +49,18 @@ func NewCustomSchemaProviderHandler(provider CustomSchemaProvider) jsonrpc2.Hand
 				return reply(ctx, nil, errors.New("no URI provided"))
 			}
 
-			schemaURI, err := provider(ctx, uri.New(requestedURIs[0]))
-			logger.Printf("YamlHandler: custom/schema/request for uri %s returning %s", requestedURIs, schemaURI)
-			if err != nil {
-				return reply(ctx, nil, err)
+			results := make([]uri.URI, len(requestedURIs))
+			for _, v := range requestedURIs {
+				schemaURI, err := provider(ctx, uri.New(v))
+				if err != nil {
+					logger.Error(err)
+					return reply(ctx, nil, err)
+				}
+				results = append(results, schemaURI)
 			}
-			return reply(ctx, schemaURI, nil)
+
+			logger.Printf("YamlHandler: custom/schema/request for uris %s returning %s", requestedURIs, results)
+			return reply(ctx, results, nil)
 		}
 
 		return jsonrpc2.MethodNotFoundHandler(ctx, reply, req)
