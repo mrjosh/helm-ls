@@ -13,10 +13,10 @@ func (h *YamlHandler) DocumentSymbol(ctx context.Context, params *protocol.Docum
 
 // Definition implements handler.LangHandler.
 func (h *YamlHandler) Definition(ctx context.Context, params *protocol.DefinitionParams) (result []protocol.Location, err error) {
-	panic("unimplemented")
+	return nil, nil
 }
 
 // References implements handler.LangHandler.
 func (h *YamlHandler) References(ctx context.Context, params *protocol.ReferenceParams) (result []protocol.Location, err error) {
-	panic("unimplemented")
+	return nil, nil
 }
