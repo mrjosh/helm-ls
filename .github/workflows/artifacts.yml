@@ -18,7 +18,7 @@ jobs:
     name: artifacts
     strategy:
       matrix:
-        go-version: [1.22.7]
+        go-version: [1.23]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -43,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: helm_ls_darwin_arm64
-          path: ./dist/darwin-arm64_darwin_arm64/helm-ls
+          path: ./dist/darwin-arm64_darwin_arm64_v8.0/helm-ls
           retention-days: 1
 
       - name: "Upload linux/amd64 artifact"
@@ -57,7 +57,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: helm_ls_linux_arm
-          path: ./dist/linux-arm64_linux_arm64/helm-ls
+          path: ./dist/linux-arm_linux_arm_7/helm-ls
+          retention-days: 1
+
+      - name: "Upload linux/arm64 artifact"
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm_ls_linux_arm64
+          path: ./dist/linux-arm64_linux_arm64_v8.0/helm-ls
           retention-days: 1
 
       - name: "Upload windows/amd64 artifact"
@@ -69,7 +76,7 @@ jobs:
 
   publish:
     needs: [artifacts]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
@@ -113,6 +120,11 @@ jobs:
           sha256sum helm_ls_linux_arm/helm-ls > helm_ls_linux_arm.sha256sum
           echo "SHA_LINUX_ARM=$(cat helm_ls_linux_arm.sha256sum)" >> $GITHUB_ENV
 
+      - name: Generate Linux-ARM64 SHA256 checksums
+        run: |
+          sha256sum helm_ls_linux_arm64/helm-ls > helm_ls_linux_arm64.sha256sum
+          echo "SHA_LINUX_ARM=$(cat helm_ls_linux_arm64.sha256sum)" >> $GITHUB_ENV
+
       - if: env.TAG_NAME == 'master'
         run: echo 'SUBJECT=HelmLs development (prerelease) build' >> $GITHUB_ENV
 
@@ -138,7 +150,9 @@ jobs:
             helm_ls_linux_amd64:./helm_ls_linux_amd64/helm-ls
             helm_ls_linux_amd64.sha256sum:./helm_ls_linux_amd64.sha256sum
             helm_ls_linux_arm:./helm_ls_linux_arm/helm-ls
+            helm_ls_linux_arm64:./helm_ls_linux_arm64/helm-ls
             helm_ls_linux_arm.sha256sum:./helm_ls_linux_arm.sha256sum
+            helm_ls_linux_arm64.sha256sum:./helm_ls_linux_arm64.sha256sum
           body: |
             ### macOS (x64)
             1. Download **helm_ls_darwin_amd64**
@@ -152,9 +166,12 @@ jobs:
             ### Linux (x64)
             1. Download **helm_ls_linux_amd64**
             2. Run `./helm_ls_linux_amd64`
-            ### Linux (ARM)
+            ### Linux (ARM v7)
             1. Download **helm_ls_linux_arm**
             2. Run `./helm_ls_linux_arm`
+            ### Linux (ARM64)
+            1. Download **helm_ls_linux_arm64**
+            2. Run `./helm_ls_linux_arm64`
             ## SHA256 Checksums
 
             ```
@@ -163,4 +180,5 @@ jobs:
             ${{ env.SHA_MACOS_ARM64 }}
             ${{ env.SHA_WINDOWS_64 }}
             ${{ env.SHA_LINUX_ARM }}
+            ${{ env.SHA_LINUX_ARM64 }}
             ```

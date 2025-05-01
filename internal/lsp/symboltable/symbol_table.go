@@ -88,7 +88,7 @@ func (s *SymbolTable) GetTemplateContextRanges(templateContext TemplateContext) 
 func (s *SymbolTable) GetTemplateContext(pointRange sitter.Range) (TemplateContext, error) {
 	result, ok := s.contextsReversed[pointRange]
 	if !ok {
-		return result, fmt.Errorf("no template context found")
+		return result, fmt.Errorf("No template context found for range %v", pointRange)
 	}
 	// return a copy to never modify the original
 	return s.ResolveVariablesInTemplateContext(result.Copy(), pointRange)

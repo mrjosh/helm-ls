@@ -166,6 +166,7 @@ func TestCompletionMainSingleLines(t *testing.T) {
 	}{
 		{`Test completion on {{ $variable := "hello" }} {{ $v^ }}`, []string{"$variable"}, []string{".Values", "include"}, nil},
 		{`Test completion on {{ $variable := "hello" }} {{ $^ }}`, []string{"$variable"}, []string{".Values", "include"}, nil},
+		{"Test completion on {{ .Values.^ingress.hosts }}", []string{"ingress"}, []string{"hosts"}, nil},
 		{"Test completion on {{.Bad.^}}", []string{}, []string{}, errors.New("[Bad ] is no valid template context for helm")},
 		{"Test completion on {{ .Bad.^ }}", []string{}, []string{}, errors.New("[Bad ] is no valid template context for helm")},
 		{"Test completion on {{ n^ }}", []string{"not"}, []string{}, nil},

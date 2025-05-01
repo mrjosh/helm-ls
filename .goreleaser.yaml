@@ -38,6 +38,22 @@ builds:
       - -mod=readonly
     ldflags:
       - -s -w -X main.Version={{ .Env.VERSION }} -X main.GitCommit={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.Branch={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
+  - id: linux-arm
+    main: ./
+    binary: helm-ls
+    goos:
+      - linux
+    goarch:
+      - arm
+    goarm:
+      - "7"
+    env:
+      - CC=arm-linux-gnueabihf-gcc
+      - CXX=arm-linux-gnueabihf-g++
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.Version={{ .Env.VERSION }} -X main.GitCommit={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.Branch={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
   - id: linux-arm64
     main: ./
     binary: helm-ls
@@ -68,13 +84,12 @@ builds:
     ldflags:
       - -X main.Version={{ .Env.VERSION }} -X main.GitCommit={{ .Env.GIT_COMMIT }} -X main.CompiledBy={{ .Env.COMPILED_BY }}  -X main.Branch={{ .Env.BRANCH_NAME }} -X main.BuildTime={{ .Env.BUILD_TIME }}
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 snapshot:
   name_template: "{{ .Tag }}"
 changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
-
+      - "^docs:"
+      - "^test:"
