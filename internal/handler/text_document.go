@@ -51,6 +51,9 @@ func (h *ServerHandler) DidChange(ctx context.Context, params *lsp.DidChangeText
 	doc.ApplyChanges(params.ContentChanges)
 
 	handler, err := h.selectLangHandler(ctx, params.TextDocument.URI)
+	if err != nil {
+		return err
+	}
 	return handler.PostDidChange(ctx, params)
 }
 
