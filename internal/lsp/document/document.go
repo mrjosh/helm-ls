@@ -53,6 +53,7 @@ func NewDocument(fileURI uri.URI, content []byte, isOpen bool) *Document {
 	}
 }
 
+// ApplyChanges updates the content of the document from LSP textDocument/didChange events.
 func (d *Document) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	defer func() {
 		if r := recover(); r != nil {

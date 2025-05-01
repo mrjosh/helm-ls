@@ -33,7 +33,9 @@ func (h *YamlHandler) References(ctx context.Context, params *protocol.Reference
 }
 
 // SetClient implements handler.LangHandler.
-func (h *YamlHandler) SetClient(client protocol.Client) {}
+func (h *YamlHandler) SetClient(client protocol.Client) {
+	h.client = client
+}
 
 func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, chartStore *charts.ChartStore, jsonSchemas *jsonschema.JSONSchemaCache) *YamlHandler {
 	return &YamlHandler{
@@ -52,8 +54,9 @@ func (h *YamlHandler) SetChartStore(chartStore *charts.ChartStore) {
 		h.client.ShowMessage(context.Background(), &protocol.ShowMessageParams{
 			Type: protocol.MessageTypeError, Message: fmt.Sprintf("Helm-ls: Failed to create JSON schema cache: %s", err.Error()),
 		})
+	} else {
+		h.jsonSchemas = jsonSchemas
 	}
-	h.jsonSchemas = jsonSchemas
 }
 
 func (h *YamlHandler) setYamllsConnector(yamllsConnector *yamlls.Connector) {

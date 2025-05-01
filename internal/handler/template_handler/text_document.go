@@ -38,6 +38,10 @@ func (h *TemplateHandler) PostDidChange(ctx context.Context, params *lsp.DidChan
 		return errors.New("Could not get document: " + params.TextDocument.URI.Filename())
 	}
 
+	if doc.Ast == nil {
+		return errors.New("Could not get document AST: " + params.TextDocument.URI.Filename())
+	}
+
 	shouldSendFullUpdateToYamlls := false
 	for _, change := range params.ContentChanges {
 		node := templateast.NodeAtPosition(doc.Ast, change.Range.Start)

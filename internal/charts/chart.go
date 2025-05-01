@@ -42,7 +42,7 @@ func loadHelmChart(rootURI uri.URI) (helmChart *chart.Chart) {
 	chartLoader, err := loader.Loader(rootURI.Filename())
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error loading chart %s: %s", rootURI.Filename(), err.Error()))
-		return &chart.Chart{}
+		return getFallbackHelmChart()
 	}
 
 	helmChart, err = chartLoader.Load()
@@ -51,10 +51,20 @@ func loadHelmChart(rootURI uri.URI) (helmChart *chart.Chart) {
 	}
 
 	if helmChart == nil {
-		return &chart.Chart{}
+		return getFallbackHelmChart()
 	}
 
 	return helmChart
+}
+
+func getFallbackHelmChart() *chart.Chart {
+	return &chart.Chart{
+		Metadata:  &chart.Metadata{},
+		Templates: []*chart.File{},
+		Values:    map[string]any{},
+		Schema:    []byte{},
+		Files:     []*chart.File{},
+	}
 }
 
 func (c *Chart) GetMetadataLocation(templateContext []string) (lsp.Location, error) {

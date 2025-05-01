@@ -2,6 +2,7 @@ package yamlhandler
 
 import (
 	"context"
+	"fmt"
 
 	"go.lsp.dev/uri"
 )
@@ -12,6 +13,10 @@ func (h *YamlHandler) CustomSchemaProvider(ctx context.Context, URI uri.URI) (ur
 		logger.Error(err)
 		// we can ignore the error, providing a wrong schema is still useful
 		// chart will still include some fallback values
+	}
+
+	if h.jsonSchemas == nil {
+		return uri.New(""), fmt.Errorf("JSON schema generator not initialized")
 	}
 
 	schemaFilePath, err := h.jsonSchemas.GetJSONSchemaForChart(chart)

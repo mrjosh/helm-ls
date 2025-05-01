@@ -15,6 +15,9 @@ func (h *TemplateHandler) GetDiagnostics(uri lsp.DocumentURI) []lsp.PublishDiagn
 	if err != nil {
 		logger.Error("Error getting chart info for file", doc.URI, err)
 	}
+	if chart == nil {
+		return []lsp.PublishDiagnosticsParams{}
+	}
 	notifications := helmlint.GetDiagnosticsNotifications(chart, doc)
 	return notifications
 }
