@@ -13,7 +13,10 @@ $(eval BUILD_TIME=$(shell date -u '+%Y-%m-%d_%I:%M:%S%p'))
 
 GO_LDFLAGS :=" -X main.Version=${BRANCH_NAME} -X main.CompiledBy=${COMPILED_BY} -X main.GitCommit=${GIT_COMMIT} -X main.Branch=${BRANCH_NAME} -X main.BuildTime=${BUILD_TIME}"
 
-export TEST_RUNNER=$(GOBIN)/gotestsum
+$(eval TEST_RUNNER_PATH=$(shell command -v gotestsum))
+$(eval TEST_RUNNER=$(if $(TEST_RUNNER_PATH),$(TEST_RUNNER_PATH),$(GOBIN)/gotestsum))
+$(info Found gotestsum at: $(TEST_RUNNER))
+export TEST_RUNNER
 export LINTER=$(GOBIN)/golangci-lint
 export LINTERCMD=run --no-config -v \
 	--print-linter-name \
@@ -67,20 +70,17 @@ integration-test-deps:
 	git submodule init
 	git submodule update --depth 1
 
-define run-tests
-	@$(TEST_RUNNER) ./... -v -race -tags=integration || { \
-		echo "gotestsum command not found or failed! Falling back to 'go test'..."; \
-		$(GO) test ./... -v -race -tags=integration; \
-	}
-endef
-
 test:
 	$(MAKE) integration-test-deps
-	$(call run-tests)
+	@if [ -x "$(TEST_RUNNER)" ]; then \
+		$(TEST_RUNNER) ./... -v -race -tags=integration; \
+	else \
+		echo "Falling back to 'go test'..."; \
+		$(GO) test ./... -v -race -tags=integration; \
+	fi
 
-test-update-snaps: 
-	$(MAKE) integration-test-deps
-	UPDATE_SNAPS=true $(call run-tests)
+test-update-snaps: export UPDATE_SNAPS=true
+test-update-snaps: test
 
 coverage:
 	@$(GO) test -coverprofile=.coverage -tags=integration -coverpkg=./internal/... ./internal/... && go tool cover -html=.coverage
