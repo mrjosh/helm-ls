@@ -43,10 +43,13 @@ func (h *YamlHandler) GetDiagnostics(uri uri.URI) []protocol.PublishDiagnosticsP
 		return nil
 	}
 
+	line--
+	var lineUint uint32 = 0
 	// Check bounds for uint32
-	if line < 0 || line > int(math.MaxUint32) {
+	if line < 0 || line+1 > int(math.MaxUint32) {
 		logger.Debug("YamlHandler: Line number out of bounds: %d", line)
-		line = 0
+	} else {
+		lineUint = uint32(line)
 	}
 
 	return []protocol.PublishDiagnosticsParams{
@@ -56,11 +59,11 @@ func (h *YamlHandler) GetDiagnostics(uri uri.URI) []protocol.PublishDiagnosticsP
 				{
 					Range: protocol.Range{
 						Start: protocol.Position{
-							Line:      uint32(line - 1),
+							Line:      lineUint,
 							Character: 0,
 						},
 						End: protocol.Position{
-							Line:      uint32(line),
+							Line:      lineUint + 1,
 							Character: 0,
 						},
 					},
