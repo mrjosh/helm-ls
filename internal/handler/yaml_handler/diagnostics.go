@@ -1,6 +1,7 @@
 package yamlhandler
 
 import (
+	"math"
 	"regexp"
 	"strconv"
 
@@ -40,6 +41,12 @@ func (h *YamlHandler) GetDiagnostics(uri uri.URI) []protocol.PublishDiagnosticsP
 	if err != nil {
 		logger.Error("YamlHandler: Error converting string to int:", err)
 		return nil
+	}
+
+	// Check bounds for uint32
+	if line < 0 || line > int(math.MaxUint32) {
+		logger.Debug("YamlHandler: Line number out of bounds: %d", line)
+		line = 0
 	}
 
 	return []protocol.PublishDiagnosticsParams{
