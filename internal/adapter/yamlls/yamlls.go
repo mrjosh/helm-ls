@@ -78,10 +78,11 @@ func NewConnector(ctx context.Context,
 	}()
 
 	yamllsConnector := Connector{
-		config:        yamllsConfiguration,
-		documents:     documents,
-		client:        client,
-		customHandler: customHandler,
+		config:                    yamllsConfiguration,
+		documents:                 documents,
+		client:                    client,
+		customHandler:             customHandler,
+		EnabledForFilesGlobObject: yamllsConfiguration.GetEnabledForFilesGlobObject(),
 	}
 
 	zapLogger, _ := zap.NewProduction()

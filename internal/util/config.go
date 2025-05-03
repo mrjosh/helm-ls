@@ -1,6 +1,8 @@
 package util
 
-import "github.com/gobwas/glob"
+import (
+	"github.com/gobwas/glob"
+)
 
 type HelmlsConfiguration struct {
 	YamllsConfiguration YamllsConfiguration `json:"yamlls,omitempty"`
@@ -25,8 +27,21 @@ type YamllsConfiguration struct {
 	// if set to false diagnostics will only be shown after saving the file
 	// otherwise writing a template will cause a lot of diagnostics to be shown because
 	// the structure of the document is broken during typing
-	ShowDiagnosticsDirectly bool        `json:"showDiagnosticsDirectly,omitempty"`
-	YamllsSettings          interface{} `json:"config,omitempty"`
+	ShowDiagnosticsDirectly bool `json:"showDiagnosticsDirectly,omitempty"`
+	YamllsSettings          any  `json:"config,omitempty"`
+}
+
+func (y *YamllsConfiguration) GetEnabledForFilesGlobObject() glob.Glob {
+	if y.EnabledForFilesGlobObject == nil {
+		globObject, err := glob.Compile(y.EnabledForFilesGlob)
+		if err != nil {
+			logger.Error("Error compiling glob for yamlls EnabledForFilesGlob", err)
+			globObject = DefaultConfig.YamllsConfiguration.EnabledForFilesGlobObject
+		}
+		y.EnabledForFilesGlobObject = globObject
+	}
+
+	return y.EnabledForFilesGlobObject
 }
 
 var DefaultConfig = HelmlsConfiguration{

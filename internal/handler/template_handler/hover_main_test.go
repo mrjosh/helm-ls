@@ -184,15 +184,12 @@ func TestHoverMain(t *testing.T) {
 			}
 			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
 
-			chart_store := charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback)
+			chartStore := charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback)
 			h := &TemplateHandler{
-				chartStore:      chart_store,
+				chartStore:      chartStore,
 				documents:       documents,
 				yamllsConnector: &yamlls.Connector{},
 			}
-			h.SetChartStore(charts.NewChartStore(uri.File("."), charts.NewChart, func(chart *charts.Chart) {
-				documents.LoadDocsOnNewChart(chart, util.DefaultConfig)
-			}))
 			chart, _ := h.chartStore.GetChartOrParentForDoc(fileURI)
 			documents.LoadDocsOnNewChart(chart, util.DefaultConfig)
 			result, err := h.Hover(context.Background(), &lsp.HoverParams{

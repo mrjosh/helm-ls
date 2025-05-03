@@ -11,6 +11,8 @@ import (
 	"helm.sh/helm/v3/pkg/chartutil"
 )
 
+var templatesDirName = "templates"
+
 func (s *ChartStore) GetChartForDoc(uri lsp.DocumentURI) (*Chart, error) {
 	chart := s.getChartFromCache(uri)
 	if chart != nil {
@@ -50,7 +52,7 @@ func (s *ChartStore) GetChartOrParentForDoc(uri lsp.DocumentURI) (*Chart, error)
 func (s *ChartStore) getChartFromCache(uri lsp.DocumentURI) *Chart {
 	for chartURI, chart := range s.Charts {
 		// template files
-		if strings.HasPrefix(uri.Filename(), filepath.Join(chartURI.Filename(), "template")) {
+		if strings.HasPrefix(uri.Filename(), filepath.Join(chartURI.Filename(), templatesDirName)) {
 			return chart
 		}
 		// values.yaml files etc.
@@ -74,7 +76,7 @@ func (s *ChartStore) getChartFromFilesystemForNonTemplates(path string) (*Chart,
 // but can be arbitrary deep nested
 func (s *ChartStore) getChartFromFilesystemForTemplates(path string) (*Chart, error) {
 	directory := filepath.Dir(path)
-	if filepath.Base(directory) == "templates" {
+	if filepath.Base(directory) == templatesDirName {
 		templatesDir := directory
 		expectedChartDir := filepath.Dir(templatesDir)
 

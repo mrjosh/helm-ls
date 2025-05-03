@@ -21,7 +21,7 @@ func (d *YamlDocument) GetDocumentType() DocumentType {
 
 func NewYamlDocument(fileURI uri.URI, content []byte, isOpen bool, helmlsConfig util.HelmlsConfiguration) *YamlDocument {
 	node, parsedYaml, unmarshalErr := parseYaml(content)
-	logger.Debug("Parsing yaml", fileURI.Filename(), string(content), node.Value, unmarshalErr)
+	logger.Debug("Parsed yaml", fileURI.Filename(), unmarshalErr)
 	return &YamlDocument{
 		Document:   *NewDocument(fileURI, content, isOpen),
 		Node:       node,

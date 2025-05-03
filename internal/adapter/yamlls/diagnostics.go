@@ -44,6 +44,10 @@ func filterDiagnostics(diagnostics []lsp.Diagnostic, ast *sitter.Tree, content [
 		node := templateast.NodeAtPosition(ast, diagnostic.Range.Start)
 		childNode := templateast.FindRelevantChildNode(ast.RootNode(), templateast.GetSitterPointForLspPos(diagnostic.Range.Start))
 
+		if node == nil || childNode == nil {
+			continue
+		}
+
 		if node.Type() == "text" && childNode.Type() == "text" {
 			logger.Debug("Diagnostic", diagnostic)
 			logger.Debug("Node", node.Content(content))

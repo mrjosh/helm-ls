@@ -149,7 +149,7 @@ func TestGetTemplateContextFromSymbolTable(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			expectedRange, template := getRangeForMarkedTestLine(tC.templateWithRangeMark)
+			expectedRange, template := getRangeForMarkedTestLine(t, tC.templateWithRangeMark)
 			s := createSymbolTableWithContexts(template)
 			result, err := s.GetTemplateContext(expectedRange)
 
@@ -216,9 +216,10 @@ func TestGetContextForSelectorExpression(t *testing.T) {
 	}
 }
 
-func getRangeForMarkedTestLine(template string) (sitter.Range, string) {
-	pos0, template := getPositionForMarkedTestLine(template)
-	pos1, template := getPositionForMarkedTestLine(template)
+func getRangeForMarkedTestLine(t *testing.T, template string) (sitter.Range, string) {
+	t.Helper()
+	pos0, template := getPositionForMarkedTestLine(t, template)
+	pos1, template := getPositionForMarkedTestLine(t, template)
 	return sitter.Range{
 		StartPoint: util.PositionToPoint(pos0),
 		EndPoint:   util.PositionToPoint(pos1),
@@ -227,8 +228,12 @@ func getRangeForMarkedTestLine(template string) (sitter.Range, string) {
 	}, template
 }
 
-func getPositionForMarkedTestLine(buf string) (protocol.Position, string) {
+func getPositionForMarkedTestLine(t *testing.T, buf string) (protocol.Position, string) {
+	t.Helper()
 	col := strings.Index(buf, "^")
+	if col == -1 {
+		t.Fatalf("Missing '^' in %s", buf)
+	}
 	buf = strings.Replace(buf, "^", "", 1)
 	pos := protocol.Position{Line: 0, Character: uint32(col)}
 	return pos, buf

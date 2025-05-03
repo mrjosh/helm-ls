@@ -79,7 +79,7 @@ func TestFindRelevantChildNodeCompletion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.template, func(t *testing.T) {
-			position, content := getPositionForMarkedTestLine(tt.template)
+			position, content := getPositionForMarkedTestLine(t, tt.template)
 
 			ast := templateast.ParseAst(nil, []byte(content))
 			t.Logf("RootNode: %s", ast.RootNode().String())
@@ -96,8 +96,13 @@ func TestFindRelevantChildNodeCompletion(t *testing.T) {
 	}
 }
 
-func getPositionForMarkedTestLine(buf string) (protocol.Position, string) {
+func getPositionForMarkedTestLine(t *testing.T, buf string) (protocol.Position, string) {
+	t.Helper()
 	col := strings.Index(buf, "^")
+	if col == -1 {
+		t.Fatalf("Missing '^' in %s", buf)
+	}
+
 	buf = strings.Replace(buf, "^", "", 1)
 	pos := protocol.Position{Line: 0, Character: uint32(col)}
 	return pos, buf
