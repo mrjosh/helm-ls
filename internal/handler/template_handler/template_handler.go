@@ -26,10 +26,6 @@ func NewTemplateHandler(client protocol.Client, documents *document.DocumentStor
 	}
 }
 
-func (h *TemplateHandler) SetChartStore(chartStore *charts.ChartStore) {
-	h.chartStore = chartStore
-}
-
 func (h *TemplateHandler) SetClient(client protocol.Client) {
 	h.client = client
 }

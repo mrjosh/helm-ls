@@ -54,28 +54,21 @@ func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 		connPool:     connPool,
 		documents:    documents,
 		helmlsConfig: util.DefaultConfig,
-		langHandlers: map[document.DocumentType]LangHandler{
-			document.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, nil),
-			document.YamlDocumentType:     yamlhandler.NewYamlHandler(client, documents, nil, nil), // nil values are set by setChartStore
-		},
 	}
 
 	currentDir, err := os.Getwd()
 	if err != nil {
 		logger.Error("Error getting current directory", err)
 	}
-	handler.setChartStore(charts.NewChartStore(uri.File(currentDir), charts.NewChart, handler.AddChartCallback))
+	chartStore := charts.NewChartStore(uri.File(currentDir), charts.NewChart, handler.AddChartCallback)
+	handler.chartStore = chartStore
+	handler.langHandlers = map[document.DocumentType]LangHandler{
+		document.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, chartStore),
+		document.YamlDocumentType:     yamlhandler.NewYamlHandler(client, documents, chartStore), // nil values are set by setChartStore
+	}
 
 	logger.Printf("helm-ls: connections opened")
 	return handler
-}
-
-func (h *ServerHandler) setChartStore(chartStore *charts.ChartStore) {
-	h.chartStore = chartStore
-
-	for _, handler := range h.langHandlers {
-		handler.SetChartStore(chartStore)
-	}
 }
 
 func (h *ServerHandler) setClient(client protocol.Client) {

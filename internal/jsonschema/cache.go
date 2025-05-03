@@ -63,13 +63,13 @@ func (c *JSONSchemaCache) writeCache(uri uri.URI, cachedGeneratedJSONSchema cach
 }
 
 func (c *JSONSchemaCache) GetJSONSchemaForChart(chart *charts.Chart) (string, error) {
-	chached, ok := c.readCache(chart.RootURI)
-
-	if !ok {
-		return c.createJSONSchemaAndCache(chart)
-	}
-
 	res, resErr, _ := c.singleflightGroup.Do(chart.RootURI.Filename(), func() (any, error) {
+		chached, ok := c.readCache(chart.RootURI)
+
+		if !ok {
+			return c.createJSONSchemaAndCache(chart)
+		}
+
 		if chached.checksum != getChecksum(chart) {
 			return c.createJSONSchemaAndCache(chart)
 		} else {

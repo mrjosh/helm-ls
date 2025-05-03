@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
@@ -29,8 +28,6 @@ type LangHandler interface {
 	// Should return the diagnostics for the given document, this function is called after the document was opened or saved
 	GetDiagnostics(uri lsp.DocumentURI) []lsp.PublishDiagnosticsParams
 
-	// SetChartStore is called once the chart store has been initialized
-	SetChartStore(chartStore *charts.ChartStore)
 	// SetClient is called once the client has been initialized
 	SetClient(client protocol.Client)
 }

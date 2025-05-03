@@ -51,9 +51,9 @@ func (yamllsConnector Connector) DocumentDidChange(params *lsp.DidChangeTextDocu
 	if yamllsConnector.server == nil {
 		return
 	}
-	logger.Debug("Sending DocumentDidChange previous ", params)
+	logger.Debug("Sending DocumentDidChange previous ", params.TextDocument.URI)
 	err := yamllsConnector.server.DidChange(context.Background(), params)
 	if err != nil {
-		logger.Println("Error calling yamlls for didChange", err)
+		logger.Error("Error calling yamlls for didChange", err)
 	}
 }

@@ -74,7 +74,7 @@ func (yamllsConnector Connector) DocumentDidChangeTemplate(doc *document.Templat
 		)
 
 		if end >= len(trimmedText) {
-			end = len(trimmedText) - 1
+			end = max(len(trimmedText)-1, 0)
 		}
 
 		logger.Debug("Start end", start, end)

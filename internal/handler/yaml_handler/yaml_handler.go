@@ -27,25 +27,18 @@ func (h *YamlHandler) SetClient(client protocol.Client) {
 	h.client = client
 }
 
-func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, chartStore *charts.ChartStore, jsonSchemas *jsonschema.JSONSchemaCache) *YamlHandler {
+func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, chartStore *charts.ChartStore) *YamlHandler {
+	jsonSchemas, err := jsonschema.NewJSONSchemaCache(jsonschema.JSONSchemaConfig{}, chartStore)
+	if err != nil || jsonSchemas == nil {
+		client.ShowMessage(context.Background(), &protocol.ShowMessageParams{
+			Type: protocol.MessageTypeError, Message: fmt.Sprintf("Helm-ls: Failed to create JSON schema cache: %s", err.Error()),
+		})
+	}
 	return &YamlHandler{
 		documents:       documents,
 		chartStore:      chartStore,
 		yamllsConnector: &yamlls.Connector{},
 		jsonSchemas:     jsonSchemas,
-	}
-}
-
-func (h *YamlHandler) SetChartStore(chartStore *charts.ChartStore) {
-	h.chartStore = chartStore
-
-	jsonSchemas, err := jsonschema.NewJSONSchemaCache(jsonschema.JSONSchemaConfig{}, chartStore)
-	if err != nil {
-		h.client.ShowMessage(context.Background(), &protocol.ShowMessageParams{
-			Type: protocol.MessageTypeError, Message: fmt.Sprintf("Helm-ls: Failed to create JSON schema cache: %s", err.Error()),
-		})
-	} else {
-		h.jsonSchemas = jsonSchemas
 	}
 }
 

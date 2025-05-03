@@ -45,7 +45,7 @@ func (h *TemplateHandler) PostDidChange(ctx context.Context, params *lsp.DidChan
 	shouldSendFullUpdateToYamlls := false
 	for _, change := range params.ContentChanges {
 		node := templateast.NodeAtPosition(doc.Ast, change.Range.Start)
-		if node.Type() != "text" {
+		if node != nil && node.Type() != "text" {
 			shouldSendFullUpdateToYamlls = true
 			break
 		}

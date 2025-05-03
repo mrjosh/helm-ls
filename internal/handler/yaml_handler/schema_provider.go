@@ -14,7 +14,7 @@ func (h *YamlHandler) CustomSchemaProvider(ctx context.Context, URI uri.URI) (ur
 
 	chart, err := h.chartStore.GetChartForDoc(URI)
 	if err != nil {
-		logger.Error(err)
+		logger.Error("Could not get a chart for the document: ", err)
 		// we can ignore the error, providing a wrong schema is still useful
 		// chart will still include some fallback values
 	}

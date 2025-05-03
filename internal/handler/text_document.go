@@ -18,11 +18,8 @@ func (h *ServerHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocu
 		return errors.New(message)
 	}
 
-	handler.DidOpen(ctx, params, h.helmlsConfig)
-
 	defer h.publishDiagnostics(ctx, handler.GetDiagnostics(params.TextDocument.URI))
-
-	return nil
+	return handler.DidOpen(ctx, params, h.helmlsConfig)
 }
 
 func (h *ServerHandler) DidClose(_ context.Context, _ *lsp.DidCloseTextDocumentParams) (err error) {
@@ -35,11 +32,8 @@ func (h *ServerHandler) DidSave(ctx context.Context, params *lsp.DidSaveTextDocu
 		return err
 	}
 
-	handler.DidSave(ctx, params)
-
 	defer h.publishDiagnostics(ctx, handler.GetDiagnostics(params.TextDocument.URI))
-
-	return nil
+	return handler.DidSave(ctx, params)
 }
 
 func (h *ServerHandler) DidChange(ctx context.Context, params *lsp.DidChangeTextDocumentParams) (err error) {

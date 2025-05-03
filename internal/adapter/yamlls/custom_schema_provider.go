@@ -49,7 +49,7 @@ func NewCustomSchemaProviderHandler(provider CustomSchemaProvider) jsonrpc2.Hand
 				return reply(ctx, nil, errors.New("no URI provided"))
 			}
 
-			results := make([]uri.URI, len(requestedURIs))
+			results := make([]uri.URI, 0, len(requestedURIs))
 			for _, v := range requestedURIs {
 				schemaURI, err := provider(ctx, uri.New(v))
 				if err != nil {

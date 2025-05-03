@@ -53,24 +53,27 @@ func TestPointsToValuesFromSubChart(t *testing.T) {
 	refsContainsNested(t, schema, expectedRef, []string{"subchartexample"})
 }
 
-func TestPointsToValuesValuesFromDependencySubChart(t *testing.T) {
+func TestPointsToValuesFromDependencySubChart(t *testing.T) {
 	rootURI := uri.File("../../testdata/dependenciesExample/")
 	generatedChartJSONSchema, _ := getGeneratedChartJSONSchema(t, rootURI)
 
 	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/common", uri.File("/common"))}
 	refsContainsNested(t, generatedChartJSONSchema.schema, expectedRef, []string{"common"})
 
+	getSchemaPathForChart := func(chart *charts.Chart) string {
+		return "/" + chart.Name()
+	}
+
+	testedDependency := false
 	for _, dependency := range generatedChartJSONSchema.dependencies {
 		if dependency.Name() == "common" {
-			getSchemaPathForChart := func(chart *charts.Chart) string {
-				return "/" + chart.Name()
-			}
 
 			generatedChartJSONSchemaDep, err := CreateJSONSchemaForChart(dependency, &charts.ChartStore{}, getSchemaPathForChart)
 			assert.NoError(t, err)
 			definitionsDoesContainPropertyInAllOf(t, generatedChartJSONSchemaDep.schema, "common", []string{"exampleValue"})
 		}
 	}
+	assert.True(t, testedDependency, "No 'common' dependency found to test")
 }
 
 func TestHasGlobalValuesInSchema(t *testing.T) {
@@ -164,7 +167,9 @@ func definitionsDoesContainPropertyGeneric(t *testing.T, schema *Schema, definit
 	subSchema := schema.Definitions[definitionName]
 	assert.NotNil(t, subSchema, "Definition %s should exist on schema, but does not, schema: %s", definitionName, schemaToJSON(schema))
 
-	found, ok := false, true
+	// Initial state - ok tracks if properties exist, found tracks if we located the desired path
+	found := false
+	ok := true
 
 	for _, preProperty := range prePropertyPath {
 		props := subSchema.Properties
