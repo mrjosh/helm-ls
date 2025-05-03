@@ -67,6 +67,7 @@ func TestPointsToValuesFromDependencySubChart(t *testing.T) {
 	testedDependency := false
 	for _, dependency := range generatedChartJSONSchema.dependencies {
 		if dependency.Name() == "common" {
+			testedDependency = true
 
 			generatedChartJSONSchemaDep, err := CreateJSONSchemaForChart(dependency, &charts.ChartStore{}, getSchemaPathForChart)
 			assert.NoError(t, err)
