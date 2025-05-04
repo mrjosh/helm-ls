@@ -95,7 +95,7 @@ func NewConnector(ctx context.Context,
 func (yamllsConnector *Connector) isRelevantFile(uri lsp.URI) bool {
 	doc, ok := yamllsConnector.documents.GetTemplateDoc(uri)
 	if !ok {
-		logger.Error("Could not find document", uri)
+		logger.Error("Could not find document ", uri)
 		return true
 	}
 	return doc.IsYaml
