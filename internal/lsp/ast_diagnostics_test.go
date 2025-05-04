@@ -3,12 +3,13 @@ package lsp
 import (
 	"testing"
 
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
 func TestIsInElseBranch(t *testing.T) {
 	template := `{{if pipeline}} t1 {{ else if pipeline }} t2 {{ else if pipeline2 }} t3 {{ else }} t4 {{ end }}`
-	ast := ParseAst(nil, template)
+	ast := templateast.ParseAst(nil, []byte(template))
 	// (template [0, 0] - [1, 0]
 	//   (if_action [0, 0] - [0, 95]
 	//     condition: (function_call [0, 5] - [0, 13]
@@ -21,8 +22,6 @@ func TestIsInElseBranch(t *testing.T) {
 	//       function: (identifier [0, 56] - [0, 65]))
 	//     option: (text [0, 68] - [0, 71])
 	//     alternative: (text [0, 82] - [0, 85])))
-
-	logger.Println("RootNode:", ast.RootNode().String())
 
 	t1_start := sitter.Point{Row: 0, Column: 16}
 	t1 := ast.RootNode().NamedDescendantForPointRange(t1_start, t1_start)

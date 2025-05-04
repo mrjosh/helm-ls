@@ -18,6 +18,25 @@ func GetTableOrValueForSelector(values chartutil.Values, selector []string) (str
 	return FormatToYAML(reflect.Indirect(reflect.ValueOf(value)), strings.Join(selector, ".")), err
 }
 
+func GetSubValuesForSelector(values chartutil.Values, selector []string) (map[string]any, error) {
+	if len(selector) <= 0 || selector[0] == "" {
+		return values, nil
+	}
+	res, err := pathLookup(values, selector)
+	if err != nil {
+		return map[string]any{}, err
+	}
+	if res == nil {
+		return map[string]any{}, fmt.Errorf("value not found")
+	}
+
+	if casted, ok := res.(map[string]any); !ok {
+		return map[string]any{}, fmt.Errorf("value is not a map")
+	} else {
+		return casted, nil
+	}
+}
+
 func GetValueCompletion(values chartutil.Values, splittedVar []string) []lsp.CompletionItem {
 	var (
 		err         error
@@ -101,27 +120,27 @@ func rangePathLookup(v chartutil.Values, path []string) (interface{}, error) {
 	if v3, ok := v2.([]interface{}); ok {
 		return rangeArrayLookup(v3, path)
 	}
-	if nestedValues, ok := v2.(map[string]interface{}); ok {
+	if nestedValues, ok := v2.(map[string]any); ok {
 		return rangeMappingLookup(nestedValues, path)
 	}
 
 	return chartutil.Values{}, chartutil.ErrNoTable{Key: path[0]}
 }
 
-func rangeArrayLookup(v3 []interface{}, path []string) (interface{}, error) {
+func rangeArrayLookup(v3 []any, path []string) (any, error) {
 	if len(v3) == 0 {
 		return chartutil.Values{}, ErrEmpytArray{path[0]}
 	}
 	if len(path) == 1 {
 		return v3[0], nil
 	}
-	if vv, ok := v3[0].(map[string]interface{}); ok {
+	if vv, ok := v3[0].(map[string]any); ok {
 		return pathLookup(vv, path[1:])
 	}
 	return chartutil.Values{}, chartutil.ErrNoTable{Key: path[0]}
 }
 
-func rangeMappingLookup(nestedValues map[string]interface{}, path []string) (interface{}, error) {
+func rangeMappingLookup(nestedValues map[string]any, path []string) (any, error) {
 	if len(nestedValues) == 0 {
 		return chartutil.Values{}, ErrEmpytMapping{path[0]}
 	}
@@ -130,7 +149,7 @@ func rangeMappingLookup(nestedValues map[string]interface{}, path []string) (int
 		if len(path) == 1 {
 			return nestedValues[k], nil
 		}
-		if nestedValues, ok := (nestedValues[k]).(map[string]interface{}); ok {
+		if nestedValues, ok := (nestedValues[k]).(map[string]any); ok {
 			return pathLookup(nestedValues, path[1:])
 		}
 	}
@@ -144,10 +163,10 @@ type ErrEmpytMapping struct {
 	Key string
 }
 
-func (e ErrEmpytArray) Error() string   { return fmt.Sprintf("%q is an empyt array", e.Key) }
-func (e ErrEmpytMapping) Error() string { return fmt.Sprintf("%q is an empyt mapping", e.Key) }
+func (e ErrEmpytArray) Error() string   { return fmt.Sprintf("%q is an empty array", e.Key) }
+func (e ErrEmpytMapping) Error() string { return fmt.Sprintf("%q is an empty mapping", e.Key) }
 
-func builCompletionItem(value interface{}, variable string) lsp.CompletionItem {
+func builCompletionItem(value any, variable string) lsp.CompletionItem {
 	var (
 		itemKind      = lsp.CompletionItemKindVariable
 		valueOf       = reflect.ValueOf(value)

@@ -2,7 +2,7 @@ package languagefeatures
 
 import (
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	lsp "go.lsp.dev/protocol"
 )
@@ -51,7 +51,7 @@ func (f *BuiltInObjectsFeature) References() (result []lsp.Location, err error) 
 	return append(locations, f.getDefinitionLocations(templateContext)...), err
 }
 
-func (f *BuiltInObjectsFeature) getDefinitionLocations(templateContext lsplocal.TemplateContext) []lsp.Location {
+func (f *BuiltInObjectsFeature) getDefinitionLocations(templateContext symboltable.TemplateContext) []lsp.Location {
 	locations := []lsp.Location{}
 
 	switch templateContext[0] {
