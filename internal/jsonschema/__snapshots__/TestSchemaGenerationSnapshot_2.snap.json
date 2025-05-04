@@ -46,6 +46,15 @@
  "$schema": "https://json-schema.org/draft/2020-12/schema",
  "allOf": [
   {
+   "$ref": "#/$defs/subchartexample"
+  },
+  {
+   "$ref": "file:///dependenciesExample#/$defs/dependenciesExample/allOf/0/properties/subchartexample"
+  },
+  {
+   "$ref": "file:///dependenciesExample#/$defs/dependenciesExample/allOf/2/properties/subchartexample"
+  },
+  {
    "properties": {
     "global": {
      "$ref": "file:///dependenciesExample#/$defs/global"
@@ -58,15 +67,6 @@
      "$ref": "#/$defs/global"
     }
    }
-  },
-  {
-   "$ref": "#/$defs/subchartexample"
-  },
-  {
-   "$ref": "file:///dependenciesExample#/$defs/dependenciesExample/allOf/0/properties/subchartexample"
-  },
-  {
-   "$ref": "file:///dependenciesExample#/$defs/dependenciesExample/allOf/2/properties/subchartexample"
   }
  ],
  "type": "object"

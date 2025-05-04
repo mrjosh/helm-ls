@@ -434,6 +434,9 @@
  "$schema": "https://json-schema.org/draft/2020-12/schema",
  "allOf": [
   {
+   "$ref": "#/$defs/dependenciesExample"
+  },
+  {
    "properties": {
     "common": {
      "$ref": "file:///common#/$defs/common"
@@ -460,9 +463,6 @@
      "$ref": "#/$defs/global"
     }
    }
-  },
-  {
-   "$ref": "#/$defs/dependenciesExample"
   }
  ],
  "type": "object"

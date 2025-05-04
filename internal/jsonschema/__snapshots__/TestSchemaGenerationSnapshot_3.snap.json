@@ -68,6 +68,9 @@
  "$schema": "https://json-schema.org/draft/2020-12/schema",
  "allOf": [
   {
+   "$ref": "#/$defs/nestedDependenciesExample"
+  },
+  {
    "properties": {
     "onceNested": {
      "$ref": "file:///onceNested#/$defs/onceNested"
@@ -98,9 +101,6 @@
      "$ref": "#/$defs/global"
     }
    }
-  },
-  {
-   "$ref": "#/$defs/nestedDependenciesExample"
   }
  ],
  "type": "object"

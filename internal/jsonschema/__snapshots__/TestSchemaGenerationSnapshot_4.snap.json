@@ -62,11 +62,17 @@
  "$schema": "https://json-schema.org/draft/2020-12/schema",
  "allOf": [
   {
+   "$ref": "#/$defs/onceNested"
+  },
+  {
    "properties": {
     "twiceNested": {
      "$ref": "file:///twiceNested#/$defs/twiceNested"
     }
    }
+  },
+  {
+   "$ref": "file:///nestedDependenciesExample#/$defs/nestedDependenciesExample/allOf/0/properties/onceNested"
   },
   {
    "properties": {
@@ -81,12 +87,6 @@
      "$ref": "#/$defs/global"
     }
    }
-  },
-  {
-   "$ref": "#/$defs/onceNested"
-  },
-  {
-   "$ref": "file:///nestedDependenciesExample#/$defs/nestedDependenciesExample/allOf/0/properties/onceNested"
   }
  ],
  "type": "object"
