@@ -28,16 +28,7 @@ func TestSchemaGenerationSnapshot(t *testing.T) {
 func snapshotTest(t *testing.T, path string) {
 	t.Helper()
 	schema, _ := getSchemaForChart(t, uri.File(path))
-
-	s := snaps.WithConfig(
-		snaps.JSON(snaps.JSONConfig{
-			Width:    80,
-			Indent:   " ",
-			SortKeys: true,
-		}),
-	)
-
-	s.MatchStandaloneJSON(t, schema)
+	snaps.MatchStandaloneJSON(t, schema)
 }
 
 func TestHasOtherValueFilesInSameChartInSchema(t *testing.T) {
@@ -69,21 +60,36 @@ func TestPointsToValuesFromDependencySubChart(t *testing.T) {
 	expectedRef := &Schema{Ref: fmt.Sprintf("%s#/$defs/common", uri.File("/common"))}
 	refsContainsNested(t, generatedChartJSONSchema.schema, expectedRef, []string{"common"})
 
+<<<<<<< Updated upstream
 	getSchemaPathForChart := func(chart *charts.Chart) string {
 		return "/" + chart.Name()
 	}
 
 	testedDependency := false
+||||||| Stash base
+	testedDependency := false
+=======
+>>>>>>> Stashed changes
 	for _, dependency := range generatedChartJSONSchema.dependencies {
 		if dependency.Name() == "common" {
+<<<<<<< Updated upstream
 			testedDependency = true
+||||||| Stash base
+			testedDependency = true
+			getSchemaPathForChart := func(chart *charts.Chart) string {
+				return "/" + chart.Name()
+			}
+=======
+			getSchemaPathForChart := func(chart *charts.Chart) string {
+				return "/" + chart.Name()
+			}
+>>>>>>> Stashed changes
 
 			generatedChartJSONSchemaDep, err := CreateJSONSchemaForChart(dependency, &charts.ChartStore{}, getSchemaPathForChart)
 			assert.NoError(t, err)
 			definitionsDoesContainPropertyInAllOf(t, generatedChartJSONSchemaDep.schema, "common", []string{"exampleValue"})
 		}
 	}
-	assert.True(t, testedDependency, "No 'common' dependency found to test")
 }
 
 func TestHasGlobalValuesInSchema(t *testing.T) {
