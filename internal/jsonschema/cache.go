@@ -108,7 +108,7 @@ func (c *JSONSchemaCache) processDependencies(generatedChartJSONSchema Generated
 
 	for _, dependency := range generatedChartJSONSchema.dependencies {
 		wg.Add(1)
-		// Capture dependency to avoid closure pitfalls (or pass it as a parameter)
+		// Capture dependency to avoid closure pitfalls
 		dep := dependency
 		go func() {
 			defer wg.Done()
