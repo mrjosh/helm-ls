@@ -64,7 +64,7 @@ func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 	handler.chartStore = chartStore
 	handler.langHandlers = map[document.DocumentType]LangHandler{
 		document.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, chartStore),
-		document.YamlDocumentType:     yamlhandler.NewYamlHandler(client, documents, chartStore), // nil values are set by setChartStore
+		document.YamlDocumentType:     yamlhandler.NewYamlHandler(client, documents, chartStore),
 	}
 
 	logger.Printf("helm-ls: connections opened")
