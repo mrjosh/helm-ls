@@ -28,7 +28,16 @@ func TestSchemaGenerationSnapshot(t *testing.T) {
 func snapshotTest(t *testing.T, path string) {
 	t.Helper()
 	schema, _ := getSchemaForChart(t, uri.File(path))
-	snaps.MatchStandaloneJSON(t, schema)
+
+	s := snaps.WithConfig(
+		snaps.JSON(snaps.JSONConfig{
+			Width:    80,
+			Indent:   " ",
+			SortKeys: true,
+		}),
+	)
+
+	s.MatchStandaloneJSON(t, schema)
 }
 
 func TestHasOtherValueFilesInSameChartInSchema(t *testing.T) {
