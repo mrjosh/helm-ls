@@ -8,6 +8,7 @@ import (
 
 // Hover implements handler.LangHandler.
 func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error) {
+	logger.Debug("YamlHandler Hover", params)
 	return h.yamllsConnector.CallHover(ctx, *params)
 	// doc, ok := h.documents.GetYamlDoc(params.TextDocument.URI)
 	//

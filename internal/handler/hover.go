@@ -11,6 +11,7 @@ func (h *ServerHandler) Hover(ctx context.Context, params *lsp.HoverParams) (res
 
 	handler, err := h.selectLangHandler(ctx, params.TextDocument.URI)
 	if err != nil {
+		logger.Error("Error selecting lang handler", err)
 		return nil, err
 	}
 	return handler.Hover(ctx, params)
