@@ -11,7 +11,6 @@ import (
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
-	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 	"go.uber.org/zap"
 )
@@ -20,17 +19,17 @@ var logger = log.GetLogger()
 
 type Connector struct {
 	config                    util.YamllsConfiguration
-	server                    protocol.Server
+	server                    lsp.Server
 	conn                      jsonrpc2.Conn
 	documents                 *document.DocumentStore
-	client                    protocol.Client
+	client                    lsp.Client
 	customHandler             *CustomHandler
 	EnabledForFilesGlobObject glob.Glob
 }
 
 func NewConnector(ctx context.Context,
 	yamllsConfiguration util.YamllsConfiguration,
-	client protocol.Client,
+	client lsp.Client,
 	documents *document.DocumentStore,
 	customHandler *CustomHandler,
 ) *Connector {
