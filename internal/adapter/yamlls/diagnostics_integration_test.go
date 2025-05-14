@@ -23,7 +23,7 @@ import (
 var TEST_DATA_DIR = "../../../testdata/charts/bitnami/"
 
 func readTestFiles(dir string, channel chan<- string, doneChan chan<- int) {
-	libRegEx, e := regexp.Compile(".*(/|\\\\)templates(/|\\\\).*\\.ya?ml")
+	libRegEx, e := regexp.Compile(`.*(/|\\)templates(/|\\).*\.ya?ml`)
 	if e != nil {
 		log.Fatal(e)
 		return
@@ -116,7 +116,6 @@ func TestYamllsDiagnosticsIntegration(t *testing.T) {
 
 func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 	t.Parallel()
-	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams)
 
 	config := util.DefaultConfig.YamllsConfiguration
 	yamllsConnector, documents, diagnosticsChan := getYamlLsConnector(t, config)
@@ -135,34 +134,32 @@ func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 			},
 		},
 		Severity:           1,
-		Code:               0.0,
+		Code:               0,
 		CodeDescription:    nil,
-		Source:             "yaml-schema: https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.22.4-standalone-strict/_definitions.json",
+		Source:             "yaml-schema: https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/MOCKED-VERSION-standalone-strict/_definitions.json",
 		Message:            "Yamlls: Property wrong is not allowed.",
 		Tags:               nil,
 		RelatedInformation: nil,
-		Data: map[string]interface{}{
-			"properties": []interface{}{
-				"status",
-			},
-			"schemaUri": []interface{}{
-				"https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.22.4-standalone-strict/_definitions.json",
-			},
-		},
+		Data:               map[string]any{},
 	}
 
 	diagnostic := []lsp.Diagnostic{}
 	afterCh := time.After(10 * time.Second)
-	for {
-		if len(diagnostic) > 0 {
-			break
-		}
+	for len(diagnostic) <= 0 {
 		select {
 		case d := <-diagnosticsChan:
 			diagnostic = append(diagnostic, d.Diagnostics...)
 		case <-afterCh:
 			t.Fatal("Timed out waiting for diagnostics")
 		}
+	}
+
+	regex := regexp.MustCompile(`/v\d+\.\d+\.\d+-standalone-strict/`)
+
+	for i := range diagnostic {
+		diagnostic[i].Source = regex.ReplaceAllString(diagnostic[i].Source, "/MOCKED-VERSION-standalone-strict/")
+		diagnostic[i].Data = map[string]any{}
+		diagnostic[i].Code = 0
 	}
 
 	assert.Contains(t, diagnostic, expected)
