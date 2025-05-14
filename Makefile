@@ -60,7 +60,7 @@ install-testrunner:
 	@$(GO) install -v gotest.tools/gotestsum@latest
 
 install-yamlls:
-	npm install --global yaml-language-server@1.15
+	npm install --global yaml-language-server@1.17
 
 integration-test-deps:
 	@YAMLLS_BIN=$$(command -v yaml-language-server) || { echo "yaml-language-server command not found! Installing..." && $(MAKE) install-yamlls; };
