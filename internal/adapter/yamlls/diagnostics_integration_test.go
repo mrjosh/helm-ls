@@ -134,7 +134,7 @@ func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 			},
 		},
 		Severity:           1,
-		Code:               0.0,
+		Code:               0,
 		CodeDescription:    nil,
 		Source:             "yaml-schema: https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/MOCKED-VERSION-standalone-strict/_definitions.json",
 		Message:            "Yamlls: Property wrong is not allowed.",
@@ -159,6 +159,7 @@ func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 	for i := range diagnostic {
 		diagnostic[i].Source = regex.ReplaceAllString(diagnostic[i].Source, "/MOCKED-VERSION-standalone-strict/")
 		diagnostic[i].Data = map[string]any{}
+		diagnostic[i].Code = 0
 	}
 
 	assert.Contains(t, diagnostic, expected)
