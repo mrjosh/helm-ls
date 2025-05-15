@@ -6,11 +6,11 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/gobwas/glob"
 	"github.com/mrjosh/helm-ls/internal/log"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
-	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 	"go.uber.org/zap"
 )
@@ -18,13 +18,21 @@ import (
 var logger = log.GetLogger()
 
 type Connector struct {
-	config    util.YamllsConfiguration
-	server    protocol.Server
-	documents *lsplocal.DocumentStore
-	client    protocol.Client
+	config                    util.YamllsConfiguration
+	server                    lsp.Server
+	conn                      jsonrpc2.Conn
+	documents                 *document.DocumentStore
+	client                    lsp.Client
+	customHandler             *CustomHandler
+	EnabledForFilesGlobObject glob.Glob
 }
 
-func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfiguration, client protocol.Client, documents *lsplocal.DocumentStore) *Connector {
+func NewConnector(ctx context.Context,
+	yamllsConfiguration util.YamllsConfiguration,
+	client lsp.Client,
+	documents *document.DocumentStore,
+	customHandler *CustomHandler,
+) *Connector {
 	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
 
 	stdin, err := yamllsCmd.StdinPipe()
@@ -69,22 +77,25 @@ func NewConnector(ctx context.Context, yamllsConfiguration util.YamllsConfigurat
 	}()
 
 	yamllsConnector := Connector{
-		config:    yamllsConfiguration,
-		documents: documents,
-		client:    client,
+		config:                    yamllsConfiguration,
+		documents:                 documents,
+		client:                    client,
+		customHandler:             customHandler,
+		EnabledForFilesGlobObject: yamllsConfiguration.GetEnabledForFilesGlobObject(),
 	}
 
 	zapLogger, _ := zap.NewProduction()
-	_, _, server := protocol.NewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)
+	_, conn, server := yamllsConnector.CustomNewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)
 
 	yamllsConnector.server = server
+	yamllsConnector.conn = conn
 	return &yamllsConnector
 }
 
 func (yamllsConnector *Connector) isRelevantFile(uri lsp.URI) bool {
-	doc, ok := yamllsConnector.documents.Get(uri)
+	doc, ok := yamllsConnector.documents.GetTemplateDoc(uri)
 	if !ok {
-		logger.Error("Could not find document", uri)
+		logger.Error("Could not find document ", uri)
 		return true
 	}
 	return doc.IsYaml

@@ -4,7 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mrjosh/helm-ls/internal/util"
+	templateast "github.com/mrjosh/helm-ls/internal/lsp/template_ast"
+
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/protocol"
@@ -78,11 +79,11 @@ func TestFindRelevantChildNodeCompletion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.template, func(t *testing.T) {
-			position, content := getPositionForMarkedTestLine(tt.template)
+			position, content := getPositionForMarkedTestLine(t, tt.template)
 
-			ast := ParseAst(nil, content)
+			ast := templateast.ParseAst(nil, []byte(content))
 			t.Logf("RootNode: %s", ast.RootNode().String())
-			node := NestedNodeAtPositionForCompletion(ast, position)
+			node := templateast.NestedNodeAtPositionForCompletion(ast, position)
 
 			assert.Equal(t, tt.nodeContent, node.Content([]byte(content)))
 			assert.Equal(t, tt.nodeType, node.Type())
@@ -95,20 +96,14 @@ func TestFindRelevantChildNodeCompletion(t *testing.T) {
 	}
 }
 
-func getPositionForMarkedTestLine(buf string) (protocol.Position, string) {
+func getPositionForMarkedTestLine(t *testing.T, buf string) (protocol.Position, string) {
+	t.Helper()
 	col := strings.Index(buf, "^")
+	if col == -1 {
+		t.Fatalf("Missing '^' in %s", buf)
+	}
+
 	buf = strings.Replace(buf, "^", "", 1)
 	pos := protocol.Position{Line: 0, Character: uint32(col)}
 	return pos, buf
-}
-
-func getRangeForMarkedTestLine(template string) (sitter.Range, string) {
-	pos0, template := getPositionForMarkedTestLine(template)
-	pos1, template := getPositionForMarkedTestLine(template)
-	return sitter.Range{
-		StartPoint: util.PositionToPoint(pos0),
-		EndPoint:   util.PositionToPoint(pos1),
-		StartByte:  pos0.Character,
-		EndByte:    pos1.Character,
-	}, template
 }

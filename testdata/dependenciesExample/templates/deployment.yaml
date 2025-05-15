@@ -3,14 +3,14 @@ kind: Deployment
 metadata:
   name: {{ include "common.names.name" . }}
   labels:
-    {{- include "dependeciesExample.labels" . | nindent 4 }}
+    {{- include "dependenciesExample.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "dependeciesExample.selectorLabels" . | nindent 6 }}
+      {{- include "dependenciesExample.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "dependeciesExample.labels" . | nindent 8 }}
+        {{- include "dependenciesExample.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -27,7 +27,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "dependeciesExample.serviceAccountName" . }}
+      serviceAccountName: {{ include "dependenciesExample.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:

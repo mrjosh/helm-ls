@@ -36,5 +36,12 @@ func (yamllsConnector Connector) CallInitialize(ctx context.Context, workspaceUR
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		if err := yamllsConnector.customHandler.PostInitialize(ctx, yamllsConnector.conn); err != nil {
+			logger.Error("Failed to post-initialize custom handler:", err)
+		}
+	}()
+
 	return yamllsConnector.server.Initialized(ctx, &lsp.InitializedParams{})
 }

@@ -1,0 +1,7 @@
+fromTheFileA: hallo
+image:
+  tag: hallo
+
+replicaCount: 5
+global:
+  globalFromFileA: hi

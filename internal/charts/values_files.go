@@ -3,6 +3,7 @@ package charts
 import (
 	"fmt"
 	"path/filepath"
+	"slices"
 
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
@@ -66,6 +67,7 @@ func getAdditionalValuesFiles(additionalValuesFilesGlob string, rootURI uri.URI,
 }
 
 func (v *ValuesFiles) AllValuesFiles() []*ValuesFile {
+	// NOTE: we do not include the OverlayValuesFile because it values are not "real"
 	return append([]*ValuesFile{v.MainValuesFile}, v.AdditionalValuesFiles...)
 }
 
@@ -73,7 +75,7 @@ func (v *ValuesFiles) GetPositionsForValue(query []string) []lsp.Location {
 	logger.Debug(fmt.Sprintf("GetPositionsForValue with query %v", query))
 	result := []lsp.Location{}
 	for _, value := range v.AllValuesFiles() {
-		queryCopy := append([]string{}, query...)
+		queryCopy := slices.Clone(query)
 		pos, err := util.GetPositionOfNode(&value.ValueNode, queryCopy)
 		if err != nil {
 			yaml, _ := value.Values.YAML()
