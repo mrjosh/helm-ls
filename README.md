@@ -171,7 +171,7 @@ You can configure helm-ls with lsp workspace configurations.
 - **Enable yaml-language-server**: Toggle support of this feature.
 - **EnabledForFilesGlob**: A glob pattern defining for which files yaml-language-server should be enabled.
 - **Path to yaml-language-server**: Specify the executable location.
-- **initTimeoutSeconds**: The timeout in second for the initialization of yamlls. (Increase if you get a error log like "Error initializing yamlls context deadline exceeded")
+- **initTimeoutSeconds**: The timeout in seconds for the initialization of yamlls. (Increase if you get an error log like "Error initializing yamlls context deadline exceeded")
 - **Diagnostics Settings**:
 
   - **Limit**: Number of displayed diagnostics per file. Set this to 0 to disable all diagnostics from yaml-language-server but keep other features such as hover.
