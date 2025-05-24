@@ -57,14 +57,14 @@
   {
    "properties": {
     "global": {
-     "$ref": "file:///dependenciesExample#/$defs/global"
+     "$ref": "#/$defs/global"
     }
    }
   },
   {
    "properties": {
     "global": {
-     "$ref": "#/$defs/global"
+     "$ref": "file:///dependenciesExample#/$defs/global"
     }
    }
   }

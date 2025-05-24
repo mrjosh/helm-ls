@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"runtime"
 	"slices"
+	"sort"
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
@@ -13,6 +14,22 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
 )
+
+// ByJSONRepr implements sort.Interface using the canonical JSON representation.
+type ByJSONRepr []*Schema
+
+func (a ByJSONRepr) Len() int {
+	return len(a)
+}
+
+func (a ByJSONRepr) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+func (a ByJSONRepr) Less(i, j int) bool {
+	// Compare the canonical JSON strings for sorting.
+	return schemaToJSON(a[i]) < schemaToJSON(a[j])
+}
 
 func TestSchemaGenerationSnapshot(t *testing.T) {
 	if runtime.GOOS == "windows" {
@@ -28,6 +45,10 @@ func TestSchemaGenerationSnapshot(t *testing.T) {
 func snapshotTest(t *testing.T, path string) {
 	t.Helper()
 	schema, _ := getSchemaForChart(t, uri.File(path))
+
+	allOf := schema.AllOf
+	sort.Sort(ByJSONRepr(allOf))
+	schema.AllOf = allOf
 
 	s := snaps.WithConfig(
 		snaps.JSON(snaps.JSONConfig{

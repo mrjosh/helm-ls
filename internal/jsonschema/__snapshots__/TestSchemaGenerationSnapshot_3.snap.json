@@ -72,8 +72,8 @@
   },
   {
    "properties": {
-    "onceNested": {
-     "$ref": "file:///onceNested#/$defs/onceNested"
+    "global": {
+     "$ref": "#/$defs/global"
     }
    }
   },
@@ -87,18 +87,18 @@
   {
    "properties": {
     "onceNested": {
-     "properties": {
-      "twiceNested": {
-       "$ref": "file:///twiceNested#/$defs/twiceNested"
-      }
-     }
+     "$ref": "file:///onceNested#/$defs/onceNested"
     }
    }
   },
   {
    "properties": {
-    "global": {
-     "$ref": "#/$defs/global"
+    "onceNested": {
+     "properties": {
+      "twiceNested": {
+       "$ref": "file:///twiceNested#/$defs/twiceNested"
+      }
+     }
     }
    }
   }
