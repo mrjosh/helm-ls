@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/protocol"
@@ -44,7 +44,7 @@ func readTestFiles(dir string, channel chan<- string, doneChan chan<- int) {
 	doneChan <- count
 }
 
-func sendTestFilesToYamlls(documents *lsplocal.DocumentStore, yamllsConnector *Connector,
+func sendTestFilesToYamlls(documents *document.DocumentStore, yamllsConnector *Connector,
 	doneReadingFilesChan <-chan int,
 	doneSendingFilesChan chan<- int,
 	filesChan <-chan string,
@@ -79,7 +79,7 @@ func TestYamllsDiagnosticsIntegration(t *testing.T) {
 		Enable: false,
 	}
 	config.YamllsSettings = yamllsSettings
-	yamllsConnector, documents, diagnosticsChan := getYamlLsConnector(t, config)
+	yamllsConnector, documents, diagnosticsChan := getYamllsConnector(t, config, &DefaultCustomHandler)
 
 	didOpenChan := make(chan string)
 	go readTestFiles(TEST_DATA_DIR, didOpenChan, doneReadingFilesChan)
@@ -118,7 +118,7 @@ func TestYamllsDiagnosticsIntegrationWithSchema(t *testing.T) {
 	t.Parallel()
 
 	config := util.DefaultConfig.YamllsConfiguration
-	yamllsConnector, documents, diagnosticsChan := getYamlLsConnector(t, config)
+	yamllsConnector, documents, diagnosticsChan := getYamllsConnector(t, config, &DefaultCustomHandler)
 	file := filepath.Join("..", "..", "..", "testdata", "example", "templates", "service.yaml")
 	openFile(t, documents, file, yamllsConnector)
 

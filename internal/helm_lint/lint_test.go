@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -26,7 +26,11 @@ func TestLintNotifications(t *testing.T) {
 			AdditionalValuesFiles: []*charts.ValuesFile{},
 		},
 	}
-	diagnostics := GetDiagnosticsNotifications(&chart, &lsplocal.Document{URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml")})
+	diagnostics := GetDiagnosticsNotifications(&chart, &document.TemplateDocument{
+		Document: document.Document{
+			URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml"),
+		},
+	})
 	assert.NotEmpty(t, diagnostics)
 	assert.Len(t, diagnostics, 3)
 
@@ -51,7 +55,10 @@ func TestLintNotificationsIncludesEmptyDiagnosticsForFixedIssues(t *testing.T) {
 			AdditionalValuesFiles: []*charts.ValuesFile{},
 		},
 	}
-	diagnostics := GetDiagnosticsNotifications(&chart, &lsplocal.Document{URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml")})
+	diagnostics := GetDiagnosticsNotifications(&chart, &document.TemplateDocument{
+		Document: document.Document{URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml")},
+	},
+	)
 
 	uris := []string{}
 	for _, notification := range diagnostics {

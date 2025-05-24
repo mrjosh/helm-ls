@@ -9,7 +9,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	helmdocs "github.com/mrjosh/helm-ls/internal/documentation/helm"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -41,7 +41,7 @@ func (f *TemplateContextFeature) References() (result []lsp.Location, err error)
 		return []lsp.Location{}, err
 	}
 
-	locations := f.getReferenceLocations(templateContext)
+	locations := f.getReferencesFromSymbolTable(templateContext)
 	return append(locations, f.getDefinitionLocations(templateContext)...), nil
 }
 
@@ -53,19 +53,7 @@ func (f *TemplateContextFeature) Definition() (result []lsp.Location, err error)
 	return f.getDefinitionLocations(templateContext), nil
 }
 
-func (f *TemplateContextFeature) getReferenceLocations(templateContext lsplocal.TemplateContext) []lsp.Location {
-	locations := []lsp.Location{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
-		referenceRanges := doc.SymbolTable.GetTemplateContextRanges(templateContext)
-		for _, referenceRange := range referenceRanges {
-			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
-		}
-	}
-
-	return append(locations, f.getDefinitionLocations(templateContext)...)
-}
-
-func (f *TemplateContextFeature) getDefinitionLocations(templateContext lsplocal.TemplateContext) []lsp.Location {
+func (f *TemplateContextFeature) getDefinitionLocations(templateContext symboltable.TemplateContext) []lsp.Location {
 	locations := []lsp.Location{}
 
 	switch templateContext[0] {
@@ -108,7 +96,7 @@ func (f *TemplateContextFeature) Hover() (string, error) {
 	return templateContext.Format(), err
 }
 
-func (f *TemplateContextFeature) valuesHover(templateContext lsplocal.TemplateContext) (string, error) {
+func (f *TemplateContextFeature) valuesHover(templateContext symboltable.TemplateContext) (string, error) {
 	var (
 		valuesFiles  = f.Chart.ResolveValueFiles(templateContext, f.ChartStore)
 		hoverResults = protocol.HoverResultsWithFiles{}

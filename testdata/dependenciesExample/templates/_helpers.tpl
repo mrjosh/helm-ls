@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "dependeciesExample.name" -}}
+{{- define "dependenciesExample.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "dependeciesExample.fullname" -}}
+{{- define "dependenciesExample.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "dependeciesExample.chart" -}}
+{{- define "dependenciesExample.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "dependeciesExample.labels" -}}
-helm.sh/chart: {{ include "dependeciesExample.chart" . }}
-{{ include "dependeciesExample.selectorLabels" . }}
+{{- define "dependenciesExample.labels" -}}
+helm.sh/chart: {{ include "dependenciesExample.chart" . }}
+{{ include "dependenciesExample.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "dependeciesExample.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "dependeciesExample.name" . }}
+{{- define "dependenciesExample.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "dependenciesExample.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "dependeciesExample.serviceAccountName" -}}
+{{- define "dependenciesExample.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "dependeciesExample.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "dependenciesExample.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
