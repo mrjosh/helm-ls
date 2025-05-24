@@ -3,6 +3,7 @@ package yamlls
 import (
 	"context"
 	"os"
+	"time"
 
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
@@ -28,10 +29,18 @@ func (yamllsConnector Connector) CallInitialize(ctx context.Context, workspaceUR
 		},
 	}
 
-	_, err := yamllsConnector.server.Initialize(ctx, &params)
+	logger.Debug("Calling yamlls initialize")
+
+	timeout := time.Duration(yamllsConnector.config.InitTimeoutSeconds) * time.Second
+	ctxT, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	_, err := yamllsConnector.server.Initialize(ctxT, &params)
 	if err != nil {
+		logger.Error("Error calling yamlls for initialize ", err)
 		return err
 	}
+	logger.Debug("Calling yamlls for didChangeConfiguration")
 	err = yamllsConnector.server.DidChangeConfiguration(ctx, &lsp.DidChangeConfigurationParams{})
 	if err != nil {
 		return err

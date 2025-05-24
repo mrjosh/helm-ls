@@ -57,6 +57,8 @@ func NewConnector(ctx context.Context,
 		stdin,
 	}
 
+	logger.Debug("Starting yaml-language-server ", yamllsConfiguration.Path)
+
 	err = yamllsCmd.Start()
 	if err != nil {
 		switch e := err.(type) {
@@ -72,6 +74,8 @@ func NewConnector(ctx context.Context,
 		}
 	}
 
+	logger.Debug("Started yaml-language-server ", yamllsConfiguration.Path)
+
 	go func() {
 		io.Copy(os.Stderr, strderr)
 	}()
@@ -86,6 +90,12 @@ func NewConnector(ctx context.Context,
 
 	zapLogger, _ := zap.NewProduction()
 	_, conn, server := yamllsConnector.CustomNewClient(ctx, yamllsConnector, jsonrpc2.NewStream(readWriteCloser), zapLogger)
+
+	go func() {
+		<-conn.Done()
+		logger.Error("yaml-language-server exited unexpectedly")
+		yamllsConnector.server = nil
+	}()
 
 	yamllsConnector.server = server
 	yamllsConnector.conn = conn
@@ -105,5 +115,6 @@ func (yamllsConnector *Connector) shouldRun(uri lsp.DocumentURI) bool {
 	if yamllsConnector.server == nil {
 		return false
 	}
+
 	return yamllsConnector.isRelevantFile(uri)
 }
