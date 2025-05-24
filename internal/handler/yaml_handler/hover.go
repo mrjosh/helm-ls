@@ -10,6 +10,7 @@ import (
 func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error) {
 	logger.Debug("YamlHandler Hover", params)
 	return h.yamllsConnector.CallHover(ctx, *params)
+	// IDEA: return the json path of the current node
 	// doc, ok := h.documents.GetYamlDoc(params.TextDocument.URI)
 	//
 	// if !ok {
