@@ -32,17 +32,13 @@ type YamllsConfiguration struct {
 	YamllsSettings          any  `json:"config,omitempty"`
 }
 
-func (y *YamllsConfiguration) GetEnabledForFilesGlobObject() glob.Glob {
-	if y.EnabledForFilesGlobObject == nil {
-		globObject, err := glob.Compile(y.EnabledForFilesGlob)
-		if err != nil {
-			logger.Error("Error compiling glob for yamlls EnabledForFilesGlob", err)
-			globObject = DefaultConfig.YamllsConfiguration.EnabledForFilesGlobObject
-		}
-		y.EnabledForFilesGlobObject = globObject
+func (y *YamllsConfiguration) CompileEnabledForFilesGlobObject() {
+	globObject, err := glob.Compile(y.EnabledForFilesGlob)
+	if err != nil {
+		logger.Error("Error compiling glob for yamlls EnabledForFilesGlob", err)
+		globObject = DefaultConfig.YamllsConfiguration.EnabledForFilesGlobObject
 	}
-
-	return y.EnabledForFilesGlobObject
+	y.EnabledForFilesGlobObject = globObject
 }
 
 var DefaultConfig = HelmlsConfiguration{

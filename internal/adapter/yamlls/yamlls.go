@@ -18,9 +18,11 @@ import (
 var logger = log.GetLogger()
 
 type Connector struct {
-	config                    util.YamllsConfiguration
-	server                    lsp.Server
-	conn                      jsonrpc2.Conn
+	config util.YamllsConfiguration
+	server lsp.Server
+	conn   jsonrpc2.Conn
+	// IDEA: yamlls only needs GetTemplateDoc (or abstracted GetDocument)
+	// so we introduce a new interface for this method and not access the whole document store
 	documents                 *document.DocumentStore
 	client                    lsp.Client
 	customHandler             *CustomHandler
@@ -85,7 +87,7 @@ func NewConnector(ctx context.Context,
 		documents:                 documents,
 		client:                    client,
 		customHandler:             customHandler,
-		EnabledForFilesGlobObject: yamllsConfiguration.GetEnabledForFilesGlobObject(),
+		EnabledForFilesGlobObject: yamllsConfiguration.EnabledForFilesGlobObject,
 	}
 
 	zapLogger, _ := zap.NewProduction()

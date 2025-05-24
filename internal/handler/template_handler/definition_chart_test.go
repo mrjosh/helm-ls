@@ -157,7 +157,7 @@ func TestDefinitionChart(t *testing.T) {
 
 			pos, found := getPosition(tc, lines)
 			if !found {
-				t.Fatal(fmt.Sprintf("%s is not in the file %s", tc.templateLineWithMarker, fileURI.Filename()))
+				t.Fatalf("%s is not in the file %s", tc.templateLineWithMarker, fileURI.Filename())
 			}
 
 			documents := document.NewDocumentStore()
