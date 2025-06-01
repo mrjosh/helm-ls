@@ -15,20 +15,23 @@ import (
 	"go.lsp.dev/uri"
 )
 
-var configurationParams = lsp.ConfigurationParams{Items: []lsp.ConfigurationItem{{Section: "helm-ls"}}}
+var (
+	addChartCallback    = func(chart *charts.Chart) {}
+	configurationParams = lsp.ConfigurationParams{Items: []lsp.ConfigurationItem{{Section: "helm-ls"}}}
+)
 
 func TestConfigurationWorks(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
-	handler := &langHandler{
+	handler := &ServerHandler{
 		helmlsConfig: util.DefaultConfig,
 		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
 	handler.client = mockClient
 
-	userConfig := []interface{}{map[string]interface{}{
+	userConfig := []any{map[string]any{
 		"LogLevel": "debug",
 		// disable yamlls to avoid configuring it in the test
-		"yamlls": map[string]interface{}{"enabled": false},
+		"yamlls": map[string]any{"enabled": false},
 	}}
 	mockClient.EXPECT().Configuration(mock.Anything, &configurationParams).Return(userConfig, nil)
 	handler.retrieveWorkspaceConfiguration(context.Background())
@@ -41,7 +44,7 @@ func TestConfigurationWorks(t *testing.T) {
 
 func TestConfigurationWorksForEmptyConfig(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
-	handler := &langHandler{
+	handler := &ServerHandler{
 		helmlsConfig: util.DefaultConfig,
 		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
@@ -49,7 +52,7 @@ func TestConfigurationWorksForEmptyConfig(t *testing.T) {
 	// disable yamlls to avoid configuring it in the test
 	handler.helmlsConfig.YamllsConfiguration.Enabled = false
 
-	userConfig := []interface{}{}
+	userConfig := []any{}
 	mockClient.EXPECT().Configuration(mock.Anything, &configurationParams).Return(userConfig, nil)
 	handler.retrieveWorkspaceConfiguration(context.Background())
 
@@ -60,7 +63,7 @@ func TestConfigurationWorksForEmptyConfig(t *testing.T) {
 
 func TestConfigurationWorksForError(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
-	handler := &langHandler{
+	handler := &ServerHandler{
 		helmlsConfig: util.DefaultConfig,
 		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
@@ -69,7 +72,7 @@ func TestConfigurationWorksForError(t *testing.T) {
 	// disable yamlls to avoid configuring it in the test
 	handler.helmlsConfig.YamllsConfiguration.Enabled = false
 
-	userConfig := []interface{}{map[string]interface{}{
+	userConfig := []any{map[string]any{
 		"LogLevel": "debug",
 	}}
 	mockClient.EXPECT().Configuration(mock.Anything, &configurationParams).Return(userConfig, errors.New("error"))
@@ -82,7 +85,7 @@ func TestConfigurationWorksForError(t *testing.T) {
 
 func TestConfigurationWorksForJsonError(t *testing.T) {
 	mockClient := mocks.NewMockClient(t)
-	handler := &langHandler{
+	handler := &ServerHandler{
 		helmlsConfig: util.DefaultConfig,
 		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
 	}
@@ -91,11 +94,9 @@ func TestConfigurationWorksForJsonError(t *testing.T) {
 	// disable yamlls to avoid configuring it in the test
 	handler.helmlsConfig.YamllsConfiguration.Enabled = false
 
-	userConfig := []interface{}{map[string]interface{}{
+	userConfig := []any{map[string]any{
 		"LogLevel": "debug",
-		"test": func() {
-			return
-		},
+		"test":     func() {},
 	}}
 	mockClient.EXPECT().Configuration(mock.Anything, &configurationParams).Return(userConfig, nil)
 	handler.retrieveWorkspaceConfiguration(context.Background())
@@ -103,4 +104,26 @@ func TestConfigurationWorksForJsonError(t *testing.T) {
 	expectedConfig := util.DefaultConfig
 	expectedConfig.YamllsConfiguration.Enabled = false
 	assert.Equal(t, expectedConfig, handler.helmlsConfig)
+}
+
+func TestConfigurationWorksForYamllsGlob(t *testing.T) {
+	mockClient := mocks.NewMockClient(t)
+	handler := &ServerHandler{
+		helmlsConfig: util.DefaultConfig,
+		chartStore:   charts.NewChartStore(uri.File("/"), charts.NewChart, addChartCallback),
+	}
+	handler.client = mockClient
+
+	userConfig := []any{map[string]any{
+		// disable yamlls to avoid configuring it in the test
+		"yamlls": map[string]any{"enabled": false, "enabledForFilesGlob": "*.ext"},
+	}}
+	mockClient.EXPECT().Configuration(mock.Anything, &configurationParams).Return(userConfig, nil)
+	handler.retrieveWorkspaceConfiguration(context.Background())
+
+	assert.Equal(t, handler.helmlsConfig.YamllsConfiguration.Enabled, false)
+	assert.Equal(t, handler.helmlsConfig.YamllsConfiguration.EnabledForFilesGlob, "*.ext")
+
+	assert.True(t, handler.helmlsConfig.YamllsConfiguration.EnabledForFilesGlobObject.Match("file.ext"))
+	assert.False(t, handler.helmlsConfig.YamllsConfiguration.EnabledForFilesGlobObject.Match("file.yaml"))
 }

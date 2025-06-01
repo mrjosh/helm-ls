@@ -155,3 +155,33 @@ func TestGetChartForDocumentWorksForChartWithDependencies(t *testing.T) {
 	assert.NotNil(t, chartStore.Charts[uri.File(filepath.Join(rootDir, "charts", "subchartexample"))])
 	assert.NotNil(t, chartStore.Charts[uri.File(filepath.Join(rootDir, "charts", charts.DependencyCacheFolder, "common"))])
 }
+
+func TestGetChartForDocumentWorksForValuesFile(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample/"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart, addChartCallback)
+	)
+
+	result1, error := chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "values.yaml")))
+	assert.NoError(t, error)
+
+	assert.Len(t, result1.HelmChart.Dependencies(), 2)
+	assert.Len(t, chartStore.Charts, 3)
+
+	assert.NotNil(t, chartStore.Charts[uri.File(rootDir)])
+}
+
+func TestGetChartForDocumentWorksForValuesFileWithCache(t *testing.T) {
+	var (
+		rootDir    = "../../testdata/dependenciesExample/"
+		chartStore = charts.NewChartStore(uri.File(rootDir), charts.NewChart, addChartCallback)
+	)
+
+	result1, error := chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "values.yaml")))
+	assert.NoError(t, error)
+	assert.NotNil(t, chartStore.Charts[uri.File(rootDir)])
+
+	result2, error := chartStore.GetChartForDoc(uri.File(filepath.Join(rootDir, "values.yaml")))
+
+	assert.Same(t, result1, result2)
+}

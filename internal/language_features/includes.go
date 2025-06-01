@@ -4,7 +4,7 @@ import (
 	lsp "go.lsp.dev/protocol"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	"github.com/mrjosh/helm-ls/internal/tree-sitter/gotemplate"
 	"github.com/mrjosh/helm-ls/internal/util"
@@ -26,7 +26,7 @@ func (f *IncludesCallFeature) AppropriateForNode() bool {
 	if functionCallNode == nil {
 		return false
 	}
-	_, err := lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
+	_, err := symboltable.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
 	return err == nil
 }
 
@@ -76,7 +76,7 @@ func (f *IncludesCallFeature) References() (result []lsp.Location, err error) {
 
 func (f *IncludesCallFeature) getIncludeName() (string, error) {
 	functionCallNode := f.getFunctionCallNode()
-	return lsplocal.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
+	return symboltable.ParseIncludeFunctionCall(functionCallNode, []byte(f.GenericDocumentUseCase.Document.Content))
 }
 
 func (f *IncludesDefinitionFeature) References() (result []lsp.Location, err error) {
@@ -86,11 +86,9 @@ func (f *IncludesDefinitionFeature) References() (result []lsp.Location, err err
 
 func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Location {
 	locations := []lsp.Location{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		referenceRanges := doc.SymbolTable.GetIncludeReference(includeName)
-		for _, referenceRange := range referenceRanges {
-			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
-		}
+		locations = append(locations, util.RangesToLocations(doc.URI, referenceRanges)...)
 		if len(locations) > 0 {
 			charts.SyncToDisk(doc)
 		}
@@ -101,11 +99,9 @@ func (f *IncludesFeature) getReferenceLocations(includeName string) []lsp.Locati
 
 func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Location {
 	locations := []lsp.Location{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
-		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
-		for _, referenceRange := range referenceRanges {
-			locations = append(locations, util.RangeToLocation(doc.URI, referenceRange))
-		}
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
+		definitionRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
+		locations = append(locations, util.RangesToLocations(doc.URI, definitionRanges)...)
 		if len(locations) > 0 {
 			charts.SyncToDisk(doc)
 		}
@@ -116,10 +112,10 @@ func (f *IncludesFeature) getDefinitionLocations(includeName string) []lsp.Locat
 
 func (f *IncludesFeature) getDefinitionsHover(includeName string) protocol.HoverResultsWithFiles {
 	result := protocol.HoverResultsWithFiles{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
-		referenceRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
-		for _, referenceRange := range referenceRanges {
-			node := doc.Ast.RootNode().NamedDescendantForPointRange(referenceRange.StartPoint, referenceRange.EndPoint)
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
+		definitionRanges := doc.SymbolTable.GetIncludeDefinitions(includeName)
+		for _, definitionRange := range definitionRanges {
+			node := doc.Ast.RootNode().NamedDescendantForPointRange(definitionRange.StartPoint, definitionRange.EndPoint)
 			if node != nil {
 				result = append(result, protocol.HoverResultWithFile{
 					Value: node.Content([]byte(doc.Content)),
@@ -152,7 +148,7 @@ func (f *IncludesCallFeature) Definition() (result []lsp.Location, err error) {
 
 func (f *IncludesCallFeature) Completion() (*lsp.CompletionList, error) {
 	items := []lsp.CompletionItem{}
-	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllDocs() {
+	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
 		inlcudeDefinitionNames := doc.SymbolTable.GetAllIncludeDefinitionsNames()
 		for _, includeDefinitionName := range inlcudeDefinitionNames {
 			items = append(items, lsp.CompletionItem{

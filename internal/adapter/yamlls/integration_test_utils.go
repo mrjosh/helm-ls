@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
@@ -47,15 +47,15 @@ func (proc readWriteCloseMock) Close() error {
 	return nil
 }
 
-func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration) (*Connector, *lsplocal.DocumentStore, chan lsp.PublishDiagnosticsParams) {
+func getYamllsConnector(t *testing.T, config util.YamllsConfiguration, customHandler *CustomHandler) (*Connector, *document.DocumentStore, chan lsp.PublishDiagnosticsParams) {
 	dir := t.TempDir()
-	documents := lsplocal.NewDocumentStore()
-	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams)
+	documents := document.NewDocumentStore()
+	diagnosticsChan := make(chan lsp.PublishDiagnosticsParams, 10000) // set a big size for tests where the channel is not read (prevents deadlock)
 	con := jsonrpc2.NewConn(jsonrpc2.NewStream(readWriteCloseMock{diagnosticsChan}))
 	zapLogger, _ := zap.NewProduction()
 	client := protocol.ClientDispatcher(con, zapLogger)
 
-	yamllsConnector := NewConnector(context.Background(), config, client, documents)
+	yamllsConnector := NewConnector(context.Background(), config, client, documents, customHandler)
 
 	if yamllsConnector.server == nil {
 		t.Fatal("Could not connect to yaml-language-server")
@@ -66,7 +66,7 @@ func getYamlLsConnector(t *testing.T, config util.YamllsConfiguration) (*Connect
 	return yamllsConnector, documents, diagnosticsChan
 }
 
-func openFile(t *testing.T, documents *lsplocal.DocumentStore, path string, yamllsConnector *Connector) {
+func openFile(t *testing.T, documents *document.DocumentStore, path string, yamllsConnector *Connector) {
 	fileURI := uri.File(path)
 
 	content, err := os.ReadFile(path)
@@ -81,6 +81,6 @@ func openFile(t *testing.T, documents *lsplocal.DocumentStore, path string, yaml
 			Text:       string(content),
 		},
 	}
-	doc, err := documents.DidOpen(&d, util.DefaultConfig)
-	yamllsConnector.DocumentDidOpen(doc.Ast, d)
+	doc, err := documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
+	yamllsConnector.DocumentDidOpenTemplate(doc.Ast, d)
 }

@@ -7,6 +7,12 @@ import (
 )
 
 // DocumentSymbol implements protocol.Server.
-func (h *langHandler) DocumentSymbol(ctx context.Context, params *lsp.DocumentSymbolParams) (result []interface{}, err error) {
-	return h.yamllsConnector.CallDocumentSymbol(ctx, params)
+func (h *ServerHandler) DocumentSymbol(ctx context.Context, params *lsp.DocumentSymbolParams) (result []interface{}, err error) {
+	logger.Debug("Running DocumentSymbol with params", params)
+
+	handler, err := h.selectLangHandler(ctx, params.TextDocument.URI)
+	if err != nil {
+		return nil, err
+	}
+	return handler.DocumentSymbol(ctx, params)
 }

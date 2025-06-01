@@ -25,6 +25,17 @@ func NewChartStore(rootURI uri.URI, newChart func(uri.URI, util.ValuesFilesConfi
 	}
 }
 
+func (s *ChartStore) SetRootURI(rootURI uri.URI) {
+	s.RootURI = rootURI
+	var uris []uri.URI
+	for chartURI := range s.Charts {
+		uris = append(uris, chartURI)
+	}
+	for _, uri := range uris {
+		s.AddChart(s.newChart(uri, s.valuesFilesConfig))
+	}
+}
+
 // AddChart adds a new chart to the store and loads its dependencies
 func (s *ChartStore) AddChart(chart *Chart) {
 	s.Charts[chart.RootURI] = chart
@@ -40,8 +51,12 @@ func (s *ChartStore) SetValuesFilesConfig(valuesFilesConfig util.ValuesFilesConf
 		return
 	}
 	s.valuesFilesConfig = valuesFilesConfig
-	for uri := range s.Charts {
-		s.AddChart(s.newChart(uri, valuesFilesConfig))
+	var uris []uri.URI
+	for chartURI := range s.Charts {
+		uris = append(uris, chartURI)
+	}
+	for _, chartURI := range uris {
+		s.AddChart(s.newChart(chartURI, valuesFilesConfig))
 	}
 }
 

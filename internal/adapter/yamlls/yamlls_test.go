@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	lsplocal "github.com/mrjosh/helm-ls/internal/lsp"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
@@ -17,7 +17,7 @@ func TestIsRelevantFile(t *testing.T) {
 		},
 	}
 
-	connector.documents = &lsplocal.DocumentStore{}
+	connector.documents = document.NewDocumentStore()
 	yamlFile := "../../../testdata/example/templates/deployment.yaml"
 	nonYamlFile := "../../../testdata/example/templates/_helpers.tpl"
 
@@ -27,8 +27,8 @@ func TestIsRelevantFile(t *testing.T) {
 	nonYamlFileContent, err := os.ReadFile(nonYamlFile)
 	assert.NoError(t, err)
 
-	connector.documents.Store(yamlFile, yamlFileContent, util.DefaultConfig)
-	connector.documents.Store(nonYamlFile, nonYamlFileContent, util.DefaultConfig)
+	connector.documents.StoreTemplateDocument(yamlFile, yamlFileContent, util.DefaultConfig)
+	connector.documents.StoreTemplateDocument(nonYamlFile, nonYamlFileContent, util.DefaultConfig)
 
 	assert.True(t, connector.isRelevantFile(uri.File(yamlFile)))
 	assert.False(t, connector.isRelevantFile(uri.File(nonYamlFile)))

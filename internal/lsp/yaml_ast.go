@@ -5,22 +5,13 @@ import (
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
-func GetRangeForNode(node *sitter.Node) sitter.Range {
-	return sitter.Range{
-		StartPoint: node.StartPoint(),
-		EndPoint:   node.EndPoint(),
-		StartByte:  node.StartByte(),
-		EndByte:    node.EndByte(),
-	}
-}
-
 func getTextNodeRanges(gotemplateNode *sitter.Node) []sitter.Range {
 	textNodes := []sitter.Range{}
 
 	for i := 0; i < int(gotemplateNode.ChildCount()); i++ {
 		child := gotemplateNode.Child(i)
 		if child.Type() == gotemplate.NodeTypeText {
-			textNodes = append(textNodes, GetRangeForNode(child))
+			textNodes = append(textNodes, child.Range())
 		} else {
 			textNodes = append(textNodes, getTextNodeRanges(child)...)
 		}
@@ -32,7 +23,7 @@ func getTextNodeRanges(gotemplateNode *sitter.Node) []sitter.Range {
 // This is done by keeping only the text nodes
 // which is easier then removing the template nodes
 // since template nodes could contain other nodes
-func TrimTemplate(gotemplateTree *sitter.Tree, content string) string {
+func TrimTemplate(gotemplateTree *sitter.Tree, content []byte) string {
 	ranges := getTextNodeRanges(gotemplateTree.RootNode())
 	result := make([]byte, len(content))
 	for i := range result {

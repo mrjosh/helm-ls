@@ -13,9 +13,12 @@ type QueriedValuesFiles struct {
 
 // ResolveValueFiles returns a list of all values files in the chart
 // and all parent and dependency charts with the adjusted query
+// that match a given query
+// a query starting with "global" returns all charts
+// a query starting with "subchartName" will return the subchart if it is named "subchartName"
 func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) (result []*QueriedValuesFiles) {
 	recResult := map[uri.URI]*QueriedValuesFiles{}
-	c.ResolveValueFilesRecursive(query, chartStore, recResult)
+	c.resolveValueFilesRecursive(query, chartStore, recResult)
 
 	// TODO: @qvalentin use maps.Values once we have Go 1.23
 	for _, valuesFiles := range recResult {
@@ -24,7 +27,7 @@ func (c *Chart) ResolveValueFiles(query []string, chartStore *ChartStore) (resul
 	return result
 }
 
-func (c *Chart) ResolveValueFilesRecursive(query []string, chartStore *ChartStore, result map[uri.URI]*QueriedValuesFiles) {
+func (c *Chart) resolveValueFilesRecursive(query []string, chartStore *ChartStore, result map[uri.URI]*QueriedValuesFiles) {
 	// check if chart was already processed
 	if _, ok := result[c.RootURI]; ok {
 		return
@@ -52,13 +55,13 @@ func (c *Chart) resolveValuesFilesOfParent(chartStore *ChartStore, query []strin
 	}
 
 	if query[0] == "global" {
-		parentChart.ResolveValueFilesRecursive(query, chartStore, result)
+		parentChart.resolveValueFilesRecursive(query, chartStore, result)
 	}
 
 	chartName := c.ChartMetadata.Metadata.Name
 	extendedQuery := append([]string{chartName}, query...)
 
-	parentChart.ResolveValueFilesRecursive(extendedQuery, chartStore, result)
+	parentChart.resolveValueFilesRecursive(extendedQuery, chartStore, result)
 }
 
 func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *ChartStore, result map[uri.URI]*QueriedValuesFiles) {
@@ -83,7 +86,7 @@ func (c *Chart) resolveValuesFilesOfDependencies(query []string, chartStore *Cha
 				continue
 			}
 
-			dependencyChart.ResolveValueFilesRecursive(subQuery, chartStore, result)
+			dependencyChart.resolveValueFilesRecursive(subQuery, chartStore, result)
 		}
 	}
 }
