@@ -46,7 +46,7 @@ func (h *YamlHandler) GetDiagnostics(uri uri.URI) []protocol.PublishDiagnosticsP
 	line--
 	var lineUint uint32 = 0
 	// Check bounds for uint32
-	if line < 0 || line+1 > int(math.MaxUint32) {
+	if line < 0 || int64(line)+1 > int64(math.MaxUint32) {
 		logger.Debug("YamlHandler: Line number out of bounds: %d", line)
 	} else {
 		lineUint = uint32(line)
