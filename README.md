@@ -27,10 +27,14 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
   - [Manual download](#manual-download)
     - [Make it executable](#make-it-executable)
   - [Integration with yaml-language-server](#integration-with-yaml-language-server)
+    - [Template files](#template-files)
+    - [Values files](#values-files)
+    - [Install](#install)
+    - [Custom Schemas](#custom-schemas)
   - [Dependency Charts](#dependency-charts)
 - [Configuration options](#configuration-options)
   - [General](#general)
-  - [Values Files](#values-files)
+  - [Values Files](#values-files-1)
   - [yaml-language-server config](#yaml-language-server-config)
   - [Default Configuration](#default-configuration)
 - [Editor Config examples](#editor-config-examples)
@@ -122,20 +126,33 @@ chmod +x /usr/local/bin/helm_ls
 
 Helm-ls will use yaml-language-server to provide additional capabilities, if it is installed.
 
+#### Template files
+
+Helm-ls will convert the gotemplate files in the templates directory to yaml and process them with yaml-language-server.
+
 > [!WARNING]
 >
 > This feature is experimental, you can disable it in the config ([see](#configuration-options)) if you are getting a lot of errors beginning with `Yamlls:`.
 > Having a broken template syntax (e.g. while your are still typing) will also cause diagnostics from yaml-language-server to be shown as errors.
 
-To install it using npm run (or use your preferred package manager):
+#### Values files
+
+Helm-ls will generate json-schemas for all values.\*yaml files and use yaml-language-server to provide autocompletion.
+This feature is currently beta, see https://github.com/mrjosh/helm-ls/issues/61#issuecomment-2927585818 for details.
+
+#### Install
 
 ```bash
 npm install --global yaml-language-server
 ```
 
+To install it using npm run (or use your preferred package manager):
+
 The default kubernetes schema of yaml-language-server will be used for all files. You can overwrite which schema to use in the config ([see](#configuration-options)).
 If you are for example using CRDs that are not included in the default schema, you can overwrite the schema using a comment
 to use the schemas from the [CRDs-catalog](https://github.com/datreeio/CRDs-catalog).
+
+#### Custom Schemas
 
 ```yaml
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/keda.sh/scaledobject_v1alpha1.json
@@ -338,13 +355,14 @@ Alternatively, you can include a comment such as the following at the top of Hel
 
 <video alt="Demo for autocompletion" src="https://github.com/user-attachments/assets/15c57a0a-4a17-48b4-9861-a324bcfa2158"></video>
 
-| Language Construct | Effect                                                               |
-| ------------------ | -------------------------------------------------------------------- |
-| Values             | Values from `values*.yaml` files (including child/parent Charts).    |
-| Built-In-Objects   | Values from `Chart`, `Release`, `Files`, `Capabilities`, `Template`. |
-| Includes           | Available includes (including child/parent Charts).                  |
-| Functions          | Functions from gotemplate and helm.                                  |
-| Yaml in Templates  | Values from the yaml-schema (via yaml-language-server).              |
+| Language Construct (or filetype)      | Effect                                                                     |
+| ------------------------------------- | -------------------------------------------------------------------------- |
+| Values                                | Values from `values*.yaml` files (including child/parent Charts).          |
+| Built-In-Objects                      | Values from `Chart`, `Release`, `Files`, `Capabilities`, `Template`.       |
+| Includes                              | Available includes (including child/parent Charts).                        |
+| Functions                             | Functions from gotemplate and helm.                                        |
+| Yaml in Templates                     | Values from the yaml-schema (via yaml-language-server).                    |
+| [values.\*.yaml files](#values-files) | Values from other values files either from the same Chart or other Charts. |
 
 </details>
 
