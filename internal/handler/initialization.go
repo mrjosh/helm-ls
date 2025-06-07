@@ -50,6 +50,7 @@ func (h *ServerHandler) Initialize(ctx context.Context, params *lsp.InitializePa
 }
 
 func (h *ServerHandler) Initialized(ctx context.Context, _ *lsp.InitializedParams) (err error) {
+	h.registerDidChangeConfiguration(ctx)
 	h.retrieveWorkspaceConfiguration(ctx)
 	return nil
 }
