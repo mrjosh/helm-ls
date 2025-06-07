@@ -45,7 +45,7 @@ func snippetCompletionItem(gotemplateSnippet godocs.GoTemplateSnippet) lsp.Compl
 		InsertText:       gotemplateSnippet.Snippet,
 		Detail:           gotemplateSnippet.Detail,
 		Documentation:    gotemplateSnippet.Doc,
-		Kind:             lsp.CompletionItemKindText,
+		Kind:             lsp.CompletionItemKindSnippet,
 		InsertTextFormat: lsp.InsertTextFormatSnippet,
 	}
 }
