@@ -1,45 +1,31 @@
--- a minimal example config for setting up neovim with helm-ls and yamlls
+-- a minimal example config for setting up neovim with helm-ls and yamlls using the plugin manager vim-plug
 -- test it with: nvim -u init.lua
 
--- setup lazy plugin manager
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  })
-end
-vim.opt.rtp:prepend(lazypath)
-vim.g.mapleader = " "
--- end of lazy setup
+local Plug = vim.fn["plug#"]
 
 -- install required plugins
-require("lazy").setup({
-  -- towolf/vim-helm provides basic syntax highlighting and filetype detection
-  -- ft = 'helm' is important to not start yamlls
-  { "towolf/vim-helm",       ft = "helm" },
-  {
-    "qvalentin/helm-ls.nvim",
-    ft = "helm",
-    opts = {
-      conceal_templates = {
-        -- enable the replacement of templates with virtual text of their current values
-        enabled = false, -- tree-sitter must be setup for this feature
-      },
-      indent_hints = {
-        -- enable hints for indent and nindent functions
-        enabled = false, -- tree-sitter must be setup for this feature
-      },
-    },
+vim.call("plug#begin")
+
+Plug("https://github.com/neovim/nvim-lspconfig")
+Plug("https://github.com/qvalentin/helm-ls.nvim")
+
+vim.call("plug#end")
+
+-- setup helm-ls.nvim
+require("helm-ls").setup({
+  conceal_templates = {
+    -- enable the replacement of templates with virtual text of their current values
+    enabled = false, -- tree-sitter must be setup for this feature
   },
-  { "neovim/nvim-lspconfig", event = { "BufReadPre", "BufNewFile", "BufEnter" } },
+  indent_hints = {
+    -- enable hints for indent and nindent functions
+    enabled = false, -- tree-sitter must be setup for this feature
+  },
 })
 
 local lspconfig = require("lspconfig")
+
+lspconfig.yamlls.setup({})
 -- setup helm-ls
 lspconfig.helm_ls.setup({
   settings = {
@@ -51,13 +37,7 @@ lspconfig.helm_ls.setup({
   },
 })
 
--- setup yamlls
-lspconfig.yamlls.setup({})
-
--- below are keymapping as recommended by nvim-lspconfig
-
--- Global mappings.
--- See `:help vim.diagnostic.*` for documentation on any of the below functions
+-- below is the config for a basic lsp keymap
 vim.keymap.set("n", "<space>e", vim.diagnostic.open_float)
 vim.keymap.set("n", "[d", vim.diagnostic.goto_prev)
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next)
