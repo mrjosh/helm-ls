@@ -11,8 +11,9 @@ import (
 )
 
 func (h *ServerHandler) DidChangeConfiguration(ctx context.Context, params *lsp.DidChangeConfigurationParams) (err error) {
-	// go h.retrieveWorkspaceConfiguration(ctx)
-	logger.Println("Changing workspace config is not implemented")
+	logger.Println("Reload yaml configuration:", params)
+	h.helmlsConfig.YamllsConfiguration.YamllsSettings = params.Settings
+	h.configureYamlls(ctx)
 	return nil
 }
 
