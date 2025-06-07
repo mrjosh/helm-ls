@@ -238,7 +238,7 @@ settings = {
 
 To get filetype detection working, you can use one of the folowing plugins:
 
-- [helm-ls.nvim](https://github.com/qvalentin/helm-ls.nvim): recommended, but requires you to use [tree-sitter](https://github.com/ngalaiko/tree-sitter-go-template?tab=readme-ov-file#neovim-integration-using-nvim-treesitter) for syntax highlighting. Also provides some additional features.
+- [helm-ls.nvim](https://github.com/qvalentin/helm-ls.nvim): **recommended** (required for [values.\*.yaml files](#values-files) support), requires [tree-sitter](https://github.com/ngalaiko/tree-sitter-go-template?tab=readme-ov-file#neovim-integration-using-nvim-treesitter) for syntax highlighting. Also provides some additional features.
 - [vim-helm](https://github.com/towolf/vim-helm): known to cause problems with yaml-language-server when used with another plugin manger than lazy
 
 install it using lazy (or use your preferred plugin manager):
@@ -246,7 +246,7 @@ install it using lazy (or use your preferred plugin manager):
 ```lua
 { "qvalentin/helm-ls.nvim", ft = "helm" }
 -- or { "towolf/vim-helm", ft = "helm" },
--- or even both
+-- or even both if you do not want to use tree-sitter for syntax highlighting
 ```
 
 #### nvim-lspconfig setup
