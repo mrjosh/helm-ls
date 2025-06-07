@@ -4,16 +4,29 @@ import (
 	"context"
 	"encoding/json"
 
-	// "reflect"
-
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 )
 
 func (h *ServerHandler) DidChangeConfiguration(ctx context.Context, params *lsp.DidChangeConfigurationParams) (err error) {
-	// go h.retrieveWorkspaceConfiguration(ctx)
-	logger.Println("Changing workspace config is not implemented")
+	logger.Printf("Running DidChangeConfiguration with settings %+v \n", params.Settings)
+
+	// since the push based approach is deprecated, we always refresh the configuration
+	h.retrieveWorkspaceConfiguration(ctx)
+
 	return nil
+}
+
+func (h *ServerHandler) registerDidChangeConfiguration(ctx context.Context) {
+	// For DidChangeConfiguration to be called on changes in the configuration we need to register
+	h.client.RegisterCapability(ctx, &lsp.RegistrationParams{
+		Registrations: []lsp.Registration{
+			{
+				ID:     "helm-ls",
+				Method: "workspace/didChangeConfiguration",
+			},
+		},
+	})
 }
 
 func (h *ServerHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
@@ -35,7 +48,7 @@ func (h *ServerHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
 	h.initializationWithConfig(ctx)
 }
 
-func parseWorkspaceConfiguration(rawResult []interface{}, currentConfig util.HelmlsConfiguration) (result util.HelmlsConfiguration) {
+func parseWorkspaceConfiguration(rawResult []any, currentConfig util.HelmlsConfiguration) (result util.HelmlsConfiguration) {
 	logger.Debug("Raw Workspace configuration:", rawResult)
 
 	if len(rawResult) == 0 {

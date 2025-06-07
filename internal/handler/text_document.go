@@ -12,6 +12,8 @@ import (
 func (h *ServerHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
 	handler := h.langHandlers[document.TemplateDocumentTypeForLangID(params.TextDocument.LanguageID)]
 
+	logger.Println("DidOpen: ", params.TextDocument.URI.Filename())
+
 	if handler == nil {
 		message := "Language not supported: " + string(params.TextDocument.LanguageID)
 		logger.Error(message)
