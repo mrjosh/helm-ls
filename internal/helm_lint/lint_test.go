@@ -47,6 +47,7 @@ func TestLintNotifications(t *testing.T) {
 }
 
 func TestLintNotificationsIncludesEmptyDiagnosticsForFixedIssues(t *testing.T) {
+	// Ensure a diagnostic notification is sent even if there are no diagnostics to remove old diagnostics after they are fixed
 	chart := charts.Chart{
 		RootURI: uri.File("../../testdata/example"),
 		ValuesFiles: &charts.ValuesFiles{

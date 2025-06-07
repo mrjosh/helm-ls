@@ -18,7 +18,10 @@ func (h *ServerHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocu
 		return errors.New(message)
 	}
 
-	defer h.publishDiagnostics(ctx, handler.GetDiagnostics(params.TextDocument.URI))
+	logger.Debug("Running DidOpen for language ", params.TextDocument.LanguageID)
+	defer func() {
+		h.publishDiagnostics(ctx, handler.GetDiagnostics(params.TextDocument.URI))
+	}()
 	return handler.DidOpen(ctx, params, h.helmlsConfig)
 }
 
