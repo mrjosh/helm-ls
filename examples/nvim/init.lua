@@ -22,7 +22,20 @@ require("lazy").setup({
   -- towolf/vim-helm provides basic syntax highlighting and filetype detection
   -- ft = 'helm' is important to not start yamlls
   { "towolf/vim-helm",       ft = "helm" },
-
+  {
+    "qvalentin/helm-ls.nvim",
+    ft = "helm",
+    opts = {
+      conceal_templates = {
+        -- enable the replacement of templates with virtual text of their current values
+        enabled = false, -- tree-sitter must be setup for this feature
+      },
+      indent_hints = {
+        -- enable hints for indent and nindent functions
+        enabled = false, -- tree-sitter must be setup for this feature
+      },
+    },
+  },
   { "neovim/nvim-lspconfig", event = { "BufReadPre", "BufNewFile", "BufEnter" } },
 })
 
