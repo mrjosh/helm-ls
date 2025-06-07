@@ -6,6 +6,7 @@ import (
 )
 
 func (h *TemplateHandler) GetDiagnostics(uri lsp.DocumentURI) []lsp.PublishDiagnosticsParams {
+	logger.Debug("TemplateHandler.GetDiagnostics")
 	doc, ok := h.documents.GetTemplateDoc(uri)
 	if !ok {
 		logger.Error("Could not get document: " + uri.Filename())
