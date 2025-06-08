@@ -238,7 +238,7 @@ settings = {
 
 To get filetype detection working, you can use one of the folowing plugins:
 
-- [helm-ls.nvim](https://github.com/qvalentin/helm-ls.nvim): **recommended** (required for [values.\*.yaml files](#values-files) support), requires [tree-sitter](https://github.com/ngalaiko/tree-sitter-go-template?tab=readme-ov-file#neovim-integration-using-nvim-treesitter) for syntax highlighting. Also provides some additional features.
+- [helm-ls.nvim](https://github.com/qvalentin/helm-ls.nvim): **recommended**, requires [tree-sitter](https://github.com/ngalaiko/tree-sitter-go-template?tab=readme-ov-file#neovim-integration-using-nvim-treesitter) for syntax highlighting. Also provides some additional features.
 - [vim-helm](https://github.com/towolf/vim-helm): known to cause problems with yaml-language-server when used with another plugin manger than lazy
 
 install it using lazy (or use your preferred plugin manager):
@@ -268,7 +268,7 @@ lspconfig.helm_ls.setup {
 ```
 
 See [examples/nvim/init.lua](https://github.com/mrjosh/helm-ls/blob/master/examples/nvim/init.lua) for an
-complete example using lazy, or [examples/nvim/init.lua](https://github.com/mrjosh/helm-ls/blob/master/examples/vim-plug/init.lua) for vim-plug.
+complete example using lazy, or [examples/vim-plug/init.lua](https://github.com/mrjosh/helm-ls/blob/master/examples/vim-plug/init.lua) for vim-plug.
 The examples also include the setup for yaml-language-server.
 
 > [!TIP]

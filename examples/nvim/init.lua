@@ -1,4 +1,5 @@
 -- a minimal example config for setting up neovim with helm-ls and yamlls
+-- uses tree-sitter for syntax highlighting
 -- test it with: nvim -u init.lua
 
 -- setup lazy plugin manager
@@ -19,20 +20,26 @@ vim.g.mapleader = " "
 
 -- install required plugins
 require("lazy").setup({
-  -- towolf/vim-helm provides basic syntax highlighting and filetype detection
-  -- ft = 'helm' is important to not start yamlls
-  { "towolf/vim-helm",       ft = "helm" },
+  -- use tree-sitter for syntax highlighting
+  {
+    "nvim-treesitter/nvim-treesitter",
+    branch = "master",
+    lazy = false,
+    build = ":TSUpdate",
+  },
+  -- alternativly you can use towolf/vim-helm for basic syntax highlighting
+  -- { "towolf/vim-helm",       ft = "helm" }, -- ft = 'helm' is important to not start yamlls
   {
     "qvalentin/helm-ls.nvim",
     ft = "helm",
     opts = {
       conceal_templates = {
         -- enable the replacement of templates with virtual text of their current values
-        enabled = false, -- tree-sitter must be setup for this feature
+        enabled = true, -- tree-sitter must be setup for this feature
       },
       indent_hints = {
         -- enable hints for indent and nindent functions
-        enabled = false, -- tree-sitter must be setup for this feature
+        enabled = true, -- tree-sitter must be setup for this feature
       },
     },
   },
@@ -54,13 +61,25 @@ lspconfig.helm_ls.setup({
 -- setup yamlls
 lspconfig.yamlls.setup({})
 
+-- setup treesitter for syntax highlighting
+require("nvim-treesitter.configs").setup({
+  -- A list of parser names, or "all" (the listed parsers MUST always be installed)
+  ensure_installed = { "yaml", "helm" },
+  -- Install parsers synchronously (only applied to `ensure_installed`)
+  sync_install = true,
+  -- Automatically install missing parsers when entering buffer
+  -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+  auto_install = true,
+  highlight = {
+    enable = true,
+  },
+})
+
 -- below are keymapping as recommended by nvim-lspconfig
 
 -- Global mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 vim.keymap.set("n", "<space>e", vim.diagnostic.open_float)
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev)
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next)
 vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist)
 
 -- Use LspAttach autocommand to only map the following keys
