@@ -39,7 +39,7 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
   - [Default Configuration](#default-configuration)
 - [Editor Config examples](#editor-config-examples)
   - [Neovim](#neovim)
-    - [Vim Helm Plugin](#vim-helm-plugin)
+    - [Filetype detection](#filetype-detection)
     - [nvim-lspconfig setup](#nvim-lspconfig-setup)
     - [coc.nvim setup](#cocnvim-setup)
   - [VSCode](#vscode)
@@ -234,12 +234,19 @@ settings = {
 
 ### Neovim
 
-#### Vim Helm Plugin
+#### Filetype detection
 
-To get filetype detection working, you'll need the [vim-helm](https://github.com/towolf/vim-helm) plugin installed before using helm_ls, to install it using vim-plug (or use your preferred plugin manager):
+To get filetype detection working, you can use one of the folowing plugins:
+
+- [helm-ls.nvim](https://github.com/qvalentin/helm-ls.nvim): **recommended**, requires [tree-sitter](https://github.com/ngalaiko/tree-sitter-go-template?tab=readme-ov-file#neovim-integration-using-nvim-treesitter) for syntax highlighting. Also provides some additional features.
+- [vim-helm](https://github.com/towolf/vim-helm): known to cause problems with yaml-language-server when used with another plugin manger than lazy
+
+install it using lazy (or use your preferred plugin manager):
 
 ```lua
-Plug 'towolf/vim-helm'
+{ "qvalentin/helm-ls.nvim", ft = "helm" }
+-- or { "towolf/vim-helm", ft = "helm" },
+-- or even both if you do not want to use tree-sitter for syntax highlighting
 ```
 
 #### nvim-lspconfig setup
@@ -261,11 +268,13 @@ lspconfig.helm_ls.setup {
 ```
 
 See [examples/nvim/init.lua](https://github.com/mrjosh/helm-ls/blob/master/examples/nvim/init.lua) for an
-complete example, which also includes yaml-language-server.
+complete example using lazy, or [examples/vim-plug/init.lua](https://github.com/mrjosh/helm-ls/blob/master/examples/vim-plug/init.lua) for vim-plug.
+The examples also include the setup for yaml-language-server.
 
 > [!TIP]
 >
-> If you are using [AstroNvim](https://github.com/AstroNvim/AstroNvim) you can just install the [astrocommunity](https://github.com/AstroNvim/astrocommunity) helm pack.
+> If you are using [AstroNvim](https://github.com/AstroNvim/AstroNvim) you can just install the [astrocommunity](https://github.com/AstroNvim/astrocommunity) helm pack
+> or if using [LazyVim](https://github.com/LazyVim/LazyVim) its [LazyVimHelm](https://github.com/LazyVim/LazyVim) plugin.
 
 #### coc.nvim setup
 
