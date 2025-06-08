@@ -38,7 +38,7 @@ func TestLintNotifications(t *testing.T) {
 		Document: document.Document{
 			URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml"),
 		},
-	}, &util.HelmLintConfig{Enabled: true})
+	}, util.HelmLintConfig{Enabled: true})
 	assert.NotEmpty(t, diagnostics)
 	assert.Len(t, diagnostics, 3)
 
@@ -66,7 +66,7 @@ func TestLintNotificationsIncludesEmptyDiagnosticsForFixedIssues(t *testing.T) {
 	}
 	diagnostics := GetDiagnosticsNotifications(&chart, &document.TemplateDocument{
 		Document: document.Document{URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml")},
-	}, &util.HelmLintConfig{Enabled: true})
+	}, util.HelmLintConfig{Enabled: true})
 
 	uris := []string{}
 	for _, notification := range diagnostics {
@@ -89,6 +89,6 @@ func TestLintNotificationsDisabled(t *testing.T) {
 		Document: document.Document{
 			URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml"),
 		},
-	}, &util.HelmLintConfig{Enabled: false})
+	}, util.HelmLintConfig{Enabled: false})
 	assert.Empty(t, diagnostics)
 }

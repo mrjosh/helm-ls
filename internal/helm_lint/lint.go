@@ -20,7 +20,7 @@ import (
 
 var logger = log.GetLogger()
 
-func GetDiagnosticsNotifications(chart *charts.Chart, doc *document.TemplateDocument, helmLintConfig *util.HelmLintConfig) []lsp.PublishDiagnosticsParams {
+func GetDiagnosticsNotifications(chart *charts.Chart, doc *document.TemplateDocument, helmLintConfig util.HelmLintConfig) []lsp.PublishDiagnosticsParams {
 	if !helmLintConfig.Enabled {
 		return []lsp.PublishDiagnosticsParams{}
 	}
