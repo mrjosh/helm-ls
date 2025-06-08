@@ -63,7 +63,7 @@ func newHandler(connPool jsonrpc2.Conn, client protocol.Client) *ServerHandler {
 	chartStore := charts.NewChartStore(uri.File(currentDir), charts.NewChart, handler.AddChartCallback)
 	handler.chartStore = chartStore
 	handler.langHandlers = map[document.DocumentType]LangHandler{
-		document.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, chartStore),
+		document.TemplateDocumentType: templatehandler.NewTemplateHandler(client, documents, chartStore, handler.helmlsConfig.HelmLintConfig),
 		document.YamlDocumentType:     yamlhandler.NewYamlHandler(client, documents, chartStore),
 	}
 

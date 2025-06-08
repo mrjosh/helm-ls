@@ -3,6 +3,7 @@ package helmlint
 import (
 	"fmt"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -19,13 +20,17 @@ import (
 
 var logger = log.GetLogger()
 
-func GetDiagnosticsNotifications(chart *charts.Chart, doc *document.TemplateDocument) []lsp.PublishDiagnosticsParams {
+func GetDiagnosticsNotifications(chart *charts.Chart, doc *document.TemplateDocument, helmLintConfig *util.HelmLintConfig) []lsp.PublishDiagnosticsParams {
+	if !helmLintConfig.Enabled {
+		return []lsp.PublishDiagnosticsParams{}
+	}
+
 	vals := chart.ValuesFiles.MainValuesFile.Values
 	if chart.ValuesFiles.OverlayValuesFile != nil {
 		vals = chartutil.CoalesceTables(chart.ValuesFiles.OverlayValuesFile.Values, chart.ValuesFiles.MainValuesFile.Values)
 	}
 
-	diagnostics := GetDiagnostics(chart.RootURI, vals)
+	diagnostics := GetDiagnostics(chart.RootURI, vals, helmLintConfig.IgnoredMessages)
 
 	// Update the diagnostics cache only for the currently opened document
 	// as it will also get diagnostics from yamlls
@@ -51,7 +56,7 @@ func GetDiagnosticsNotifications(chart *charts.Chart, doc *document.TemplateDocu
 
 // GetDiagnostics will run helm linter against the chart root URI using the given values
 // and converts the helm.support.Message to lsp.Diagnostics
-func GetDiagnostics(rootURI uri.URI, vals chartutil.Values) map[string][]lsp.Diagnostic {
+func GetDiagnostics(rootURI uri.URI, vals chartutil.Values, messageIgnoreList []string) map[string][]lsp.Diagnostic {
 	diagnostics := map[string][]lsp.Diagnostic{}
 
 	client := action.NewLint()
@@ -60,6 +65,11 @@ func GetDiagnostics(rootURI uri.URI, vals chartutil.Values) map[string][]lsp.Dia
 
 	for _, msg := range result.Messages {
 		d, relativeFilePath, _ := GetDiagnosticFromLinterErr(msg)
+
+		if slices.Contains(messageIgnoreList, d.Message) {
+			continue
+		}
+
 		absoluteFilePath := filepath.Join(rootURI.Filename(), string(relativeFilePath))
 		if d != nil {
 			diagnostics[absoluteFilePath] = append(diagnostics[absoluteFilePath], *d)

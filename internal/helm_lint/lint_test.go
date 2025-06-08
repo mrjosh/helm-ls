@@ -5,16 +5,24 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
+	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	"go.lsp.dev/uri"
 	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 func TestLint(t *testing.T) {
-	diagnostics := GetDiagnostics(uri.File("../../testdata/example"), chartutil.Values{})
+	diagnostics := GetDiagnostics(uri.File("../../testdata/example"), chartutil.Values{}, []string{})
 	assert.NotEmpty(t, diagnostics)
 	assert.Len(t, diagnostics, 2)
 	assert.Len(t, diagnostics[uri.File("../../testdata/example/Chart.yaml").Filename()], 1)
+}
+
+func TestLintIgnoreList(t *testing.T) {
+	diagnostics := GetDiagnostics(uri.File("../../testdata/example"), chartutil.Values{}, []string{"icon is recommended"})
+	assert.NotEmpty(t, diagnostics)
+	assert.Len(t, diagnostics, 1)
+	assert.Empty(t, diagnostics[uri.File("../../testdata/example/Chart.yaml").Filename()])
 }
 
 func TestLintNotifications(t *testing.T) {
@@ -30,7 +38,7 @@ func TestLintNotifications(t *testing.T) {
 		Document: document.Document{
 			URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml"),
 		},
-	})
+	}, &util.HelmLintConfig{Enabled: true})
 	assert.NotEmpty(t, diagnostics)
 	assert.Len(t, diagnostics, 3)
 
@@ -58,8 +66,7 @@ func TestLintNotificationsIncludesEmptyDiagnosticsForFixedIssues(t *testing.T) {
 	}
 	diagnostics := GetDiagnosticsNotifications(&chart, &document.TemplateDocument{
 		Document: document.Document{URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml")},
-	},
-	)
+	}, &util.HelmLintConfig{Enabled: true})
 
 	uris := []string{}
 	for _, notification := range diagnostics {
@@ -71,4 +78,17 @@ func TestLintNotificationsIncludesEmptyDiagnosticsForFixedIssues(t *testing.T) {
 			assert.Empty(t, notification.Diagnostics)
 		}
 	}
+}
+
+func TestLintNotificationsDisabled(t *testing.T) {
+	chart := charts.Chart{
+		RootURI:     uri.File("../../testdata/example"),
+		ValuesFiles: &charts.ValuesFiles{},
+	}
+	diagnostics := GetDiagnosticsNotifications(&chart, &document.TemplateDocument{
+		Document: document.Document{
+			URI: uri.File("../../testdata/example/templates/deployment-no-templates.yaml"),
+		},
+	}, &util.HelmLintConfig{Enabled: false})
+	assert.Empty(t, diagnostics)
 }

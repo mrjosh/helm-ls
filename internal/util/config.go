@@ -7,6 +7,7 @@ import (
 type HelmlsConfiguration struct {
 	YamllsConfiguration YamllsConfiguration `json:"yamlls,omitempty"`
 	ValuesFilesConfig   ValuesFilesConfig   `json:"valuesFiles,omitempty"`
+	HelmLintConfig      HelmLintConfig      `json:"helmLint,omitempty"`
 	LogLevel            string              `json:"logLevel,omitempty"`
 }
 
@@ -14,6 +15,11 @@ type ValuesFilesConfig struct {
 	MainValuesFileName               string `json:"mainValuesFile,omitempty"`
 	LintOverlayValuesFileName        string `json:"lintOverlayValuesFile,omitempty"`
 	AdditionalValuesFilesGlobPattern string `json:"additionalValuesFilesGlobPattern,omitempty"`
+}
+
+type HelmLintConfig struct {
+	Enabled         bool     `json:"enabled,omitempty"`
+	IgnoredMessages []string `json:"ignoredMessages,omitempty"`
 }
 
 type YamllsConfiguration struct {
@@ -47,6 +53,10 @@ var DefaultConfig = HelmlsConfiguration{
 		MainValuesFileName:               "values.yaml",
 		LintOverlayValuesFileName:        "values.lint.yaml",
 		AdditionalValuesFilesGlobPattern: "values*.yaml",
+	},
+	HelmLintConfig: HelmLintConfig{
+		Enabled:         true,
+		IgnoredMessages: []string{},
 	},
 	YamllsConfiguration: YamllsConfiguration{
 		Enabled:                   true,
