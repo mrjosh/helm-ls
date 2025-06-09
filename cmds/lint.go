@@ -26,7 +26,7 @@ func newLintCmd() *cobra.Command {
 				return err
 			}
 
-			msgs := helmlint.GetDiagnostics(rootPath, chart.ValuesFiles.MainValuesFile.Values)
+			msgs := helmlint.GetDiagnostics(rootPath, chart.ValuesFiles.MainValuesFile.Values, []string{})
 
 			for _, msg := range msgs {
 				fmt.Println(msg)

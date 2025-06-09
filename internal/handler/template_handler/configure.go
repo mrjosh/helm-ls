@@ -9,6 +9,7 @@ import (
 
 func (h *TemplateHandler) Configure(ctx context.Context, helmlsConfig util.HelmlsConfiguration) {
 	h.configureYamlls(ctx, helmlsConfig.YamllsConfiguration)
+	h.helmlintConfig = helmlsConfig.HelmLintConfig
 }
 
 func (h *TemplateHandler) configureYamlls(ctx context.Context, config util.YamllsConfiguration) {

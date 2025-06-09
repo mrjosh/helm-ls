@@ -5,6 +5,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
+	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/protocol"
 )
 
@@ -15,14 +16,16 @@ type TemplateHandler struct {
 	documents       *document.DocumentStore
 	chartStore      *charts.ChartStore
 	yamllsConnector *yamlls.Connector
+	helmlintConfig  util.HelmLintConfig
 }
 
-func NewTemplateHandler(client protocol.Client, documents *document.DocumentStore, chartStore *charts.ChartStore) *TemplateHandler {
+func NewTemplateHandler(client protocol.Client, documents *document.DocumentStore, chartStore *charts.ChartStore, helmlintConfig util.HelmLintConfig) *TemplateHandler {
 	return &TemplateHandler{
 		client:          client,
 		documents:       documents,
 		chartStore:      chartStore,
 		yamllsConnector: &yamlls.Connector{},
+		helmlintConfig:  helmlintConfig,
 	}
 }
 

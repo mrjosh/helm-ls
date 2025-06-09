@@ -35,6 +35,7 @@ Helm-ls is a [helm](https://github.com/helm/helm) language server protocol [LSP]
 - [Configuration options](#configuration-options)
   - [General](#general)
   - [Values Files](#values-files-1)
+  - [Helm Lint](#helm-lint)
   - [yaml-language-server config](#yaml-language-server-config)
   - [Default Configuration](#default-configuration)
 - [Editor Config examples](#editor-config-examples)
@@ -183,6 +184,11 @@ You can configure helm-ls with lsp workspace configurations.
 - **Lint Overlay Values File**: Path to the lint overlay values file, which will be merged with the main values file for linting
 - **Additional Values Files Glob Pattern**: Pattern for additional values files, which will be shown for completion and hover
 
+### Helm Lint
+
+- **Enabled**: Allows to disable the diagnostics gathered with helm lint.
+- **ignoredMessages**: A list of lint messages to ignore. You can for example add "icon is recommended" here.
+
 ### yaml-language-server config
 
 - **Enable yaml-language-server**: Toggle support of this feature.
@@ -209,6 +215,10 @@ settings = {
       mainValuesFile = "values.yaml",
       lintOverlayValuesFile = "values.lint.yaml",
       additionalValuesFilesGlobPattern = "values*.yaml"
+    },
+    helmLint = {
+      enabled = true,
+      ignoredMessages = {},
     },
     yamlls = {
       enabled = true,
