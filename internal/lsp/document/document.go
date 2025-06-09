@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gobwas/glob"
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
@@ -21,14 +22,27 @@ const (
 	YamlDocumentType     DocumentType = "yaml"
 )
 
-func TemplateDocumentTypeForLangID(langID lsp.LanguageIdentifier) DocumentType {
+var ValuesYamlFileGlob = glob.MustCompile(`**/values*.{yaml,yml}`)
+
+// Since not all editors support custom filetypes for values.yaml its easier to
+// check if the file is a values.yaml or not on the server side
+func DocumentTypeForFile(langID lsp.LanguageIdentifier, fileURI uri.URI) DocumentType {
 	if strings.Contains(string(langID), `yaml`) {
+		return YamlDocumentType
+	}
+
+	if IsValuesYamlFile(fileURI) {
 		return YamlDocumentType
 	}
 	if strings.Contains(string(langID), `helm`) {
 		return TemplateDocumentType
 	}
 	return TemplateDocumentType
+}
+
+func IsValuesYamlFile(fileURI uri.URI) bool {
+	normalizedPath := strings.ReplaceAll(fileURI.Filename(), "\\", "/")
+	return ValuesYamlFileGlob.Match(normalizedPath) && !strings.Contains(normalizedPath, "/templates/")
 }
 
 type Document struct {

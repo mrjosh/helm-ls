@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
@@ -10,10 +11,10 @@ import (
 )
 
 func (h *ServerHandler) DidOpen(ctx context.Context, params *lsp.DidOpenTextDocumentParams) (err error) {
-	handler := h.langHandlers[document.TemplateDocumentTypeForLangID(params.TextDocument.LanguageID)]
+	handler := h.langHandlers[document.DocumentTypeForFile(params.TextDocument.LanguageID, params.TextDocument.URI)]
 
 	if handler == nil {
-		message := "Language not supported: " + string(params.TextDocument.LanguageID)
+		message := fmt.Sprintf("Language or file not supported: %s, %v", params.TextDocument.LanguageID, params.TextDocument.URI)
 		logger.Error(message)
 		return errors.New(message)
 	}

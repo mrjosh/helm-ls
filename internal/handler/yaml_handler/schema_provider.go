@@ -4,12 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"go.lsp.dev/uri"
 )
 
 func (h *YamlHandler) CustomSchemaProvider(ctx context.Context, URI uri.URI) (uri.URI, error) {
 	if h.jsonSchemas == nil {
 		return uri.New(""), fmt.Errorf("JSON schema generator not initialized")
+	}
+
+	if !document.IsValuesYamlFile(URI) {
+		return uri.New(""), nil
 	}
 
 	chart, err := h.chartStore.GetChartForDoc(URI)
