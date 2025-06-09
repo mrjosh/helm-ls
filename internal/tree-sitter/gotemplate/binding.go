@@ -1,14 +1,10 @@
 package gotemplate
 
-//#include "tree_sitter/parser.h"
-//TSLanguage *tree_sitter_gotmpl();
-import "C"
 import (
+	tree_sitter_gotmpl "github.com/qvalentin/tree-sitter-go-template/bindings/go"
 	sitter "github.com/smacker/go-tree-sitter"
-	"unsafe"
 )
 
 func GetLanguage() *sitter.Language {
-	ptr := unsafe.Pointer(C.tree_sitter_gotmpl())
-	return sitter.NewLanguage(ptr)
+	return tree_sitter_gotmpl.GetLanguage()
 }
