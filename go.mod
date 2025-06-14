@@ -7,6 +7,7 @@ toolchain go1.23.4
 require (
 	github.com/gkampitakis/go-snaps v0.5.11
 	github.com/gobwas/glob v0.2.3
+	github.com/qvalentin/tree-sitter-go-template v0.0.0-20250610165820-39634a1eba46
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spf13/cobra v1.9.1
@@ -117,7 +118,6 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.63.0 // indirect
 	github.com/prometheus/procfs v0.16.0 // indirect
-	github.com/qvalentin/tree-sitter-go-template v0.0.0-20250609173729-85b0dfc0b6fe // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/rubenv/sql-migrate v1.8.0 // indirect
