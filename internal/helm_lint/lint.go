@@ -66,14 +66,16 @@ func GetDiagnostics(rootURI uri.URI, vals chartutil.Values, messageIgnoreList []
 	for _, msg := range result.Messages {
 		d, relativeFilePath, _ := GetDiagnosticFromLinterErr(msg)
 
+		if d == nil {
+			continue
+		}
+
 		if slices.Contains(messageIgnoreList, d.Message) {
 			continue
 		}
 
 		absoluteFilePath := filepath.Join(rootURI.Filename(), string(relativeFilePath))
-		if d != nil {
-			diagnostics[absoluteFilePath] = append(diagnostics[absoluteFilePath], *d)
-		}
+		diagnostics[absoluteFilePath] = append(diagnostics[absoluteFilePath], *d)
 	}
 	logger.Println(fmt.Sprintf("helm lint: result for chart %s : %v", rootURI.Filename(), diagnostics))
 
