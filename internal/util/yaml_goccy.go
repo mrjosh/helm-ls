@@ -1,35 +1,78 @@
 package util
 
 import (
-	"fmt"
+	"strings"
 
+	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 	"go.lsp.dev/protocol"
 )
 
-func GetNodeForPosition2(node ast.Node, position protocol.Position) *ast.Node {
-	visitor := &PositionFinderVisitor{}
+func GetNodeForPosition2(node ast.Node, position protocol.Position) ast.Node {
+	visitor := &PositionFinderVisitor{
+		position: position,
+	}
 	ast.Walk(visitor, node)
-	return nil
+	return visitor.result
 }
 
 // PositionFinderVisitor is a visitor that collects positions.
 type PositionFinderVisitor struct {
-	result string // Field to store the result
-	found  bool   // Flag to indicate if the target was found
+	position protocol.Position
+	result   ast.Node
+	found    bool
 }
 
-// Visit method implementation for PositionFinderVisitor with a value receiver.
 func (pv *PositionFinderVisitor) Visit(node ast.Node) ast.Visitor {
-	// Example logic: if the node is a string and matches a condition, set found to true.
-	strNode := node.String()
-	fmt.Println(strNode)
-	if strNode == "World" { // Example condition to stop the walk
-		fmt.Println("Found the node")
-		pv.found = true
-		return nil // Stop the walk
+	if pv.found {
+		return nil
 	}
-	pv.result += strNode + " "
+
+	strNode := node.String()
+	logger.Debug("Visiting node: ", strNode)
+	if IsRelevantNode(node) && IsNodeAtPosition(node, &pv.position) {
+		logger.Printf("Found node: %s", strNode)
+		pv.found = true
+		pv.result = node
+		return nil
+	}
 	// Return a new instance of PositionFinderVisitor to continue traversal.
 	return pv
+}
+
+func IsRelevantNode(node ast.Node) bool {
+	return !(node.Type() == ast.MappingKeyType || node.Type() == ast.MappingValueType || node.Type() == ast.MappingType)
+}
+
+func IsNodeAtPosition(node ast.Node, position *protocol.Position) bool {
+	token := node.GetToken()
+	start := token.Position
+
+	endColumn := start.Column + len(node.String())
+
+	logger.Debug("IsNodeAtPosition", start, endColumn, position, token.Value)
+
+	if start.Line != int(position.Line)+1 {
+		return false
+	}
+
+	if start.Column <= int(position.Character)+1 && endColumn >= int(position.Character)+1 {
+		return true
+	}
+	return false
+}
+
+// ReadYamlToNode will parse a YAML file into a yaml Node.
+func ReadYamlToGoccyNode(data []byte) (node ast.Node, err error) {
+	err = yaml.Unmarshal(data, &node)
+	return node, err
+}
+
+func JSONPathToTemplateContext(jsonPath string) []string {
+	spliited := strings.Split(jsonPath, ".")
+
+	if len(spliited) > 0 && spliited[0] == "$" {
+		return spliited[1:]
+	}
+	return spliited
 }

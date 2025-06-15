@@ -1,6 +1,7 @@
 package document
 
 import (
+	"github.com/goccy/go-yaml/ast"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
@@ -10,9 +11,10 @@ import (
 // TemplateDocument represents an helm template file.
 type YamlDocument struct {
 	Document
-	Node       yaml.Node
-	ParsedYaml map[string]any
-	ParseErr   error
+	Node          yaml.Node
+	GoccyYamlNode ast.Node
+	ParsedYaml    map[string]any
+	ParseErr      error
 }
 
 func (d *YamlDocument) GetDocumentType() DocumentType {
@@ -20,13 +22,14 @@ func (d *YamlDocument) GetDocumentType() DocumentType {
 }
 
 func NewYamlDocument(fileURI uri.URI, content []byte, isOpen bool, helmlsConfig util.HelmlsConfiguration) *YamlDocument {
-	node, parsedYaml, unmarshalErr := parseYaml(content)
+	node, goccyNode, parsedYaml, unmarshalErr := parseYaml(content)
 	logger.Debug("Parsed yaml", fileURI.Filename(), unmarshalErr)
 	return &YamlDocument{
-		Document:   *NewDocument(fileURI, content, isOpen),
-		Node:       node,
-		ParsedYaml: parsedYaml,
-		ParseErr:   unmarshalErr,
+		Document:      *NewDocument(fileURI, content, isOpen),
+		Node:          node,
+		GoccyYamlNode: goccyNode,
+		ParsedYaml:    parsedYaml,
+		ParseErr:      unmarshalErr,
 	}
 }
 
@@ -34,24 +37,30 @@ func NewYamlDocument(fileURI uri.URI, content []byte, isOpen bool, helmlsConfig 
 func (d *YamlDocument) ApplyChanges(changes []lsp.TextDocumentContentChangeEvent) {
 	d.Document.ApplyChanges(changes)
 
-	node, parsedYaml, unmarshalErr := parseYaml(d.Content)
+	node, goccyNode, parsedYaml, unmarshalErr := parseYaml(d.Content)
 
 	d.Node = node
+	d.GoccyYamlNode = goccyNode
 	d.ParsedYaml = parsedYaml
 	d.ParseErr = unmarshalErr
 }
 
-func parseYaml(content []byte) (yaml.Node, map[string]any, error) {
+func parseYaml(content []byte) (yaml.Node, ast.Node, map[string]any, error) {
 	node, err := util.ReadYamlToNode(content)
 	if err != nil {
-		return yaml.Node{}, map[string]any{}, err
+		return yaml.Node{}, &ast.NullNode{}, map[string]any{}, err
+	}
+
+	goccyNode, err := util.ReadYamlToGoccyNode(content)
+	if err != nil {
+		return yaml.Node{}, &ast.NullNode{}, map[string]any{}, err
 	}
 
 	var parsedYaml map[string]any
 	unmarshalErr := yaml.Unmarshal(content, &parsedYaml)
 	if unmarshalErr != nil {
-		return node, map[string]any{}, unmarshalErr
+		return node, &ast.NullNode{}, map[string]any{}, unmarshalErr
 	}
 
-	return node, parsedYaml, nil
+	return node, goccyNode, parsedYaml, nil
 }
