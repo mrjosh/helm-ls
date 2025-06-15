@@ -1,0 +1,78 @@
+package util
+
+import (
+	"strings"
+
+	"github.com/goccy/go-yaml"
+	"github.com/goccy/go-yaml/ast"
+	"go.lsp.dev/protocol"
+)
+
+func GetNodeForPosition2(node ast.Node, position protocol.Position) ast.Node {
+	visitor := &PositionFinderVisitor{
+		position: position,
+	}
+	ast.Walk(visitor, node)
+	return visitor.result
+}
+
+// PositionFinderVisitor is a visitor that collects positions.
+type PositionFinderVisitor struct {
+	position protocol.Position
+	result   ast.Node
+	found    bool
+}
+
+func (pv *PositionFinderVisitor) Visit(node ast.Node) ast.Visitor {
+	if pv.found {
+		return nil
+	}
+
+	strNode := node.String()
+	logger.Debug("Visiting node: ", strNode)
+	if IsRelevantNode(node) && IsNodeAtPosition(node, &pv.position) {
+		logger.Printf("Found node: %s", strNode)
+		pv.found = true
+		pv.result = node
+		return nil
+	}
+	// Return a new instance of PositionFinderVisitor to continue traversal.
+	return pv
+}
+
+func IsRelevantNode(node ast.Node) bool {
+	return !(node.Type() == ast.MappingKeyType || node.Type() == ast.MappingValueType || node.Type() == ast.MappingType)
+}
+
+func IsNodeAtPosition(node ast.Node, position *protocol.Position) bool {
+	token := node.GetToken()
+	start := token.Position
+
+	endColumn := start.Column + len(node.String())
+
+	logger.Debug("IsNodeAtPosition", start, endColumn, position, token.Value)
+
+	if start.Line != int(position.Line)+1 {
+		return false
+	}
+
+	if start.Column <= int(position.Character)+1 && endColumn >= int(position.Character)+1 {
+		return true
+	}
+	return false
+}
+
+// ReadYamlToNode will parse a YAML file into a yaml Node.
+func ReadYamlToGoccyNode(data []byte) (node ast.Node, err error) {
+	err = yaml.Unmarshal(data, &node)
+	return node, err
+}
+
+func JSONPathToTemplateContext(jsonPath string) []string {
+	spliited := strings.Split(jsonPath, ".")
+
+	if len(spliited) > 0 && spliited[0] == "$" {
+		return spliited[1:]
+	}
+	return spliited
+}
