@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/pkg/errors"
 	"go.lsp.dev/protocol"
@@ -12,7 +13,7 @@ import (
 // References implements handler.LangHandler.
 func (h *YamlHandler) References(ctx context.Context, params *protocol.ReferenceParams) (result []protocol.Location, err error) {
 	path, err := h.GetYamlPath(params.TextDocument.URI, params.Position)
-	templateContext := util.JSONPathToTemplateContext(path)
+	templateContext := symboltable.TemplateContextFromJSONPath(path)
 
 	logger.Debug("YamlHandler References looking for template context", templateContext)
 	locations := []protocol.Location{}

@@ -1,8 +1,6 @@
 package util
 
 import (
-	"strings"
-
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 	"go.lsp.dev/protocol"
@@ -66,13 +64,4 @@ func IsNodeAtPosition(node ast.Node, position *protocol.Position) bool {
 func ReadYamlToGoccyNode(data []byte) (node ast.Node, err error) {
 	err = yaml.Unmarshal(data, &node)
 	return node, err
-}
-
-func JSONPathToTemplateContext(jsonPath string) []string {
-	spliited := strings.Split(jsonPath, ".")
-
-	if len(spliited) > 0 && spliited[0] == "$" {
-		return spliited[1:]
-	}
-	return spliited
 }
