@@ -46,6 +46,15 @@ func NewTemplateContext(string string) TemplateContext {
 	return splitted
 }
 
+func TemplateContextFromJSONPath(jsonPath string) TemplateContext {
+	spliited := strings.Split(jsonPath, ".")
+
+	if len(spliited) > 0 && spliited[0] == "$" {
+		return spliited[1:]
+	}
+	return spliited
+}
+
 type SymbolTable struct {
 	contexts            map[string][]sitter.Range
 	contextsReversed    map[sitter.Range]TemplateContext
