@@ -6,7 +6,7 @@ import (
 	"go.lsp.dev/protocol"
 )
 
-func GetNodeForPosition2(node ast.Node, position protocol.Position) ast.Node {
+func GetNodeForPosition(node ast.Node, position protocol.Position) ast.Node {
 	visitor := &PositionFinderVisitor{
 		position: position,
 	}
@@ -26,20 +26,22 @@ func (pv *PositionFinderVisitor) Visit(node ast.Node) ast.Visitor {
 		return nil
 	}
 
-	strNode := node.String()
-	logger.Debug("Visiting node: ", strNode)
 	if IsRelevantNode(node) && IsNodeAtPosition(node, &pv.position) {
-		logger.Printf("Found node: %s", strNode)
 		pv.found = true
 		pv.result = node
 		return nil
 	}
-	// Return a new instance of PositionFinderVisitor to continue traversal.
 	return pv
 }
 
+// We only care about user facing nodes
 func IsRelevantNode(node ast.Node) bool {
-	return !(node.Type() == ast.MappingKeyType || node.Type() == ast.MappingValueType || node.Type() == ast.MappingType)
+	switch node.Type() {
+	case ast.MappingKeyType, ast.MappingValueType, ast.MappingType, ast.SequenceType:
+		return false
+	default:
+		return true
+	}
 }
 
 func IsNodeAtPosition(node ast.Node, position *protocol.Position) bool {
@@ -47,8 +49,6 @@ func IsNodeAtPosition(node ast.Node, position *protocol.Position) bool {
 	start := token.Position
 
 	endColumn := start.Column + len(node.String())
-
-	logger.Debug("IsNodeAtPosition", start, endColumn, position, token.Value)
 
 	if start.Line != int(position.Line)+1 {
 		return false

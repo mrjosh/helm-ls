@@ -35,7 +35,7 @@ func (h *YamlHandler) GetYamlPath(uri lsp.URI, pos lsp.Position) (path string, e
 		return "", fmt.Errorf("no document for %s", uri)
 	}
 
-	node := util.GetNodeForPosition2(doc.GoccyYamlNode, pos)
+	node := util.GetNodeForPosition(doc.GoccyYamlNode, pos)
 
 	if node == nil {
 		return "", fmt.Errorf("no node found")
