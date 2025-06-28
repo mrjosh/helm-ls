@@ -21,6 +21,8 @@ func (f *GenericTemplateContextFeature) getReferencesFromSymbolTable(templateCon
 	locations := []lsp.Location{}
 
 	for _, doc := range f.GenericDocumentUseCase.DocumentStore.GetAllTemplateDocs() {
+		// TODO(dependecy-charts): template context would need to be adjusted for dependency charts
+		// see https://github.com/mrjosh/helm-ls/issues/152
 		referenceRanges := doc.SymbolTable.GetTemplateContextRanges(templateContext)
 		locations = append(locations, util.RangesToLocations(doc.URI, referenceRanges)...)
 	}

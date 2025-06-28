@@ -1,6 +1,8 @@
 package document
 
 import (
+	"fmt"
+
 	"github.com/goccy/go-yaml/ast"
 	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
@@ -63,4 +65,16 @@ func parseYaml(content []byte) (yaml.Node, ast.Node, map[string]any, error) {
 	}
 
 	return node, goccyNode, parsedYaml, nil
+}
+
+func (d *YamlDocument) GetPathForPosition(position lsp.Position) (string, error) {
+	node := util.GetNodeForPosition(d.GoccyYamlNode, position)
+
+	if node == nil {
+		return "", fmt.Errorf("YAML node not found for position %v", position)
+	}
+
+	path := node.GetPath()
+
+	return path, nil
 }
