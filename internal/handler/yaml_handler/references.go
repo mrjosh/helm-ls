@@ -13,7 +13,7 @@ import (
 // References implements handler.LangHandler.
 func (h *YamlHandler) References(ctx context.Context, params *protocol.ReferenceParams) (result []protocol.Location, err error) {
 	path, err := h.GetYamlPath(params.TextDocument.URI, params.Position)
-	templateContext := symboltable.TemplateContextFromJSONPath(path)
+	templateContext := symboltable.TemplateContextFromYAMLPath(path)
 
 	logger.Debug("YamlHandler References looking for template context", templateContext)
 	locations := []protocol.Location{}
