@@ -10,6 +10,7 @@ import (
 	"github.com/mrjosh/helm-ls/internal/log"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"go.lsp.dev/protocol"
+	lsp "go.lsp.dev/protocol"
 )
 
 var logger = log.GetLogger()
@@ -44,4 +45,14 @@ func NewYamlHandler(client protocol.Client, documents *document.DocumentStore, c
 
 func (h *YamlHandler) setYamllsConnector(yamllsConnector *yamlls.Connector) {
 	h.yamllsConnector = yamllsConnector
+}
+
+func (h *YamlHandler) getYamlPath(uri lsp.URI, pos lsp.Position) (path string, err error) {
+	doc, ok := h.documents.GetYamlDoc(uri)
+
+	if !ok {
+		return "", fmt.Errorf("document not found: %s", uri)
+	}
+
+	return doc.GetPathForPosition(pos)
 }

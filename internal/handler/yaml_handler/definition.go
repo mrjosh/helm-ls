@@ -19,6 +19,7 @@ func (h *YamlHandler) Definition(ctx context.Context, params *protocol.Definitio
 	locations, err := h.getDefinitionsInValues(params.TextDocument.URI, templateContext)
 	result = []protocol.Location{}
 
+	// remove the current document
 	for _, location := range locations {
 		if location.URI != params.TextDocument.URI {
 			result = append(result, location)
