@@ -3,7 +3,6 @@ package yamlhandler
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/mrjosh/helm-ls/internal/protocol"
 	lsp "go.lsp.dev/protocol"
@@ -23,14 +22,4 @@ func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (resul
 	yamlResult.Contents.Value = yamlResult.Contents.Value + "\n\n" + path
 
 	return yamlResult, errors.Join(yamllsErr, err)
-}
-
-func (h *YamlHandler) getYamlPath(uri lsp.URI, pos lsp.Position) (path string, err error) {
-	doc, ok := h.documents.GetYamlDoc(uri)
-
-	if !ok {
-		return "", fmt.Errorf("document not found: %s", uri)
-	}
-
-	return doc.GetPathForPosition(pos)
 }
