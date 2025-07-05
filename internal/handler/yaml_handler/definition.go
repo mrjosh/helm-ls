@@ -26,7 +26,7 @@ func (h *YamlHandler) Definition(ctx context.Context, params *protocol.Definitio
 		}
 	}
 
-	return locations, nil
+	return result, nil
 }
 
 func (h *YamlHandler) getDefinitionsInValues(uri protocol.URI, templateContext symboltable.TemplateContext) ([]protocol.Location, error) {
