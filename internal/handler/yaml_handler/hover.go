@@ -21,5 +21,7 @@ func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (resul
 
 	yamlResult.Contents.Value = yamlResult.Contents.Value + "\n\n" + path
 
+	// IDEA: get the definitions from other values files and include comments (documentation) in the result
+
 	return yamlResult, errors.Join(yamllsErr, err)
 }

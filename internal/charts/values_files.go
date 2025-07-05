@@ -82,7 +82,11 @@ func (v *ValuesFiles) GetPositionsForValue(query []string) []lsp.Location {
 			logger.Error(fmt.Sprintf("Error getting position for value in yaml file %s with query %v ", yaml, query), err)
 			continue
 		}
-		result = append(result, lsp.Location{URI: value.URI, Range: lsp.Range{Start: pos, End: pos}})
+		end := pos
+		if len(queryCopy) > 0 {
+			end.Character += uint32(len(queryCopy[len(queryCopy)-1]))
+		}
+		result = append(result, lsp.Location{URI: value.URI, Range: lsp.Range{Start: pos, End: end}})
 	}
 
 	return result

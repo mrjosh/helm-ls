@@ -168,7 +168,7 @@ func TestDefinitionValue(t *testing.T) {
 				},
 				End: lsp.Position{
 					Line:      1,
-					Character: 0,
+					Character: 3,
 				},
 			},
 		},
@@ -190,7 +190,7 @@ func TestDefinitionValueInList(t *testing.T) {
 				},
 				End: lsp.Position{
 					Line:      4,
-					Character: 0,
+					Character: 6,
 				},
 			},
 		},
@@ -211,7 +211,7 @@ func TestDefinitionValueNested(t *testing.T) {
 				},
 				End: lsp.Position{
 					Line:      3,
-					Character: 2,
+					Character: 8,
 				},
 			},
 		},

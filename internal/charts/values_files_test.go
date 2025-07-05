@@ -43,11 +43,11 @@ foo: baz`
 	assert.Equal(t, []lsp.Location{
 		{
 			URI:   uri.File(filepath.Join(tempDir, "values.yaml")),
-			Range: lsp.Range{Start: lsp.Position{Line: 0, Character: 0}, End: lsp.Position{Line: 0, Character: 0}},
+			Range: lsp.Range{Start: lsp.Position{Line: 0, Character: 0}, End: lsp.Position{Line: 0, Character: 3}},
 		},
 		{
 			URI:   uri.File(filepath.Join(tempDir, "values-additional.yaml")),
-			Range: lsp.Range{Start: lsp.Position{Line: 2, Character: 0}, End: lsp.Position{Line: 2, Character: 0}},
+			Range: lsp.Range{Start: lsp.Position{Line: 2, Character: 0}, End: lsp.Position{Line: 2, Character: 3}},
 		},
 	}, valuesFiles.GetPositionsForValue([]string{"foo"}))
 }
