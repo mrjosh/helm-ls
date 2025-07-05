@@ -27,17 +27,43 @@ func TestDefintion(t *testing.T) {
 			"",
 		},
 		{
-			"Defined in multiple files",
+			"Defined in multiple files in same chart",
 			"../../../testdata/dependenciesExample/values.a.yaml",
 			"ima^ge:",
 			[]testutil.ExpectedDefinitionResult{
 				{
 					Filepath:   "../../../testdata/dependenciesExample/values.b.yaml",
-					MarkedLine: "§image§:", // TODO: fix the range
+					MarkedLine: "§image§:",
 				},
 				{
 					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
 					MarkedLine: "§image§:",
+				},
+			},
+			"",
+		},
+		{
+			"From parent to subchart",
+			"../../../testdata/dependenciesExample/values.yaml",
+			"subchartWithout^Global: worksToo",
+
+			[]testutil.ExpectedDefinitionResult{
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
+					MarkedLine: "§subchartWithoutGlobal§: works",
+				},
+			},
+			"",
+		},
+		{
+			"From parent to subchart global",
+			"../../../testdata/dependenciesExample/values.yaml",
+			"  subch^art: works",
+
+			[]testutil.ExpectedDefinitionResult{
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
+					MarkedLine: "  §subchart§: works",
 				},
 			},
 			"",

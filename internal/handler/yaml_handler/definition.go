@@ -11,6 +11,7 @@ import (
 
 // Definition implements handler.LangHandler.
 func (h *YamlHandler) Definition(ctx context.Context, params *protocol.DefinitionParams) (result []protocol.Location, err error) {
+	logger.Debug("YamlHandler.Definition, for document at position", params.TextDocument.URI, params.Position)
 	path, err := h.getYamlPath(params.TextDocument.URI, params.Position)
 	if err != nil {
 		return nil, fmt.Errorf("Getting References failed for document: %w", err)
