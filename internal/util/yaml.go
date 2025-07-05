@@ -10,6 +10,7 @@ import (
 )
 
 func GetPositionOfNode(node *yamlv3.Node, query []string) (lsp.Position, error) {
+	// TODO: replace this with goccy yaml
 	if node.IsZero() {
 		return lsp.Position{}, fmt.Errorf("could not find Position of %s in values.yaml. Node was zero", query)
 	}
@@ -73,25 +74,6 @@ func getPositionOfNodeAfterRange(node *yamlv3.Node, query []string) (lsp.Positio
 	}
 
 	return lsp.Position{}, fmt.Errorf("could not find Position of %s in values. Found no match", query)
-}
-
-func GetNodeForPosition(node *yamlv3.Node, position lsp.Position) *yamlv3.Node {
-	if node.IsZero() {
-		return nil
-	}
-
-	if node.Value != "" && node.Line == int(position.Line+1) && node.Column <= int(position.Character+1) {
-		return node
-	}
-
-	for _, nestedNode := range node.Content {
-		nestedResult := GetNodeForPosition(nestedNode, position)
-		if nestedResult != nil {
-			return nestedResult
-		}
-	}
-
-	return nil
 }
 
 // ReadYamlToNode will parse a YAML file into a yaml Node.

@@ -10,13 +10,3 @@ import (
 func (h *YamlHandler) DocumentSymbol(ctx context.Context, params *protocol.DocumentSymbolParams) (result []interface{}, err error) {
 	return nil, nil
 }
-
-// Definition implements handler.LangHandler.
-func (h *YamlHandler) Definition(ctx context.Context, params *protocol.DefinitionParams) (result []protocol.Location, err error) {
-	return nil, nil
-}
-
-// References implements handler.LangHandler.
-func (h *YamlHandler) References(ctx context.Context, params *protocol.ReferenceParams) (result []protocol.Location, err error) {
-	return nil, nil
-}
