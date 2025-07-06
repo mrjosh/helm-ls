@@ -68,6 +68,53 @@ func TestDefinition(t *testing.T) {
 			},
 			"",
 		},
+		{
+			"From subchart to parent",
+			"../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
+			"^subchartWithoutGlobal: works",
+
+			[]testutil.ExpectedDefinitionResult{
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
+					MarkedLine: "§subchartWithoutGlobal§: worksToo",
+				},
+			},
+			"",
+		},
+		{
+			"From subchart to parent multiple files",
+			"../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
+			"^global:",
+
+			[]testutil.ExpectedDefinitionResult{
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
+					MarkedLine: "§global§:",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.a.yaml",
+					MarkedLine: "§global§:",
+				},
+			},
+			"",
+		},
+		{
+			"From parent to subchart values when on subchart name",
+			"../../../testdata/dependenciesExample//values.yaml",
+			"^subchartexample:",
+
+			[]testutil.ExpectedDefinitionResult{
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
+					MarkedLine: "§§global:",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.b.yaml",
+					MarkedLine: "§subchartexample§:",
+				},
+			},
+			"",
+		},
 	}
 
 	for _, tc := range testCases {

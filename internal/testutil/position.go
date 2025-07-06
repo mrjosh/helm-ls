@@ -9,7 +9,8 @@ import (
 // Finds the first occurrence of the marked line (or a substring) in the file
 // and returns its position.
 func GetPositionOfMarkedLineInFile(fileContent, markedLine, marker string) (pos protocol.Position, found bool) {
-	lines := strings.Split(fileContent, "\n")
+	normalizedContent := strings.ReplaceAll(fileContent, "\r\n", "\n")
+	lines := strings.Split(normalizedContent, "\n")
 	col := strings.Index(markedLine, marker)
 	buf := strings.Replace(markedLine, marker, "", 1)
 	line := uint32(0)
