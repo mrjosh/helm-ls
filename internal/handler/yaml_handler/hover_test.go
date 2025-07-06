@@ -43,7 +43,7 @@ func TestHover(t *testing.T) {
 		{
 			"Hover on nested mapping node, end of node",
 			"../../../testdata/example/values.yaml",
-			"pathType^: ImplementationSpecific",
+			"pathTyp^e: ImplementationSpecific",
 			"$.ingress.hosts[0].paths[0].pathType",
 			"",
 		},

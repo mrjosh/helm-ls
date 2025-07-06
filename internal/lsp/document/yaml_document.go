@@ -74,7 +74,5 @@ func (d *YamlDocument) GetPathForPosition(position lsp.Position) (string, error)
 		return "", fmt.Errorf("YAML node not found for position %v", position)
 	}
 
-	path := node.GetPath()
-
-	return path, nil
+	return node.GetPath(), nil
 }

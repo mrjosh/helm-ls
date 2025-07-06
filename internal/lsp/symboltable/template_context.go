@@ -17,6 +17,9 @@ func (t TemplateContext) Copy() TemplateContext {
 
 // Return everything except the first context
 func (t TemplateContext) Tail() TemplateContext {
+	if len(t) == 0 {
+		return t
+	}
 	return t[1:]
 }
 
@@ -26,6 +29,9 @@ func (t TemplateContext) IsVariable() bool {
 
 // Adds a suffix to the last context
 func (t TemplateContext) AppendSuffix(suffix string) TemplateContext {
+	if len(t) == 0 {
+		return TemplateContext{suffix}
+	}
 	t[len(t)-1] = t[len(t)-1] + suffix
 	return t
 }

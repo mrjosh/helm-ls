@@ -10,7 +10,7 @@ import (
 	"go.lsp.dev/uri"
 )
 
-func TestDefintion(t *testing.T) {
+func TestDefinition(t *testing.T) {
 	testCases := []struct {
 		desc       string
 		filepath   string

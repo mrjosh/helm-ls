@@ -21,12 +21,12 @@ func (expected ExpectedDefinitionResult) GetLocation() (protocol.Location, error
 	if err != nil {
 		return protocol.Location{}, err
 	}
-	range_, found := GetRangeOfMarkedLineInFile(string(fileContent), expected.MarkedLine, "§")
+	foundRange, found := GetRangeOfMarkedLineInFile(string(fileContent), expected.MarkedLine, "§")
 
 	if !found {
 		return protocol.Location{}, fmt.Errorf("could not find marked line in file")
 	}
-	return protocol.Location{URI: uri.File(expected.Filepath), Range: range_}, nil
+	return protocol.Location{URI: uri.File(expected.Filepath), Range: foundRange}, nil
 }
 
 func AssertDefinitionResult(t *testing.T, actual []protocol.Location, expected []ExpectedDefinitionResult) {

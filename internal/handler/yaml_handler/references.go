@@ -23,7 +23,7 @@ func (h *YamlHandler) References(ctx context.Context, params *protocol.Reference
 
 	definitions, err := h.getDefinitionsInValues(params.TextDocument.URI, templateContext)
 	if err != nil {
-		return locations, fmt.Errorf("Adding definitions failed to references failed: %w", err)
+		return locations, fmt.Errorf("Adding definitions to references failed: %w", err)
 	}
 	locations = append(locations, definitions...)
 

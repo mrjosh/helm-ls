@@ -5,37 +5,9 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
+	"github.com/mrjosh/helm-ls/internal/testutil"
 	"github.com/stretchr/testify/assert"
-	"go.lsp.dev/protocol"
 )
-
-// func TestPositionFinderVisitor(t *testing.T) {
-// 	var node ast.Node
-//
-// 	yml := `
-// a:
-//   World: something
-// b: c
-// `
-//
-// 	err := yaml.Unmarshal([]byte(yml), &node)
-// 	assert.NoError(t, err)
-//
-// 	pv := &PositionFinderVisitor{
-// 		position: protocol.Position{
-// 			Line:      2,
-// 			Character: 2,
-// 		},
-// 	}
-//
-// 	ast.Walk(pv, node)
-//
-// 	assert.True(t, pv.found)
-// 	assert.NotNil(t, pv.result)
-//
-// 	expectedResult := "World"
-// 	assert.Equal(t, expectedResult, pv.result.String())
-// }
 
 func TestPositionFinderVisitor(t *testing.T) {
 	const yamlDoc = `
@@ -47,6 +19,7 @@ root:
     - listItem1
     - listItem2
   scalarKey: scalarValue
+  inlineList: [1, 2, 3]
 `
 
 	var node ast.Node
@@ -55,49 +28,107 @@ root:
 
 	tests := []struct {
 		name       string
-		line       uint32
-		character  uint32
+		markedLine string
 		wantFound  bool
 		wantResult string
 	}{
 		{
 			name:       "inside parent1 key",
-			line:       2, // line numbers are 0-based if your visitor uses 0-based
-			character:  4,
+			markedLine: "paren^t1",
 			wantFound:  true,
 			wantResult: "parent1",
 		},
 		{
 			name:       "inside childA key",
-			line:       3,
-			character:  6,
+			markedLine: "ch^ildA:",
 			wantFound:  true,
 			wantResult: "childA",
 		},
 		{
-			name:      "inside list",
-			line:      6,
-			character: 4,
-			wantFound: false,
+			name:       "around childA key left",
+			markedLine: "^childA:",
+			wantFound:  true,
+			wantResult: "childA",
+		},
+		{
+			name:       "around childA key right",
+			markedLine: "child^A:",
+			wantFound:  true,
+			wantResult: "childA",
+		},
+		{
+			name:       "inside list",
+			markedLine: "^- listItem2",
+			wantFound:  false,
 		},
 		{
 			name:       "inside list item 1",
-			line:       6,
-			character:  12,
+			markedLine: "- listI^tem1",
 			wantFound:  true,
 			wantResult: "listItem1",
 		},
 		{
+			name:       "on scalar key left",
+			markedLine: "^scalarKey: scalarValue",
+			wantFound:  true,
+			wantResult: "scalarKey",
+		},
+		{
+			name:       "on scalar key left right",
+			markedLine: "scalarKe^y: scalarValue",
+			wantFound:  true,
+			wantResult: "scalarKey",
+		},
+		{
+			name:       "on scalar key left right",
+			markedLine: "scalarKey^: scalarValue",
+			wantFound:  false,
+			wantResult: "",
+		},
+		{
 			name:       "on scalar value",
-			line:       8,
-			character:  14,
+			markedLine: "scalarKey: scala^rValue",
+			wantFound:  true,
+			wantResult: "scalarValue",
+		},
+		{
+			name:       "on scalar value left border",
+			markedLine: "scalarKey: ^scalarValue",
+			wantFound:  true,
+			wantResult: "scalarValue",
+		},
+		{
+			name:       "on scalar value right border",
+			markedLine: "scalarKey: scalarValue^",
 			wantFound:  true,
 			wantResult: "scalarValue",
 		},
 		{
 			name:       "outside any node",
-			line:       0,
-			character:  0,
+			wantFound:  false,
+			wantResult: "",
+		},
+		{
+			name:       "on inline list",
+			markedLine: "inlineList: [^1, 2, 3]",
+			wantFound:  true,
+			wantResult: "1",
+		},
+		{
+			name:       "on inline list comma",
+			markedLine: "inlineList: [1^, 2, 3]",
+			wantFound:  false,
+			wantResult: "",
+		},
+		{
+			name:       "on inline list end",
+			markedLine: "inlineList: [1, 2, 3^]",
+			wantFound:  false,
+			wantResult: "",
+		},
+		{
+			name:       "on inline list start",
+			markedLine: "inlineList: ^[1, 2, 3]",
 			wantFound:  false,
 			wantResult: "",
 		},
@@ -105,12 +136,10 @@ root:
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create a fresh visitor for each test
+			pos, found := testutil.GetPositionOfMarkedLineInFile(yamlDoc, tc.markedLine, "^")
+			assert.True(t, found)
 			pv := &PositionFinderVisitor{
-				position: protocol.Position{
-					Line:      tc.line,
-					Character: tc.character,
-				},
+				position: pos,
 			}
 
 			ast.Walk(pv, node)

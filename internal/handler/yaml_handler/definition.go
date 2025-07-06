@@ -14,7 +14,7 @@ func (h *YamlHandler) Definition(ctx context.Context, params *protocol.Definitio
 	logger.Debug("YamlHandler.Definition, for document at position", params.TextDocument.URI, params.Position)
 	path, err := h.getYamlPath(params.TextDocument.URI, params.Position)
 	if err != nil {
-		return nil, fmt.Errorf("Getting References failed for document: %w", err)
+		return nil, fmt.Errorf("Getting definitions failed for document: %w", err)
 	}
 	templateContext := symboltable.TemplateContextFromYAMLPath(path)
 	locations, err := h.getDefinitionsInValues(params.TextDocument.URI, templateContext)
@@ -50,5 +50,5 @@ func (h *YamlHandler) getDefinitionsInValues(uri protocol.URI, templateContext s
 
 	}
 
-	return locations, err
+	return locations, nil
 }

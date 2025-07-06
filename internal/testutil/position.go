@@ -11,7 +11,7 @@ import (
 func GetPositionOfMarkedLineInFile(fileContent, markedLine, marker string) (pos protocol.Position, found bool) {
 	lines := strings.Split(fileContent, "\n")
 	col := strings.Index(markedLine, marker)
-	buf := strings.Replace(markedLine, marker, "", 2)
+	buf := strings.Replace(markedLine, marker, "", 1)
 	line := uint32(0)
 
 	for i, v := range lines {
@@ -27,12 +27,20 @@ func GetPositionOfMarkedLineInFile(fileContent, markedLine, marker string) (pos 
 }
 
 func GetRangeOfMarkedLineInFile(fileContent, markedLine, marker string) (pos protocol.Range, found bool) {
-	start, found := GetPositionOfMarkedLineInFile(fileContent, markedLine, marker)
+	lineWithFirstMarker, lineWithSecondMarker := RangeMarkedLineToPositionMarkedLines(markedLine, marker)
+	start, found := GetPositionOfMarkedLineInFile(fileContent, lineWithFirstMarker, marker)
 	if !found {
 		return pos, false
 	}
-	newVar := strings.Replace(markedLine, marker, "", 1)
-	end, found := GetPositionOfMarkedLineInFile(fileContent, newVar, marker)
+	end, found := GetPositionOfMarkedLineInFile(fileContent, lineWithSecondMarker, marker)
 
 	return protocol.Range{Start: start, End: end}, found
+}
+
+func RangeMarkedLineToPositionMarkedLines(markedLine string, marker string) (string, string) {
+	lastIndex := strings.LastIndex(markedLine, marker)
+	lineWithFirstMarker := markedLine[:lastIndex] + markedLine[lastIndex+len(marker):]
+	lineWithSecondMarker := strings.Replace(markedLine, marker, "", 1)
+
+	return lineWithFirstMarker, lineWithSecondMarker
 }

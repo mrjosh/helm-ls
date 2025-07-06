@@ -48,15 +48,22 @@ func IsNodeAtPosition(node ast.Node, position *protocol.Position) bool {
 	token := node.GetToken()
 	start := token.Position
 
-	endColumn := start.Column + len(node.String())
-
 	if start.Line != int(position.Line)+1 {
 		return false
+	}
+
+	var endColumn int
+
+	if token.Next != nil && token.Next.Position.Line == token.Position.Line {
+		endColumn = token.Next.Position.Column - 1
+	} else {
+		endColumn = start.Column + len(node.String())
 	}
 
 	if start.Column <= int(position.Character)+1 && endColumn >= int(position.Character)+1 {
 		return true
 	}
+
 	return false
 }
 
