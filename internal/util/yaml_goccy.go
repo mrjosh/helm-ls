@@ -1,6 +1,8 @@
 package util
 
 import (
+	"bytes"
+
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 	"go.lsp.dev/protocol"
@@ -69,6 +71,12 @@ func IsNodeAtPosition(node ast.Node, position *protocol.Position) bool {
 
 // ReadYamlToNode will parse a YAML file into a yaml Node.
 func ReadYamlToGoccyNode(data []byte) (node ast.Node, err error) {
-	err = yaml.Unmarshal(data, &node)
+	// --- WORKAROUND ---
+	// Normalize Windows-style line endings (\r\n) to Unix-style (\n).
+	// This prevents the tokenizer bug from miscalculating line numbers.
+	// https://github.com/goccy/go-yaml/issues/560
+	normalizedData := bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n"))
+
+	err = yaml.Unmarshal(normalizedData, &node)
 	return node, err
 }
