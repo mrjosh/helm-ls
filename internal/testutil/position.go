@@ -28,6 +28,9 @@ func GetPositionOfMarkedLineInFile(fileContent, markedLine, marker string) (pos 
 }
 
 func GetRangeOfMarkedLineInFile(fileContent, markedLine, marker string) (pos protocol.Range, found bool) {
+	if strings.Count(markedLine, marker) != 2 {
+		return pos, false
+	}
 	lineWithFirstMarker, lineWithSecondMarker := RangeMarkedLineToPositionMarkedLines(markedLine, marker)
 	start, found := GetPositionOfMarkedLineInFile(fileContent, lineWithFirstMarker, marker)
 	if !found {

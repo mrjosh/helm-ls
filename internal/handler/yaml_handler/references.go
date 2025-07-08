@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/protocol"
@@ -19,9 +20,9 @@ func (h *YamlHandler) References(ctx context.Context, params *protocol.Reference
 
 	logger.Debug("YamlHandler References looking for template context", templateContext)
 
+	definitions, err := h.getDefinitionsInValues(params.TextDocument.URI, templateContext)
 	locations := h.getReferencesInTemplates(templateContext)
 
-	definitions, err := h.getDefinitionsInValues(params.TextDocument.URI, templateContext)
 	if err != nil {
 		return locations, fmt.Errorf("Adding definitions to references failed: %w", err)
 	}
@@ -32,10 +33,16 @@ func (h *YamlHandler) References(ctx context.Context, params *protocol.Reference
 
 func (h *YamlHandler) getReferencesInTemplates(templateContext symboltable.TemplateContext) []protocol.Location {
 	locations := []protocol.Location{}
+	// NOTE: GetAllTemplateDocs requires the chart to be already loaded, currently this happens when
+	// getDefinitionsInValues is called
 	for _, doc := range h.documents.GetAllTemplateDocs() {
 		// TODO(dependecy-charts): template context would need to be adjusted for dependency charts
 		// see https://github.com/mrjosh/helm-ls/issues/152
 		referenceRanges := doc.SymbolTable.GetTemplateContextRanges(append([]string{"Values"}, templateContext...))
+
+		if len(referenceRanges) > 0 {
+			charts.SyncToDisk(doc)
+		}
 
 		locations = append(locations, util.RangesToLocations(doc.URI, referenceRanges)...)
 	}

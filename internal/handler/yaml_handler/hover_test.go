@@ -65,7 +65,7 @@ func TestHover(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			h, fileContent := setupYamlHandlerTest(t, tc.filepath)
+			h, fileContent := setupYamlHandlerTest(t, tc.filepath, false)
 			pos, found := testutil.GetPositionOfMarkedLineInFile(fileContent, tc.markedLine, "^")
 			assert.True(t, found)
 

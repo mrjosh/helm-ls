@@ -20,7 +20,7 @@ func TestReferences(t *testing.T) {
 		expectedError string
 	}{
 		{
-			"Only defined in same file",
+			"Only in same values file, used in template",
 			"../../../testdata/example/values.yaml",
 			"replica^Count: 1",
 			[]testutil.ExpectedLocationsResult{
@@ -28,11 +28,15 @@ func TestReferences(t *testing.T) {
 					Filepath:   "../../../testdata/example/values.yaml",
 					MarkedLine: "§replicaCount§: 1",
 				},
+				{
+					Filepath:   "../../../testdata/example/templates/deployment.yaml",
+					MarkedLine: "replicas: {{ .Values.§replicaCount§ }}",
+				},
 			},
 			"",
 		},
 		{
-			"Defined in multiple files in same chart",
+			"Defined in multiple files in same chart, used multiple times in same file",
 			"../../../testdata/dependenciesExample/values.a.yaml",
 			"ima^ge:",
 			[]testutil.ExpectedLocationsResult{
@@ -47,6 +51,18 @@ func TestReferences(t *testing.T) {
 				{
 					Filepath:   "../../../testdata/dependenciesExample/values.a.yaml",
 					MarkedLine: "§image§:",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/templates/deployment.yaml",
+					MarkedLine: `image: "{{ .Values.§image§.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"`,
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/templates/deployment.yaml",
+					MarkedLine: `image: "{{ .Values.image.repository }}:{{ .Values.§image§.tag | default .Chart.AppVersion }}"`,
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/templates/deployment.yaml",
+					MarkedLine: "imagePullPolicy: {{ .Values.§image§.pullPolicy }}",
 				},
 			},
 			"",
@@ -65,6 +81,10 @@ func TestReferences(t *testing.T) {
 					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
 					MarkedLine: "§subchartWithoutGlobal§: worksToo",
 				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/templates/deployment.yaml",
+					MarkedLine: "example3: {{ .Values.subchartexample.§subchartWithoutGlobal§ }}",
+				},
 			},
 			"",
 		},
@@ -82,6 +102,14 @@ func TestReferences(t *testing.T) {
 					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
 					MarkedLine: "  §subchart§: works",
 				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/templates/subchart.yaml",
+					MarkedLine: "example2: {{ .Values.global.§subchart§ }}",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/templates/deployment.yaml",
+					MarkedLine: "example2: {{ .Values.global.§subchart§ }}",
+				},
 			},
 			"",
 		},
@@ -98,6 +126,10 @@ func TestReferences(t *testing.T) {
 				{
 					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
 					MarkedLine: "§subchartWithoutGlobal§: works",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/templates/subchart.yaml",
+					MarkedLine: "example3: {{ .Values.§subchartWithoutGlobal§ }}",
 				},
 			},
 			"",
@@ -120,12 +152,24 @@ func TestReferences(t *testing.T) {
 					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
 					MarkedLine: "§global§:",
 				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/templates/subchart.yaml",
+					MarkedLine: "example2: {{ .Values.§global§.subchart }}",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/templates/deployment.yaml",
+					MarkedLine: "example2: {{ .Values.§global§.subchart }}",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/.helm_ls_cache/common/templates/_capabilities.tpl",
+					MarkedLine: "((.Values.§global§).kubeVersion)",
+				},
 			},
 			"",
 		},
 		{
 			"From parent to subchart values when on subchart name",
-			"../../../testdata/dependenciesExample//values.yaml",
+			"../../../testdata/dependenciesExample/values.yaml",
 			"^subchartexample:",
 
 			[]testutil.ExpectedLocationsResult{
@@ -140,6 +184,10 @@ func TestReferences(t *testing.T) {
 				{
 					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
 					MarkedLine: "§subchartexample§:",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/templates/deployment.yaml",
+					MarkedLine: "example3: {{ .Values.§subchartexample§.subchartWithoutGlobal }}",
 				},
 			},
 			"",
@@ -169,9 +217,13 @@ func TestReferences(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			h, fileContent := setupYamlHandlerTest(t, tc.filepath)
+			h, fileContent := setupYamlHandlerTest(t, tc.filepath, true)
 			pos, found := testutil.GetPositionOfMarkedLineInFile(fileContent, tc.markedLine, "^")
 			assert.True(t, found)
+
+			// Get the chart to ensure templates are loaded
+			_, err := h.chartStore.GetChartForDoc(uri.File(tc.filepath))
+			assert.NoError(t, err)
 
 			result, err := h.References(context.Background(), &lsp.ReferenceParams{
 				TextDocumentPositionParams: lsp.TextDocumentPositionParams{

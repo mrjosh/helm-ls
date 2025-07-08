@@ -12,7 +12,7 @@ import (
 	"go.lsp.dev/uri"
 )
 
-func setupYamlHandlerTest(t *testing.T, filepath string) (handler *YamlHandler, fileContent string) {
+func setupYamlHandlerTest(t *testing.T, filepath string, loadTemplates bool) (handler *YamlHandler, fileContent string) {
 	t.Helper()
 	fileURI := uri.File(filepath)
 	documents := document.NewDocumentStore()
@@ -30,7 +30,11 @@ func setupYamlHandlerTest(t *testing.T, filepath string) (handler *YamlHandler, 
 		},
 	}
 	documents.DidOpenYamlDocument(&d, util.DefaultConfig)
-	addChartCallback := func(chart *charts.Chart) {}
+	addChartCallback := func(chart *charts.Chart) {
+		if loadTemplates {
+			documents.LoadDocsOnNewChart(chart, util.DefaultConfig)
+		}
+	}
 	chartStore := charts.NewChartStore(uri.File("."), charts.NewChart, addChartCallback)
 	h := &YamlHandler{
 		chartStore:      chartStore,
