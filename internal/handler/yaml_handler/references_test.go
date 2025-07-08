@@ -10,7 +10,7 @@ import (
 	"go.lsp.dev/uri"
 )
 
-func TestDefinition(t *testing.T) {
+func TestReferences(t *testing.T) {
 	testCases := []struct {
 		desc       string
 		filepath   string
@@ -23,7 +23,12 @@ func TestDefinition(t *testing.T) {
 			"Only defined in same file",
 			"../../../testdata/example/values.yaml",
 			"replica^Count: 1",
-			[]testutil.ExpectedLocationsResult{},
+			[]testutil.ExpectedLocationsResult{
+				{
+					Filepath:   "../../../testdata/example/values.yaml",
+					MarkedLine: "§replicaCount§: 1",
+				},
+			},
 			"",
 		},
 		{
@@ -39,6 +44,10 @@ func TestDefinition(t *testing.T) {
 					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
 					MarkedLine: "§image§:",
 				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.a.yaml",
+					MarkedLine: "§image§:",
+				},
 			},
 			"",
 		},
@@ -51,6 +60,10 @@ func TestDefinition(t *testing.T) {
 				{
 					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
 					MarkedLine: "§subchartWithoutGlobal§: works",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
+					MarkedLine: "§subchartWithoutGlobal§: worksToo",
 				},
 			},
 			"",
@@ -65,6 +78,10 @@ func TestDefinition(t *testing.T) {
 					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
 					MarkedLine: "  §subchart§: works",
 				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
+					MarkedLine: "  §subchart§: works",
+				},
 			},
 			"",
 		},
@@ -77,6 +94,10 @@ func TestDefinition(t *testing.T) {
 				{
 					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
 					MarkedLine: "§subchartWithoutGlobal§: worksToo",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
+					MarkedLine: "§subchartWithoutGlobal§: works",
 				},
 			},
 			"",
@@ -93,6 +114,10 @@ func TestDefinition(t *testing.T) {
 				},
 				{
 					Filepath:   "../../../testdata/dependenciesExample/values.a.yaml",
+					MarkedLine: "§global§:",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
 					MarkedLine: "§global§:",
 				},
 			},
@@ -112,6 +137,10 @@ func TestDefinition(t *testing.T) {
 					Filepath:   "../../../testdata/dependenciesExample/values.b.yaml",
 					MarkedLine: "§subchartexample§:",
 				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
+					MarkedLine: "§subchartexample§:",
+				},
 			},
 			"",
 		},
@@ -129,6 +158,10 @@ func TestDefinition(t *testing.T) {
 					Filepath:   "../../../testdata/nestedDependenciesExample/values.yaml",
 					MarkedLine: "  §twiceNested§:",
 				},
+				{
+					Filepath:   "../../../testdata/nestedDependenciesExample/charts/onceNested/values.yaml",
+					MarkedLine: "§twiceNested§:",
+				},
 			},
 			"",
 		},
@@ -140,7 +173,7 @@ func TestDefinition(t *testing.T) {
 			pos, found := testutil.GetPositionOfMarkedLineInFile(fileContent, tc.markedLine, "^")
 			assert.True(t, found)
 
-			result, err := h.Definition(context.Background(), &lsp.DefinitionParams{
+			result, err := h.References(context.Background(), &lsp.ReferenceParams{
 				TextDocumentPositionParams: lsp.TextDocumentPositionParams{
 					TextDocument: lsp.TextDocumentIdentifier{
 						URI: uri.File(tc.filepath),

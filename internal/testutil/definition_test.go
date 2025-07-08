@@ -9,7 +9,7 @@ import (
 )
 
 func TestExpectedDefinitionResultGetLocation(t *testing.T) {
-	sut := ExpectedDefinitionResult{
+	sut := ExpectedLocationsResult{
 		Filepath:   "../../testdata/example/values.yaml",
 		MarkedLine: "§replicaCount§: 1",
 	}

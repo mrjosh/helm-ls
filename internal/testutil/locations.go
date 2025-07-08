@@ -10,13 +10,13 @@ import (
 	"go.lsp.dev/uri"
 )
 
-type ExpectedDefinitionResult struct {
+type ExpectedLocationsResult struct {
 	Filepath string
 	// the expected line with the range marked using §§
 	MarkedLine string
 }
 
-func (expected ExpectedDefinitionResult) GetLocation() (protocol.Location, error) {
+func (expected ExpectedLocationsResult) GetLocation() (protocol.Location, error) {
 	fileContent, err := os.ReadFile(expected.Filepath)
 	if err != nil {
 		return protocol.Location{}, err
@@ -29,7 +29,7 @@ func (expected ExpectedDefinitionResult) GetLocation() (protocol.Location, error
 	return protocol.Location{URI: uri.File(expected.Filepath), Range: foundRange}, nil
 }
 
-func AssertDefinitionResult(t *testing.T, actual []protocol.Location, expected []ExpectedDefinitionResult) {
+func AssertLocationsResult(t *testing.T, actual []protocol.Location, expected []ExpectedLocationsResult) {
 	t.Helper()
 	expectedLocations := []protocol.Location{}
 
