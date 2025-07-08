@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
+	"github.com/mrjosh/helm-ls/internal/testutil"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
 	lsp "go.lsp.dev/protocol"
@@ -153,9 +153,9 @@ func TestDefinitionChart(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			lines := strings.Split(string(fileContent), "\n")
 
-			pos, found := getPosition(tc, lines)
+			pos, found := testutil.GetPositionOfMarkedLineInFile(
+				string(fileContent), tc.templateLineWithMarker, "^")
 			if !found {
 				t.Fatalf("%s is not in the file %s", tc.templateLineWithMarker, fileURI.Filename())
 			}
@@ -211,22 +211,4 @@ func TestDefinitionChart(t *testing.T) {
 			os.RemoveAll(filepath.Join(rootUri.Filename(), "charts", charts.DependencyCacheFolder))
 		})
 	}
-}
-
-func getPosition(tC testCase, lines []string) (lsp.Position, bool) {
-	col := strings.Index(tC.templateLineWithMarker, "^")
-	buf := strings.Replace(tC.templateLineWithMarker, "^", "", 1)
-	line := uint32(0)
-	found := false
-
-	for i, v := range lines {
-		if strings.Contains(v, buf) {
-			found = true
-			line = uint32(i)
-			col = col + strings.Index(v, buf)
-			break
-		}
-	}
-	pos := lsp.Position{Line: line, Character: uint32(col)}
-	return pos, found
 }
