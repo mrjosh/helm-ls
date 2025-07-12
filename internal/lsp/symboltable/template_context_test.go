@@ -37,6 +37,18 @@ func TestTemplateContextFromYAMLPath(t *testing.T) {
 			yamlPath:                ".something.in.there",
 			expectedTemplateContext: TemplateContext{"", "something", "in", "there"},
 		},
+		{
+			yamlPath:                "$.foo.'bar.baz-*'.hoge",
+			expectedTemplateContext: TemplateContext{"foo", "bar.baz-*", "hoge"},
+		},
+		{
+			yamlPath:                "$.foo.\\'bar.baz-*.hoge",
+			expectedTemplateContext: TemplateContext{"foo", "'bar", "baz-*", "hoge"},
+		},
+		{
+			yamlPath:                "$.foo.'ba\\'r.baz-*'.hoge",
+			expectedTemplateContext: TemplateContext{"foo", "ba'r.baz-*", "hoge"},
+		},
 	}
 
 	for _, v := range testCases {

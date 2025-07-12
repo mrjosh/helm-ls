@@ -36,6 +36,22 @@ func TestReferences(t *testing.T) {
 			"",
 		},
 		{
+			"Defined in multiple files in same chart with dot",
+			"../../../testdata/dependenciesExample/values.a.yaml",
+			"with.d^ot",
+			[]testutil.ExpectedLocationsResult{
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.yaml",
+					MarkedLine: "§\"with.do§t\":",
+				},
+				{
+					Filepath:   "../../../testdata/dependenciesExample/values.a.yaml",
+					MarkedLine: "§\"with.do§t\":",
+				},
+			},
+			"",
+		},
+		{
 			"Defined in multiple files in same chart, used multiple times in same file",
 			"../../../testdata/dependenciesExample/values.a.yaml",
 			"ima^ge:",

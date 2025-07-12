@@ -55,16 +55,55 @@ func NewTemplateContext(string string) TemplateContext {
 // ..    : recursive descent (not supported)
 // [num] : object/element of array by number
 // [*]   : all objects/elements for array. (not supported)
-func TemplateContextFromYAMLPath(jsonPath string) TemplateContext {
-	spliited := strings.Split(jsonPath, ".")
+func TemplateContextFromYAMLPath(path string) TemplateContext {
+	// Strip leading "$." if present
+	if strings.HasPrefix(path, "$.") {
+		path = path[2:]
+	} else if path == "$" {
+		return TemplateContext{}
+	}
 
-	if len(spliited) > 0 && spliited[0] == "$" {
-		spliited = spliited[1:]
+	var parts []string
+	var buf strings.Builder
+	inQuote := false
+	escaped := false
+
+	// we expect single quotes only
+	for _, r := range path {
+		switch {
+		case escaped:
+			// whatever character follows a backslash in a quote is taken literally
+			buf.WriteRune(r)
+			escaped = false
+
+		case r == '\\':
+			// begin escape mode
+			escaped = true
+
+		case r == '\'':
+			// toggle in-quote mode
+			inQuote = !inQuote
+			// Note: we do not write the quote itself into the buffer
+
+		case r == '.' && !inQuote:
+			// segment separator
+			parts = append(parts, buf.String())
+			buf.Reset()
+
+		default:
+			// any other character goes into the current buffer
+			buf.WriteRune(r)
+		}
 	}
-	for i := range spliited {
-		spliited[i] = convertYAMLPathElement(spliited[i])
+	// flush last segment
+	if buf.Len() > 0 {
+		parts = append(parts, buf.String())
 	}
-	return spliited
+
+	for i := range parts {
+		parts[i] = convertYAMLPathElement(parts[i])
+	}
+	return parts
 }
 
 var yamlPathIndexRegex = regexp.MustCompile(`\[\d+\]$`)
