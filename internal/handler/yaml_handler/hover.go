@@ -27,7 +27,7 @@ func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (*lsp.
 	valuesResult, valuesErr := h.otherValuesFilesHover(params, templateContext)
 
 	if yamlResult == nil {
-		return protocol.BuildHoverResponse(templateContext.Format()+"\n\n"+valuesResult, lsp.Range{}), errors.Join(yamllsErr, yamlPathErr, valuesErr)
+		yamlResult = &lsp.Hover{}
 	}
 
 	yamlResult.Contents.Value = yamlResult.Contents.Value + "\n\n" + templateContext.Format() + "\n\n" + valuesResult
@@ -48,6 +48,10 @@ func (h *YamlHandler) otherValuesFilesHover(params *lsp.HoverParams, templateCon
 	)
 	for _, valuesFiles := range valuesFiles {
 		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
+			if valuesFile.URI == params.TextDocument.URI {
+				// skip current document
+				continue
+			}
 			logger.Debug(fmt.Sprintf("Looking for selector: %s in values %v", strings.Join(valuesFiles.Selector, "."), valuesFile.Values))
 			result, err := util.GetTableOrValueForSelector(valuesFile.Values, valuesFiles.Selector)
 
