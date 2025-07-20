@@ -2,6 +2,8 @@ package yamlhandler
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/mrjosh/helm-ls/internal/testutil"
@@ -65,14 +67,14 @@ func TestHover(t *testing.T) {
 			"Hover on value defined in multiple files",
 			"../../../testdata/dependenciesExample/values.yaml",
 			`"wi^th.dot": hi`,
-			"\n\nglobal.with.dot\n\n### ../../../testdata/dependenciesExample/values.a.yaml\n```yaml\nhi\n```\n",
+			fmt.Sprintf("\n\nglobal.with.dot\n\n### %s\n```yaml\nhi\n```\n", filepath.ToSlash("../../../testdata/dependenciesExample/values.a.yaml")),
 			"",
 		},
 		{
 			"Hover on global",
 			"../../../testdata/dependenciesExample/values.yaml",
 			`glob^al:`,
-			"\n\nglobal\n\n### ../../../testdata/dependenciesExample/values.a.yaml\n```yaml\nglobalFromFileA: hi\nwith.dot: hi\n```\n### ../../../testdata/dependenciesExample/charts/subchartexample/values.yaml\n```yaml\nglobalFromSubchart: works\nsubchart: works\n```\n",
+			fmt.Sprintf("\n\nglobal\n\n### %s\n```yaml\nglobalFromFileA: hi\nwith.dot: hi\n```\n### %s\n```yaml\nglobalFromSubchart: works\nsubchart: works\n```\n", filepath.ToSlash("../../../testdata/dependenciesExample/values.a.yaml"), filepath.ToSlash("../../../testdata/dependenciesExample/charts/subchartexample/values.yaml")),
 			"",
 		},
 	}
