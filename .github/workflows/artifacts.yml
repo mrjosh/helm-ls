@@ -16,6 +16,8 @@ on:
 jobs:
   artifacts:
     name: artifacts
+    permissions:
+      contents: read
     strategy:
       matrix:
         go-version: [1.23]
