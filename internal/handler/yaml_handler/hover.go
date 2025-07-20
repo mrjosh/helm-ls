@@ -13,24 +13,28 @@ import (
 )
 
 // Hover implements handler.LangHandler.
-func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error) {
+func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (*lsp.Hover, error) {
 	logger.Debug("YamlHandler Hover", params)
 
 	yamlResult, yamllsErr := h.yamllsConnector.CallHover(ctx, *params)
-	path, err := h.getYamlPath(params.TextDocument.URI, params.Position)
+	path, yamlPathErr := h.getYamlPath(params.TextDocument.URI, params.Position)
 	templateContext := symboltable.TemplateContextFromYAMLPath(path)
+
+	if yamlPathErr != nil {
+		return yamlResult, errors.Join(yamllsErr, yamlPathErr)
+	}
 
 	valuesResult, valuesErr := h.otherValuesFilesHover(params, templateContext)
 
 	if yamlResult == nil {
-		return protocol.BuildHoverResponse(templateContext.Format()+"\n\n"+valuesResult, lsp.Range{}), errors.Join(yamllsErr, err, valuesErr)
+		return protocol.BuildHoverResponse(templateContext.Format()+"\n\n"+valuesResult, lsp.Range{}), errors.Join(yamllsErr, yamlPathErr, valuesErr)
 	}
 
 	yamlResult.Contents.Value = yamlResult.Contents.Value + "\n\n" + templateContext.Format() + "\n\n" + valuesResult
 
 	// IDEA: get the definitions from other values files and include comments (documentation) in the result
 
-	return yamlResult, errors.Join(yamllsErr, err, valuesErr)
+	return yamlResult, errors.Join(yamllsErr, yamlPathErr, valuesErr)
 }
 
 func (h *YamlHandler) otherValuesFilesHover(params *lsp.HoverParams, templateContext symboltable.TemplateContext) (string, error) {
