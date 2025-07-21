@@ -67,7 +67,8 @@ func TestHover(t *testing.T) {
 			"Hover on value defined in multiple files",
 			"../../../testdata/dependenciesExample/values.yaml",
 			`"wi^th.dot": hi`,
-			fmt.Sprintf("\n\nglobal.with.dot\n\n### %s\n```yaml\nhi\n```\n", filepath.Join("..", "..", "..", "testdata", "dependenciesExample", "values.a.yaml")),
+			fmt.Sprintf("\n\nglobal.with.dot\n\n### %s\n```yaml\nhi\n```\n",
+				filepath.Join("..", "..", "..", "testdata", "dependenciesExample", "values.a.yaml")),
 			"",
 		},
 		{
@@ -95,16 +96,17 @@ func TestHover(t *testing.T) {
 				},
 			})
 
-			assert.NotNil(t, result)
-			assert.Equal(t, tc.expected, result.Contents.Value)
 			if tc.expectedError == "" {
 				assert.Nil(t, err)
 				if err != nil {
 					t.Errorf("Expected no error, got %v", err.Error())
 				}
+				assert.NotNil(t, result)
+				assert.Equal(t, tc.expected, result.Contents.Value)
 			} else {
 				assert.NotNil(t, err)
 				assert.Equal(t, tc.expectedError, err.Error())
+				assert.Nil(t, result)
 			}
 		})
 	}
