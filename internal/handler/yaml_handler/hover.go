@@ -2,26 +2,64 @@ package yamlhandler
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 
+	"github.com/mrjosh/helm-ls/internal/lsp/symboltable"
+	"github.com/mrjosh/helm-ls/internal/protocol"
+	"github.com/mrjosh/helm-ls/internal/util"
 	lsp "go.lsp.dev/protocol"
 )
 
 // Hover implements handler.LangHandler.
-func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (result *lsp.Hover, err error) {
+func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (*lsp.Hover, error) {
 	logger.Debug("YamlHandler Hover", params)
-	return h.yamllsConnector.CallHover(ctx, *params)
-	// IDEA: return the json path of the current node
-	// doc, ok := h.documents.GetYamlDoc(params.TextDocument.URI)
-	//
-	// if !ok {
-	// 	return nil, fmt.Errorf("no document for %s", params.TextDocument.URI)
-	// }
-	//
-	// node := util.GetNodeForPosition(&doc.Node, params.Position)
-	//
-	// if node == nil {
-	// 	return nil, fmt.Errorf("no node found")
-	// }
-	//
-	// return protocol.BuildHoverResponse(node.Value, lsp.Range{}), doc.ParseErr
+
+	yamlResult, yamllsErr := h.yamllsConnector.CallHover(ctx, *params)
+	path, yamlPathErr := h.getYamlPath(params.TextDocument.URI, params.Position)
+	templateContext := symboltable.TemplateContextFromYAMLPath(path)
+
+	if yamlPathErr != nil {
+		return yamlResult, errors.Join(yamllsErr, yamlPathErr)
+	}
+
+	valuesResult, valuesErr := h.otherValuesFilesHover(params, templateContext)
+
+	if yamlResult == nil {
+		yamlResult = &lsp.Hover{}
+	}
+
+	yamlResult.Contents.Value = yamlResult.Contents.Value + "\n\n" + templateContext.Format() + "\n\n" + valuesResult
+
+	// IDEA: get the definitions from other values files and include comments (documentation) in the result
+
+	return yamlResult, errors.Join(yamllsErr, yamlPathErr, valuesErr)
+}
+
+func (h *YamlHandler) otherValuesFilesHover(params *lsp.HoverParams, templateContext symboltable.TemplateContext) (string, error) {
+	chart, err := h.chartStore.GetChartForDoc(params.TextDocument.URI)
+	if err != nil {
+		return "", fmt.Errorf("getting Hover failed for document, could not get chart for document: %w", err)
+	}
+	var (
+		valuesFiles  = chart.ResolveValueFiles(templateContext, h.chartStore)
+		hoverResults = protocol.HoverResultsWithFiles{}
+	)
+	for _, valuesFiles := range valuesFiles {
+		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
+			if valuesFile.URI == params.TextDocument.URI {
+				// skip current document
+				continue
+			}
+			logger.Debug(fmt.Sprintf("Looking for selector: %s in values %v", strings.Join(valuesFiles.Selector, "."), valuesFile.Values))
+			result, err := util.GetTableOrValueForSelector(valuesFile.Values, valuesFiles.Selector)
+
+			if err == nil {
+				hoverResults = append(hoverResults, protocol.HoverResultWithFile{URI: valuesFile.URI, Value: result})
+			}
+		}
+	}
+	valuesResult := hoverResults.FormatYaml(h.chartStore.RootURI)
+	return valuesResult, nil
 }

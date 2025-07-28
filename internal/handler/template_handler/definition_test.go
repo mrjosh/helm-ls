@@ -9,9 +9,9 @@ import (
 	"github.com/mrjosh/helm-ls/internal/adapter/yamlls"
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/lsp/document"
+	"github.com/mrjosh/helm-ls/internal/testutil"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
-	"go.lsp.dev/protocol"
 	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 	yamlv3 "gopkg.in/yaml.v3"
@@ -62,7 +62,7 @@ func genericDefinitionTest(t *testing.T, position lsp.Position, expectedLocation
 		ChartMetadata: &charts.ChartMetadata{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
-				Values:    make(map[string]interface{}),
+				Values:    make(map[string]any),
 				ValueNode: node,
 				URI:       testValuesURI,
 			},
@@ -168,7 +168,7 @@ func TestDefinitionValue(t *testing.T) {
 				},
 				End: lsp.Position{
 					Line:      1,
-					Character: 0,
+					Character: 3,
 				},
 			},
 		},
@@ -190,7 +190,7 @@ func TestDefinitionValueInList(t *testing.T) {
 				},
 				End: lsp.Position{
 					Line:      4,
-					Character: 0,
+					Character: 6,
 				},
 			},
 		},
@@ -211,7 +211,7 @@ func TestDefinitionValueNested(t *testing.T) {
 				},
 				End: lsp.Position{
 					Line:      3,
-					Character: 2,
+					Character: 8,
 				},
 			},
 		},
@@ -252,13 +252,13 @@ func genericDefinitionTestMultipleValuesFiles(t *testing.T, position lsp.Positio
 		ChartMetadata: &charts.ChartMetadata{},
 		ValuesFiles: &charts.ValuesFiles{
 			MainValuesFile: &charts.ValuesFile{
-				Values:    make(map[string]interface{}),
+				Values:    make(map[string]any),
 				ValueNode: node,
 				URI:       testValuesURI,
 			},
 			AdditionalValuesFiles: []*charts.ValuesFile{
 				{
-					Values:    make(map[string]interface{}),
+					Values:    make(map[string]any),
 					ValueNode: node,
 					URI:       testOtherValuesURI,
 				},
@@ -333,7 +333,7 @@ func TestDefinitionValueFileMulitpleValues(t *testing.T) {
 
 func TestDefinitionSingleLine(t *testing.T) {
 	testCases := []struct {
-		// defines a definition test where ^ is the position where the defintion is triggered
+		// defines a definition test where ^ is the position where the definition is triggered
 		// and §result§ marks the range of the result
 		templateWithMarks string
 	}{
@@ -348,13 +348,22 @@ func TestDefinitionSingleLine(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.templateWithMarks, func(t *testing.T) {
-			col := strings.Index(tc.templateWithMarks, "^")
-			buf := strings.Replace(tc.templateWithMarks, "^", "", 1)
-			pos := protocol.Position{Line: 0, Character: uint32(col - 3)}
-			expectedColStart := strings.Index(buf, "§")
-			buf = strings.Replace(buf, "§", "", 1)
-			expectedColEnd := strings.Index(buf, "§")
-			buf = strings.Replace(buf, "§", "", 1)
+			contentWithoutRangeMarks := strings.Replace(tc.templateWithMarks, "§", "", 2)
+			contentWithoutPosMark := strings.Replace(tc.templateWithMarks, "^", "", 1)
+			contentWithOutMarks := strings.Replace(contentWithoutPosMark, "§", "", 2)
+			pos, found := testutil.GetPositionOfMarkedLineInFile(contentWithoutPosMark,
+				tc.templateWithMarks, "^")
+			assert.True(t, found)
+
+			// WHY?
+			pos.Character = pos.Character - 3
+
+			foundRange, found := testutil.GetRangeOfMarkedLineInFile(
+				contentWithoutRangeMarks,
+				tc.templateWithMarks,
+				"§",
+			)
+			assert.True(t, found)
 
 			documents := document.NewDocumentStore()
 			fileURI := testDocumentTemplateURI
@@ -363,7 +372,7 @@ func TestDefinitionSingleLine(t *testing.T) {
 			d := lsp.DidOpenTextDocumentParams{
 				TextDocument: lsp.TextDocumentItem{
 					URI:  fileURI,
-					Text: buf,
+					Text: contentWithOutMarks,
 				},
 			}
 			documents.DidOpenTemplateDocument(&d, util.DefaultConfig)
@@ -382,17 +391,8 @@ func TestDefinitionSingleLine(t *testing.T) {
 			assert.NoError(t, err)
 
 			assert.Contains(t, locations, lsp.Location{
-				URI: testDocumentTemplateURI,
-				Range: lsp.Range{
-					Start: lsp.Position{
-						Line:      0,
-						Character: uint32(expectedColStart),
-					},
-					End: lsp.Position{
-						Line:      0,
-						Character: uint32(expectedColEnd),
-					},
-				},
+				URI:   testDocumentTemplateURI,
+				Range: foundRange,
 			})
 		})
 	}

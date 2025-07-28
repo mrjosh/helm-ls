@@ -139,7 +139,7 @@ Helm-ls will convert the gotemplate files in the templates directory to yaml and
 #### Values files
 
 Helm-ls will generate json-schemas for all values.\*yaml files and use yaml-language-server to provide autocompletion.
-This feature is currently beta, see https://github.com/mrjosh/helm-ls/issues/61#issuecomment-2927585818 for details.
+This feature is currently in beta, see [this discussion](https://github.com/mrjosh/helm-ls/issues/61#issuecomment-2927585818) for details.
 
 #### Install
 
@@ -357,13 +357,14 @@ Alternatively, you can include a comment such as the following at the top of Hel
 
 <video alt="demo for hover" src="https://github.com/user-attachments/assets/48413b5b-aedf-4735-aeca-aff32553f3fd"></video>
 
-| Language Construct | Example Effect                                                                     |
-| ------------------ | ---------------------------------------------------------------------------------- |
-| Values             | `.Values.replicaCount` shows the value of `replicaCount` in the values.yaml files. |
-| Built-In-Objects   | `.Chart.Name` shows the name of the Chart.                                         |
-| Includes           | `include "example.labels"` shows the defintion of the template.                    |
-| Functions          | `add` shows the docs of the add function.                                          |
-| Yaml in Templates  | `Kind` shows the docs from the yaml-schema (via yaml-language-server).             |
+| Language Construct (or filetype)      | Example Effect                                                                                                                                   |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Values                                | `.Values.replicaCount` shows the value of `replicaCount` in the values.yaml files.                                                               |
+| Built-In-Objects                      | `.Chart.Name` shows the name of the Chart.                                                                                                       |
+| Includes                              | `include "example.labels"` shows the definition of the template.                                                                                 |
+| Functions                             | `add` shows the docs of the add function.                                                                                                        |
+| Yaml in Templates                     | `Kind` shows the docs from the yaml-schema (via yaml-language-server).                                                                           |
+| [values.\*.yaml files](#values-files) | Docs from the generated schema (via yaml-language-server), YAML path, values from other values files either from the same Chart or other Charts. |
 
 </details>
 
@@ -392,11 +393,12 @@ Alternatively, you can include a comment such as the following at the top of Hel
 
 <video alt="Demo for definition and references" src="https://github.com/user-attachments/assets/e49769e9-4ddb-4b05-b075-645a9f9b9937"></video>
 
-| Language Construct | Effect                                                                              |
-| ------------------ | ----------------------------------------------------------------------------------- |
-| Values             | Go to `values*.yaml` files for template references (including child/parent Charts). |
-| Built-In-Objects   | Go to `Chart.yaml` for `Chart.*`.                                                   |
-| Includes           | Go to defintion/references of template (including child/parent Charts).             |
+| Language Construct                    | Effect                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Values                                | Go to `values*.yaml` files for template references (including child/parent Charts) or other templates. |
+| Built-In-Objects                      | Go to `Chart.yaml` for `Chart.*`.                                                                      |
+| Includes                              | Go to definition/references of templates (including child/parent Charts).                              |
+| [values.\*.yaml files](#values-files) | Go to other `values*.yaml` files (definitions) or templates using the values (references).             |
 
 </details>
 
