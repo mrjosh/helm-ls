@@ -25,6 +25,14 @@ func TestLintIgnoreList(t *testing.T) {
 	assert.Empty(t, diagnostics[uri.File("../../testdata/example/Chart.yaml").Filename()])
 }
 
+func TestLintValuesJSONSchema(t *testing.T) {
+	// Does currently not report schema validation errors
+	diagnostics := GetDiagnostics(uri.File("../../testdata/example-json-schema"), chartutil.Values{}, []string{})
+	assert.NotEmpty(t, diagnostics)
+	assert.Len(t, diagnostics, 1)
+	assert.Len(t, diagnostics[uri.File("../../testdata/example-json-schema/Chart.yaml").Filename()], 1)
+}
+
 func TestLintNotifications(t *testing.T) {
 	chart := charts.Chart{
 		RootURI: uri.File("../../testdata/example"),

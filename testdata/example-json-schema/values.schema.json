@@ -1,0 +1,143 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$ref": "#/definitions/Welcome2",
+    "definitions": {
+        "Welcome2": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "replicaCount": {
+                    "type": "integer"
+                },
+                "imageWrong": {
+                    "$ref": "#/definitions/Image"
+                },
+                "imagePullSecrets": {
+                    "type": "array",
+                    "items": {}
+                },
+                "nameOverride": {
+                    "type": "string"
+                },
+                "fullnameOverride": {
+                    "type": "string"
+                },
+                "podAnnotations": {
+                    "$ref": "#/definitions/Affinity"
+                },
+                "podLabels": {
+                    "$ref": "#/definitions/Affinity"
+                },
+                "podSecurityContext": {
+                    "$ref": "#/definitions/Affinity"
+                },
+                "securityContext": {
+                    "$ref": "#/definitions/Affinity"
+                },
+                "resources": {
+                    "$ref": "#/definitions/Affinity"
+                },
+                "livenessProbe": {
+                    "$ref": "#/definitions/NessProbe"
+                },
+                "readinessProbe": {
+                    "$ref": "#/definitions/NessProbe"
+                },
+                "volumes": {
+                    "type": "array",
+                    "items": {}
+                },
+                "volumeMounts": {
+                    "type": "array",
+                    "items": {}
+                },
+                "nodeSelector": {
+                    "$ref": "#/definitions/Affinity"
+                },
+                "tolerations": {
+                    "type": "array",
+                    "items": {}
+                },
+                "affinity": {
+                    "$ref": "#/definitions/Affinity"
+                }
+            },
+            "required": [
+                "affinity",
+                "fullnameOverride",
+                "imageWrong",
+                "imagePullSecrets",
+                "livenessProbe",
+                "nameOverride",
+                "nodeSelector",
+                "podAnnotations",
+                "podLabels",
+                "podSecurityContext",
+                "readinessProbe",
+                "replicaCount",
+                "resources",
+                "securityContext",
+                "tolerations",
+                "volumeMounts",
+                "volumes"
+            ],
+            "title": "Welcome2"
+        },
+        "Affinity": {
+            "type": "object",
+            "additionalProperties": false,
+            "title": "Affinity"
+        },
+        "Image": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "repository": {
+                    "type": "string"
+                },
+                "pullPolicy": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "pullPolicy",
+                "repository",
+                "tag"
+            ],
+            "title": "Image"
+        },
+        "NessProbe": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "httpGet": {
+                    "$ref": "#/definitions/HTTPGet"
+                }
+            },
+            "required": [
+                "httpGet"
+            ],
+            "title": "NessProbe"
+        },
+        "HTTPGet": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "path",
+                "port"
+            ],
+            "title": "HTTPGet"
+        }
+    }
+}
