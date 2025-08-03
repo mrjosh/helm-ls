@@ -1,0 +1,6 @@
+dependencies:
+- name: subchartexample
+  repository: file://../dependenciesExample/charts/subchartexample
+  version: 0.1.0
+digest: sha256:4ca6d785cb293110a14cfd230b21a1a420a5a3d817c9ebdf7d1ad8d77c139900
+generated: "2025-08-03T13:33:39.788449204+02:00"
