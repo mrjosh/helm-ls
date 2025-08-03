@@ -132,6 +132,19 @@ func TestDefinition(t *testing.T) {
 			},
 			"",
 		},
+		{
+			"From chart to dependency defined by URI",
+			"../../../testdata/dependencyFileURIExample/values.yaml",
+			"^onlyInSubchartValues:",
+
+			[]testutil.ExpectedLocationsResult{
+				{
+					Filepath:   "../../../testdata/dependenciesExample/charts/subchartexample/values.yaml",
+					MarkedLine: "§onlyInSubchartValues§: ",
+				},
+			},
+			"",
+		},
 	}
 
 	for _, tc := range testCases {
