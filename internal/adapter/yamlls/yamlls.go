@@ -35,7 +35,10 @@ func NewConnector(ctx context.Context,
 	documents *document.DocumentStore,
 	customHandler *CustomHandler,
 ) *Connector {
-	yamllsCmd := exec.Command(yamllsConfiguration.Path, "--stdio")
+	yamllsCmd := exec.Command(
+		yamllsConfiguration.Path[0],
+		append(yamllsConfiguration.Path[1:], "--stdio")...,
+	)
 
 	stdin, err := yamllsCmd.StdinPipe()
 	if err != nil {
