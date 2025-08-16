@@ -193,7 +193,7 @@ You can configure helm-ls with lsp workspace configurations.
 
 - **Enable yaml-language-server**: Toggle support of this feature.
 - **EnabledForFilesGlob**: A glob pattern defining for which files yaml-language-server should be enabled.
-- **Path to yaml-language-server**: Specify the executable location.
+- **Path to yaml-language-server**: Specify the executable location. Can be a string or an array.
 - **initTimeoutSeconds**: The timeout in seconds for the initialization of yamlls. (Increase if you get an error log like "Error initializing yamlls context deadline exceeded")
 - **Diagnostics Settings**:
 
@@ -225,7 +225,7 @@ settings = {
       enabledForFilesGlob = "*.{yaml,yml}",
       diagnosticsLimit = 50,
       showDiagnosticsDirectly = false,
-      path = "yaml-language-server",
+      path = "yaml-language-server", -- or something like { "node", "yaml-language-server.js" }
       initTimeoutSeconds = 3,
       config = {
         schemas = {
