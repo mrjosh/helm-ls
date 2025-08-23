@@ -49,6 +49,25 @@ func (p *YamllsPath) UnmarshalJSON(data []byte) error {
 	}
 }
 
+func (p *YamllsPath) GetExecutable() string {
+	if len(*p) > 0 {
+		return (*p)[0]
+	}
+	return "yaml-language-server"
+}
+
+func (p *YamllsPath) GetArgs() []string {
+	requiredArgs := []string{"--stdio"}
+	if len(*p) > 1 {
+		if (*p)[len(*p)-1] == "--stdio" {
+			return (*p)[1:]
+		} else {
+			return append((*p)[1:], requiredArgs...)
+		}
+	}
+	return requiredArgs
+}
+
 type YamllsConfiguration struct {
 	Enabled                   bool   `json:"enabled,omitempty"`
 	EnabledForFilesGlob       string `json:"enabledForFilesGlob,omitempty"`
