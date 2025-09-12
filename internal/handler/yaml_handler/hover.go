@@ -52,8 +52,13 @@ func (h *YamlHandler) otherValuesFilesHover(params *lsp.HoverParams, templateCon
 				// skip current document
 				continue
 			}
-			logger.Debug(fmt.Sprintf("Looking for selector: %s in values %v", strings.Join(valuesFiles.Selector, "."), valuesFile.Values))
-			result, err := util.GetTableOrValueForSelector(valuesFile.Values, valuesFiles.Selector)
+			values, err := h.documents.GetValues(valuesFile.URI)
+			if err != nil {
+				logger.Error("Can not get values for hover ", err)
+				continue
+			}
+			logger.Debug(fmt.Sprintf("Looking for selector: %s in values %v", strings.Join(valuesFiles.Selector, "."), values))
+			result, err := util.GetTableOrValueForSelector(values, valuesFiles.Selector)
 
 			if err == nil {
 				hoverResults = append(hoverResults, protocol.HoverResultWithFile{URI: valuesFile.URI, Value: result})

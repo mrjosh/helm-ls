@@ -10,6 +10,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	"github.com/mrjosh/helm-ls/internal/log"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/mrjosh/helm-ls/internal/util"
 	"go.lsp.dev/uri"
 )
@@ -30,6 +31,7 @@ type SchemaGenerator struct {
 	globalSchemas         []*Schema
 	definitions           map[string]*Schema
 	errors                []error
+	documentValuesRead    document.DocumentStoreValuesRead
 }
 
 // NewSchemaGenerator creates a new SchemaGenerator instance
@@ -108,7 +110,7 @@ func (g *SchemaGenerator) generateSchemaForRelatedChart(scopedValuesfiles *chart
 		}
 
 		for i, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
-			vals := valuesFile.Values.AsMap()
+			vals := g.documentValuesRead.GetValuesOrEmpty(valuesFile.URI)
 			_, err := util.GetSubValuesForSelector(vals, scopedValuesfiles.SubScope)
 			if err == nil {
 				refPointers = append(refPointers, fmt.Sprintf("/allOf/%d%s", i, refPointer))
@@ -134,7 +136,7 @@ func (g *SchemaGenerator) generateSchemaForRelatedChart(scopedValuesfiles *chart
 // Will add a reference to the global schema if any global values are found
 func (g *SchemaGenerator) addGlobalRef(scopedValuesfiles *charts.ScopedValuesFiles, schemFilePath uri.URI) {
 	for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
-		vals := valuesFile.Values.AsMap()
+		vals := g.documentValuesRead.GetValuesOrEmpty(valuesFile.URI)
 		_, err := util.GetSubValuesForSelector(vals, []string{GlobalDefName})
 		if err == nil {
 			globalSchemaRef := fmt.Sprintf("%s#/$defs/%s",
@@ -158,7 +160,7 @@ func (g *SchemaGenerator) getDescriptionForGlobalValues(valuesFile *charts.Value
 }
 
 func (g *SchemaGenerator) processGlobalValsForCurrentChart(valuesFile *charts.ValuesFile) map[string]any {
-	subVals := valuesFile.Values.AsMap()
+	subVals := g.documentValuesRead.GetValuesOrEmpty(valuesFile.URI)
 
 	globalVals, ok := subVals[GlobalDefName]
 	if !ok {

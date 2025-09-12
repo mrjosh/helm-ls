@@ -59,7 +59,11 @@ func (f *TemplateContextFeature) valuesCompletion(templateContext symboltable.Te
 	m := make(map[string]lsp.CompletionItem)
 	for _, queriedValuesFiles := range f.Chart.ResolveValueFiles(templateContext.Tail(), f.ChartStore) {
 		for _, valuesFile := range queriedValuesFiles.ValuesFiles.AllValuesFiles() {
-			for _, item := range util.GetValueCompletion(valuesFile.Values, queriedValuesFiles.Selector) {
+			values, err := f.DocumentStore.GetValues(valuesFile.URI)
+			if err != nil {
+				continue
+			}
+			for _, item := range util.GetValueCompletion(values, queriedValuesFiles.Selector) {
 				m[item.InsertText] = item
 			}
 		}

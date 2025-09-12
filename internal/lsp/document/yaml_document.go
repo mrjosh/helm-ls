@@ -76,3 +76,24 @@ func (d *YamlDocument) GetPathForPosition(position lsp.Position) (string, error)
 
 	return node.GetPath(), nil
 }
+
+type DocumentStoreValuesRead interface {
+	GetValues(uri uri.URI) (map[string]any, error)
+	GetValuesOrEmpty(uri uri.URI) map[string]any
+}
+
+func (docs *DocumentStore) GetValues(uri uri.URI) (map[string]any, error) {
+	doc, ok := docs.GetYamlDoc(uri)
+	if !ok {
+		return nil, fmt.Errorf("document %s not found", uri.Filename())
+	}
+	return doc.ParsedYaml, nil
+}
+
+func (docs *DocumentStore) GetValuesOrEmpty(uri uri.URI) map[string]any {
+	values, _ := docs.GetValues(uri)
+	if values == nil {
+		return map[string]any{}
+	}
+	return values
+}

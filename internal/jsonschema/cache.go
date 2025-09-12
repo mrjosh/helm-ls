@@ -9,8 +9,10 @@ import (
 	"sync"
 
 	"github.com/mrjosh/helm-ls/internal/charts"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"go.lsp.dev/uri"
 	"golang.org/x/sync/singleflight"
+	"helm.sh/helm/v3/pkg/chartutil"
 )
 
 type JSONSchemaConfig struct {
@@ -23,13 +25,14 @@ type cachedGeneratedJSONSchema struct {
 }
 
 type JSONSchemaCache struct {
-	config            JSONSchemaConfig
-	mu                sync.RWMutex
-	cache             map[uri.URI]cachedGeneratedJSONSchema
-	singleflightGroup singleflight.Group
-	schemaCreation    func(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error)
-	chartStore        *charts.ChartStore
-	schemaFilesDir    string
+	config             JSONSchemaConfig
+	mu                 sync.RWMutex
+	cache              map[uri.URI]cachedGeneratedJSONSchema
+	singleflightGroup  singleflight.Group
+	schemaCreation     func(chart *charts.Chart, chartStore *charts.ChartStore, getSchemaPathForChart func(chart *charts.Chart) string) (GeneratedChartJSONSchema, error)
+	chartStore         *charts.ChartStore
+	schemaFilesDir     string
+	documentValuesRead document.DocumentStoreValuesRead
 }
 
 func NewJSONSchemaCache(config JSONSchemaConfig, chartStore *charts.ChartStore) (*JSONSchemaCache, error) {
@@ -70,7 +73,7 @@ func (c *JSONSchemaCache) GetJSONSchemaForChart(chart *charts.Chart) (string, er
 	}
 
 	res, resErr, _ := c.singleflightGroup.Do(chart.RootURI.Filename(), func() (any, error) {
-		if chached.checksum != getChecksum(chart) {
+		if chached.checksum != c.getChecksum(chart) {
 			return c.createJSONSchemaAndCache(chart)
 		} else {
 			return chached.schemaFilePath, nil
@@ -94,7 +97,7 @@ func (c *JSONSchemaCache) createJSONSchemaAndCache(chart *charts.Chart) (string,
 	}
 	c.writeCache(chart.RootURI,
 		cachedGeneratedJSONSchema{
-			checksum:       getChecksum(chart),
+			checksum:       c.getChecksum(chart),
 			schemaFilePath: fileName,
 		})
 
@@ -119,11 +122,12 @@ func (c *JSONSchemaCache) processDependencies(generatedChartJSONSchema Generated
 	wg.Wait()
 }
 
-func getChecksum(chart *charts.Chart) uint32 {
+func (c *JSONSchemaCache) getChecksum(chart *charts.Chart) uint32 {
 	totalContent := []byte{}
 
 	for _, value := range chart.ValuesFiles.AllValuesFiles() {
-		content, err := value.Values.YAML()
+		var vals chartutil.Values = c.documentValuesRead.GetValuesOrEmpty(value.URI)
+		content, err := vals.YAML()
 		if err != nil {
 			logger.Error(err)
 			continue
@@ -135,7 +139,7 @@ func getChecksum(chart *charts.Chart) uint32 {
 }
 
 func (c *JSONSchemaCache) GetSchemaPathForChart(chart *charts.Chart) string {
-	id := getChecksum(chart)
+	id := c.getChecksum(chart)
 
 	return filepath.Join(c.schemaFilesDir, fmt.Sprintf("%d-%s.json", id, chart.Name()))
 }

@@ -11,6 +11,10 @@ import (
 	"go.lsp.dev/uri"
 )
 
+type DocumentStoreRead interface {
+	GetYamlDoc(docuri uri.URI) (*YamlDocument, bool)
+}
+
 // documentStore holds opened documents.
 type DocumentStore struct {
 	documents sync.Map

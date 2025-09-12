@@ -103,8 +103,9 @@ func (f *TemplateContextFeature) valuesHover(templateContext symboltable.Templat
 	)
 	for _, valuesFiles := range valuesFiles {
 		for _, valuesFile := range valuesFiles.ValuesFiles.AllValuesFiles() {
-			logger.Debug(fmt.Sprintf("Looking for selector: %s in values %v", strings.Join(valuesFiles.Selector, "."), valuesFile.Values))
-			result, err := util.GetTableOrValueForSelector(valuesFile.Values, valuesFiles.Selector)
+			values, err := f.DocumentStore.GetValues(valuesFile.URI)
+			logger.Debug(fmt.Sprintf("Looking for selector: %s in values %v", strings.Join(valuesFiles.Selector, "."), values))
+			result, err := util.GetTableOrValueForSelector(values, valuesFiles.Selector)
 
 			if err == nil {
 				hoverResults = append(hoverResults, protocol.HoverResultWithFile{URI: valuesFile.URI, Value: result})

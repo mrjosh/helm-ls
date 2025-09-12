@@ -20,14 +20,15 @@ import (
 
 var logger = log.GetLogger()
 
-func GetDiagnosticsNotifications(chart *charts.Chart, doc *document.TemplateDocument, helmLintConfig util.HelmLintConfig) []lsp.PublishDiagnosticsParams {
+func GetDiagnosticsNotifications(chart *charts.Chart, doc *document.TemplateDocument, helmLintConfig util.HelmLintConfig, docs document.DocumentStoreValuesRead) []lsp.PublishDiagnosticsParams {
 	if !helmLintConfig.Enabled {
 		return []lsp.PublishDiagnosticsParams{}
 	}
 
-	vals := chart.ValuesFiles.MainValuesFile.Values
+	vals := docs.GetValuesOrEmpty(chart.ValuesFiles.MainValuesFile.URI)
+	overlayValues := docs.GetValuesOrEmpty(chart.ValuesFiles.OverlayValuesFile.URI)
 	if chart.ValuesFiles.OverlayValuesFile != nil {
-		vals = chartutil.CoalesceTables(chart.ValuesFiles.OverlayValuesFile.Values, chart.ValuesFiles.MainValuesFile.Values)
+		vals = chartutil.CoalesceTables(overlayValues, vals)
 	}
 
 	diagnostics := GetDiagnostics(chart.RootURI, vals, helmLintConfig.IgnoredMessages)

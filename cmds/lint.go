@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/charts"
 	helmlint "github.com/mrjosh/helm-ls/internal/helm_lint"
+	"github.com/mrjosh/helm-ls/internal/lsp/document"
 	"github.com/spf13/cobra"
 	"go.lsp.dev/uri"
 )
@@ -20,13 +21,16 @@ func newLintCmd() *cobra.Command {
 			}
 
 			rootPath := uri.File(args[0])
+			documentStore := document.NewDocumentStore()
 			chartStore := charts.NewChartStore(rootPath, charts.NewChart, func(chart *charts.Chart) {})
 			chart, err := chartStore.GetChartForURI(rootPath)
 			if err != nil {
 				return err
 			}
 
-			msgs := helmlint.GetDiagnostics(rootPath, chart.ValuesFiles.MainValuesFile.Values, []string{})
+			values := documentStore.GetValuesOrEmpty(chart.ValuesFiles.MainValuesFile.URI)
+
+			msgs := helmlint.GetDiagnostics(rootPath, values, []string{})
 
 			for _, msg := range msgs {
 				fmt.Println(msg)
