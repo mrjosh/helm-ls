@@ -55,42 +55,44 @@ func TestYamllsPath_UnmarshalJSON(t *testing.T) {
 }
 
 func TestUpdatePathFromEnv(t *testing.T) {
-	// Set up the environment variable for the test
-	os.Setenv(YAMLLS_PATH_ENV_VAR, "/test/path")
+	tests := []struct {
+		name     string
+		envValue string
+		expected YamllsPath
+	}{
+		{
+			name:     "Single Path",
+			envValue: "/test/path",
+			expected: YamllsPath{"/test/path"},
+		},
+		{
+			name:     "Multiple Paths",
+			envValue: "/test/path,yamlls.js",
+			expected: YamllsPath{"/test/path", "yamlls.js"},
+		},
+		{
+			name:     "Empty Path",
+			envValue: "",
+			expected: nil,
+		},
+	}
 
-	config := &YamllsConfiguration{}
-	config.UpdatePathFromEnv()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.envValue != "" {
+				os.Setenv(YAMLLS_PATH_ENV_VAR, tt.envValue)
+			} else {
+				os.Unsetenv(YAMLLS_PATH_ENV_VAR)
+			}
 
-	// Use assert to check the expected value
-	assert.Equal(t, YamllsPath{"/test/path"}, config.Path, "The path should be updated to the environment variable value")
+			config := &YamllsConfiguration{}
+			config.UpdatePathFromEnv()
 
-	// Clean up the environment variable
-	os.Unsetenv(YAMLLS_PATH_ENV_VAR)
-}
+			assert.Equal(t, tt.expected, config.Path, "The path should be updated to the environment variable value")
 
-func TestUpdatePathFromEnvSplit(t *testing.T) {
-	// Set up the environment variable for the test
-	os.Setenv(YAMLLS_PATH_ENV_VAR, "/test/path, yamlls.js")
-
-	config := &YamllsConfiguration{}
-	config.UpdatePathFromEnv()
-
-	// Use assert to check the expected value
-	assert.Equal(t, YamllsPath{"/test/path", " yamlls.js"}, config.Path, "The path should be updated to the environment variable value")
-
-	// Clean up the environment variable
-	os.Unsetenv(YAMLLS_PATH_ENV_VAR)
-}
-
-func TestUpdatePathFromEnv_Empty(t *testing.T) {
-	// Ensure the environment variable is not set
-	os.Unsetenv(YAMLLS_PATH_ENV_VAR)
-
-	config := &YamllsConfiguration{}
-	config.UpdatePathFromEnv()
-
-	// Use assert to check the expected value
-	assert.Empty(t, config.Path, "The path should be empty when the environment variable is not set")
+			os.Unsetenv(YAMLLS_PATH_ENV_VAR)
+		})
+	}
 }
 
 func TestYamllsPath_GetExecutable(t *testing.T) {
