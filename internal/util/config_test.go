@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,6 +52,45 @@ func TestYamllsPath_UnmarshalJSON(t *testing.T) {
 			assert.Equal(t, tt.expected, path)
 		})
 	}
+}
+
+func TestUpdatePathFromEnv(t *testing.T) {
+	// Set up the environment variable for the test
+	os.Setenv(YAMLLS_PATH_ENV_VAR, "/test/path")
+
+	config := &YamllsConfiguration{}
+	config.UpdatePathFromEnv()
+
+	// Use assert to check the expected value
+	assert.Equal(t, YamllsPath{"/test/path"}, config.Path, "The path should be updated to the environment variable value")
+
+	// Clean up the environment variable
+	os.Unsetenv(YAMLLS_PATH_ENV_VAR)
+}
+
+func TestUpdatePathFromEnvSplit(t *testing.T) {
+	// Set up the environment variable for the test
+	os.Setenv(YAMLLS_PATH_ENV_VAR, "/test/path, yamlls.js")
+
+	config := &YamllsConfiguration{}
+	config.UpdatePathFromEnv()
+
+	// Use assert to check the expected value
+	assert.Equal(t, YamllsPath{"/test/path", " yamlls.js"}, config.Path, "The path should be updated to the environment variable value")
+
+	// Clean up the environment variable
+	os.Unsetenv(YAMLLS_PATH_ENV_VAR)
+}
+
+func TestUpdatePathFromEnv_Empty(t *testing.T) {
+	// Ensure the environment variable is not set
+	os.Unsetenv(YAMLLS_PATH_ENV_VAR)
+
+	config := &YamllsConfiguration{}
+	config.UpdatePathFromEnv()
+
+	// Use assert to check the expected value
+	assert.Empty(t, config.Path, "The path should be empty when the environment variable is not set")
 }
 
 func TestYamllsPath_GetExecutable(t *testing.T) {
