@@ -98,9 +98,17 @@ func (y *YamllsConfiguration) CompileEnabledForFilesGlobObject() {
 }
 
 func (y *YamllsConfiguration) UpdatePathFromEnv() {
-	path := os.Getenv(YAMLLS_PATH_ENV_VAR)
-	if path != "" {
-		y.Path = strings.Split(path, ",")
+	if raw, ok := os.LookupEnv(YAMLLS_PATH_ENV_VAR); ok {
+		parts := strings.Split(raw, ",")
+		cleaned := make([]string, 0, len(parts))
+		for _, p := range parts {
+			if s := strings.TrimSpace(p); s != "" {
+				cleaned = append(cleaned, s)
+			}
+		}
+		if len(cleaned) > 0 {
+			y.Path = cleaned
+		}
 	}
 }
 

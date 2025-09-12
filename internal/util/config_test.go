@@ -2,7 +2,6 @@ package util
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -71,6 +70,11 @@ func TestUpdatePathFromEnv(t *testing.T) {
 			expected: YamllsPath{"/test/path", "yamlls.js"},
 		},
 		{
+			name:     "Multiple Paths with spaces",
+			envValue: "/test/path , yamlls.js",
+			expected: YamllsPath{"/test/path", "yamlls.js"},
+		},
+		{
 			name:     "Empty Path",
 			envValue: "",
 			expected: nil,
@@ -80,17 +84,13 @@ func TestUpdatePathFromEnv(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envValue != "" {
-				os.Setenv(YAMLLS_PATH_ENV_VAR, tt.envValue)
-			} else {
-				os.Unsetenv(YAMLLS_PATH_ENV_VAR)
+				t.Setenv(YAMLLS_PATH_ENV_VAR, tt.envValue)
 			}
 
 			config := &YamllsConfiguration{}
 			config.UpdatePathFromEnv()
 
 			assert.Equal(t, tt.expected, config.Path, "The path should be updated to the environment variable value")
-
-			os.Unsetenv(YAMLLS_PATH_ENV_VAR)
 		})
 	}
 }
