@@ -48,6 +48,9 @@ func IsRelevantNode(node ast.Node) bool {
 
 func IsNodeAtPosition(node ast.Node, position *protocol.Position) bool {
 	token := node.GetToken()
+	if token == nil {
+		return false
+	}
 	start := token.Position
 
 	if start.Line != int(position.Line)+1 {

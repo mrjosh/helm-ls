@@ -5,6 +5,7 @@ import (
 
 	"github.com/mrjosh/helm-ls/internal/util"
 	"github.com/stretchr/testify/assert"
+	lsp "go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
 
@@ -21,4 +22,7 @@ broken
 	`
 	doc = NewYamlDocument(uri.File("test"), []byte(brokenYaml), true, util.DefaultConfig)
 	assert.Error(t, doc.ParseErr)
+	path, err := doc.GetPathForPosition(lsp.Position{Line: 0, Character: 0})
+	assert.Error(t, err)
+	assert.Equal(t, "", path)
 }

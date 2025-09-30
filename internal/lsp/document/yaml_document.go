@@ -68,6 +68,9 @@ func parseYaml(content []byte) (yaml.Node, ast.Node, map[string]any, error) {
 }
 
 func (d *YamlDocument) GetPathForPosition(position lsp.Position) (string, error) {
+	if d.GoccyYamlNode == nil || d.ParseErr != nil {
+		return "", fmt.Errorf("YAML node not found")
+	}
 	node := util.GetNodeForPosition(d.GoccyYamlNode, position)
 
 	if node == nil {
