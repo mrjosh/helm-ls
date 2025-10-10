@@ -22,26 +22,26 @@ func TestGenerateJSONSchema(t *testing.T) {
 
 	expected := &Schema{
 		Version: "https://json-schema.org/draft/2020-12/schema",
-		Type:    "object",
+		Type:    Type{"object"},
 		Properties: map[string]*Schema{
-			"name": {Type: "string", Default: "example", Description: "description"},
-			"age":  {Type: "integer", Default: 30, Description: "description"},
+			"name": {Type: Type{"string"}, Default: "example", Description: "description"},
+			"age":  {Type: Type{"integer"}, Default: 30, Description: "description"},
 			"address": {
-				Type: "object",
+				Type: Type{"object"},
 				Properties: map[string]*Schema{
 					"city": {
-						Type:        "string",
+						Type:        Type{"string"},
 						Description: "description",
 						Default:     "ExampleCity",
 					},
 					"zip": {
-						Type: "string", Default: "12345",
+						Type: Type{"string"}, Default: "12345",
 						Description: "description",
 					},
 				},
 				Description: "description",
 			},
-			"tags": {Type: "array", Items: &Schema{Type: "string", Default: "go"}, Description: "description"},
+			"tags": {Type: Type{"array"}, Items: &Schema{Type: Type{"string"}, Default: "go"}, Description: "description"},
 		},
 		Description: "description",
 	}
