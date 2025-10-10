@@ -22,6 +22,7 @@ package jsonschema
 
 import (
 	"encoding/json"
+	"reflect"
 )
 
 // Version is the JSON Schema version.
@@ -58,7 +59,7 @@ type Schema struct {
 	AdditionalProperties *Schema            `json:"additionalProperties,omitempty"` // section 10.3.2.3
 	PropertyNames        *Schema            `json:"propertyNames,omitempty"`        // section 10.3.2.4
 	// RFC draft-bhutton-json-schema-validation-00, section 6
-	Type              string              `json:"type,omitempty"`              // section 6.1.1
+	Type              Type                `json:"type,omitempty"`              // section 6.1.1
 	Enum              []any               `json:"enum,omitempty"`              // section 6.1.2
 	Const             any                 `json:"const,omitempty"`             // section 6.1.3
 	MultipleOf        json.Number         `json:"multipleOf,omitempty"`        // section 6.2.1
@@ -110,3 +111,27 @@ var (
 // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.26
 // RFC draft-wright-json-schema-validation-00, section 5.26
 type Definitions map[string]*Schema
+
+// Type can be a string or an array of strings
+type Type []string
+
+func (p *Type) UnmarshalJSON(data []byte) error {
+	// Try unmarshaling as string
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*p = Type{s}
+		return nil
+	}
+
+	// Try unmarshaling as []string
+	var arr []string
+	if err := json.Unmarshal(data, &arr); err == nil {
+		*p = Type(arr)
+		return nil
+	}
+
+	return &json.UnmarshalTypeError{
+		Value: string(data),
+		Type:  reflect.TypeOf([]string{}),
+	}
+}
