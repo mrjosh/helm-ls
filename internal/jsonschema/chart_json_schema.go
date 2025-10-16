@@ -80,16 +80,16 @@ func (g *SchemaGenerator) Generate() (GeneratedChartJSONSchema, error) {
 
 func (g *SchemaGenerator) generateSchemaForCurrentChart(scopedValuesfiles *charts.ScopedValuesFiles) {
 	valuesSchemas := []*Schema{}
+	if schemaFileSchema := g.getSchemaFileSchema(scopedValuesfiles.Chart); schemaFileSchema != nil {
+		valuesSchemas = append(valuesSchemas, schemaFileSchema)
+	}
+
 	for _, valuesFile := range scopedValuesfiles.ValuesFiles.AllValuesFiles() {
 		subVals := g.processGlobalValsForCurrentChart(valuesFile)
 
 		schema := generateJSONSchema(subVals, g.getDescriptionForValuesSchema(valuesFile))
 
 		valuesSchemas = append(valuesSchemas, schema)
-	}
-
-	if schemaFileSchema := g.getSchemaFileSchema(scopedValuesfiles.Chart); schemaFileSchema != nil {
-		valuesSchemas = append(valuesSchemas, schemaFileSchema)
 	}
 
 	g.addCurrentChartDef(scopedValuesfiles.Chart, valuesSchemas)

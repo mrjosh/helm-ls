@@ -4,7 +4,7 @@ package jsonschema
 func generateJSONSchema(data map[string]any, description string) *Schema {
 	schema := &Schema{
 		Version:     Version,
-		Type:        "object",
+		Type:        Type{"object"},
 		Properties:  generateProperties(data, description),
 		Description: description,
 	}
@@ -30,32 +30,32 @@ func generateSchemaType(value interface{}, description string) *Schema {
 
 	switch v := value.(type) {
 	case string:
-		schema.Type = "string"
+		schema.Type = Type{"string"}
 		schema.Default = v
 
 	case int, int32, int64:
-		schema.Type = "integer"
+		schema.Type = Type{"integer"}
 		schema.Default = v
 	case float32, float64:
-		schema.Type = "number"
+		schema.Type = Type{"number"}
 		schema.Default = v
 	case bool:
-		schema.Type = "boolean"
+		schema.Type = Type{"boolean"}
 		schema.Default = v
 	case map[string]any:
-		schema.Type = "object"
+		schema.Type = Type{"object"}
 		schema.Properties = generateProperties(v, description)
 	case []any:
-		schema.Type = "array"
+		schema.Type = Type{"array"}
 		if len(v) > 0 {
 			// Only use the first element of the array to keep the schema simple.
 			// Using allOf would create a possible large schema
 			schema.Items = generateSchemaType(v[0], description)
 		} else {
-			schema.Items = &Schema{Type: "null"} // Default for empty arrays
+			schema.Items = &Schema{Type: Type{"null"}} // Default for empty arrays
 		}
 	default:
-		schema.Type = "null"
+		schema.Type = Type{"null"}
 	}
 
 	return schema
@@ -63,7 +63,7 @@ func generateSchemaType(value interface{}, description string) *Schema {
 
 func generateSchemaWithAllOf(definitions map[string]*Schema, references []*Schema) *Schema {
 	schema := &Schema{
-		Type:        "object",
+		Type:        Type{"object"},
 		Version:     Version,
 		Definitions: definitions,
 		AllOf:       references,
