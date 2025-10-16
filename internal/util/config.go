@@ -99,15 +99,26 @@ func (y *YamllsConfiguration) CompileEnabledForFilesGlobObject() {
 
 func (y *YamllsConfiguration) UpdatePathFromEnv() {
 	if raw, ok := os.LookupEnv(YAMLLS_PATH_ENV_VAR); ok {
-		parts := strings.Split(raw, ",")
-		cleaned := make([]string, 0, len(parts))
-		for _, p := range parts {
-			if s := strings.TrimSpace(p); s != "" {
-				cleaned = append(cleaned, s)
+		var cleaned []string
+
+		// Try to parse as JSON array first
+		if err := json.Unmarshal([]byte(raw), &cleaned); err == nil {
+			// Successfully parsed as JSON array
+			if len(cleaned) > 0 {
+				y.Path = cleaned
 			}
-		}
-		if len(cleaned) > 0 {
-			y.Path = cleaned
+		} else {
+			// Fall back to comma-separated format
+			parts := strings.Split(raw, ",")
+			cleaned := make([]string, 0, len(parts))
+			for _, p := range parts {
+				if s := strings.TrimSpace(p); s != "" {
+					cleaned = append(cleaned, s)
+				}
+			}
+			if len(cleaned) > 0 {
+				y.Path = cleaned
+			}
 		}
 	}
 }

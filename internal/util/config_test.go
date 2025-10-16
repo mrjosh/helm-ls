@@ -79,6 +79,11 @@ func TestUpdatePathFromEnv(t *testing.T) {
 			envValue: "",
 			expected: nil,
 		},
+		{
+			name:     "JSON array",
+			envValue: `["/path/one" , "/path/two" , "/path/three"]`,
+			expected: YamllsPath{"/path/one", "/path/two", "/path/three"},
+		},
 	}
 
 	for _, tt := range tests {
