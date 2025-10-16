@@ -2,7 +2,9 @@ package util
 
 import (
 	"encoding/json"
+	"os"
 	"reflect"
+	"strings"
 
 	"github.com/gobwas/glob"
 )
@@ -68,6 +70,8 @@ func (p *YamllsPath) GetArgs() []string {
 	return requiredArgs
 }
 
+const YAMLLS_PATH_ENV_VAR = "YAMLLS_PATH"
+
 type YamllsConfiguration struct {
 	Enabled                   bool   `json:"enabled,omitempty"`
 	EnabledForFilesGlob       string `json:"enabledForFilesGlob,omitempty"`
@@ -91,6 +95,32 @@ func (y *YamllsConfiguration) CompileEnabledForFilesGlobObject() {
 		globObject = DefaultConfig.YamllsConfiguration.EnabledForFilesGlobObject
 	}
 	y.EnabledForFilesGlobObject = globObject
+}
+
+func (y *YamllsConfiguration) UpdatePathFromEnv() {
+	if raw, ok := os.LookupEnv(YAMLLS_PATH_ENV_VAR); ok {
+		var cleaned []string
+
+		// Try to parse as JSON array first
+		if err := json.Unmarshal([]byte(raw), &cleaned); err == nil {
+			// Successfully parsed as JSON array
+			if len(cleaned) > 0 {
+				y.Path = cleaned
+			}
+		} else {
+			// Fall back to comma-separated format
+			parts := strings.Split(raw, ",")
+			cleaned := make([]string, 0, len(parts))
+			for _, p := range parts {
+				if s := strings.TrimSpace(p); s != "" {
+					cleaned = append(cleaned, s)
+				}
+			}
+			if len(cleaned) > 0 {
+				y.Path = cleaned
+			}
+		}
+	}
 }
 
 var DefaultConfig = HelmlsConfiguration{

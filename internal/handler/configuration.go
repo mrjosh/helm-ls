@@ -44,6 +44,7 @@ func (h *ServerHandler) retrieveWorkspaceConfiguration(ctx context.Context) {
 
 	h.helmlsConfig = parseWorkspaceConfiguration(rawResult, h.helmlsConfig)
 	h.helmlsConfig.YamllsConfiguration.CompileEnabledForFilesGlobObject()
+	h.helmlsConfig.YamllsConfiguration.UpdatePathFromEnv()
 	logger.Println("Workspace configuration:", h.helmlsConfig)
 	h.initializationWithConfig(ctx)
 }

@@ -53,6 +53,53 @@ func TestYamllsPath_UnmarshalJSON(t *testing.T) {
 	}
 }
 
+func TestUpdatePathFromEnv(t *testing.T) {
+	tests := []struct {
+		name     string
+		envValue string
+		expected YamllsPath
+	}{
+		{
+			name:     "Single Path",
+			envValue: "/test/path",
+			expected: YamllsPath{"/test/path"},
+		},
+		{
+			name:     "Multiple Paths",
+			envValue: "/test/path,yamlls.js",
+			expected: YamllsPath{"/test/path", "yamlls.js"},
+		},
+		{
+			name:     "Multiple Paths with spaces",
+			envValue: "/test/path , yamlls.js",
+			expected: YamllsPath{"/test/path", "yamlls.js"},
+		},
+		{
+			name:     "Empty Path",
+			envValue: "",
+			expected: nil,
+		},
+		{
+			name:     "JSON array",
+			envValue: `["/path/one" , "/path/two" , "/path/three"]`,
+			expected: YamllsPath{"/path/one", "/path/two", "/path/three"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.envValue != "" {
+				t.Setenv(YAMLLS_PATH_ENV_VAR, tt.envValue)
+			}
+
+			config := &YamllsConfiguration{}
+			config.UpdatePathFromEnv()
+
+			assert.Equal(t, tt.expected, config.Path, "The path should be updated to the environment variable value")
+		})
+	}
+}
+
 func TestYamllsPath_GetExecutable(t *testing.T) {
 	tests := []struct {
 		name     string
