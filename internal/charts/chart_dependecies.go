@@ -1,21 +1,11 @@
 package charts
 
 import (
-	"os"
-	"path/filepath"
-
 	"go.lsp.dev/uri"
 )
 
 func (c *Chart) GetDependecyURI(dependencyName string) uri.URI {
-	unpackedPath := filepath.Join(c.RootURI.Filename(), "charts", dependencyName)
-	fileInfo, err := os.Stat(unpackedPath)
-
-	if err == nil && fileInfo.IsDir() {
-		return uri.File(unpackedPath)
-	}
-
-	return uri.File(filepath.Join(c.RootURI.Filename(), "charts", DependencyCacheFolder, dependencyName))
+	return uri.File(c.getDependencyDir(dependencyName))
 }
 
 func (c *Chart) GetDependeciesTemplates() []*DependencyTemplateFile {
