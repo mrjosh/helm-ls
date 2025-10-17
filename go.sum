@@ -244,8 +244,8 @@ github.com/prometheus/common v0.63.0 h1:YR/EIY1o3mEFP/kZCD7iDMnLPlGyuU2Gb3HIcXnA
 github.com/prometheus/common v0.63.0/go.mod h1:VVFF/fBIoToEnWRVkYoXEkq3R3paCoxG9PXP74SnV18=
 github.com/prometheus/procfs v0.16.0 h1:xh6oHhKwnOJKMYiYBDWmkHqQPyiY40sny36Cmx2bbsM=
 github.com/prometheus/procfs v0.16.0/go.mod h1:8veyXUu3nGP7oaCxhX6yeaM5u4stL2FeMXnCqhDthZg=
-github.com/qvalentin/tree-sitter-go-template v0.0.0-20250610165820-39634a1eba46 h1:uBAVLZytkBe7Jn95ldrQDIJg0H4C8h0Qu6f5IyX1Jdo=
-github.com/qvalentin/tree-sitter-go-template v0.0.0-20250610165820-39634a1eba46/go.mod h1://NTvEPwayTHcEJBVDVebfX3no32b49KP5JhdYcuswY=
+github.com/qvalentin/tree-sitter-go-template v0.0.0-20251017151129-60d0bb51440d h1:wwsyJMCrfox6TzCs/S49TKhWoJN+TSy8bVfA5kPEIx8=
+github.com/qvalentin/tree-sitter-go-template v0.0.0-20251017151129-60d0bb51440d/go.mod h1://NTvEPwayTHcEJBVDVebfX3no32b49KP5JhdYcuswY=
 github.com/redis/go-redis/extra/rediscmd/v9 v9.0.5 h1:EaDatTxkdHG+U3Bk4EUr+DZ7fOGwTfezUiUJMaIcaho=
 github.com/redis/go-redis/extra/rediscmd/v9 v9.0.5/go.mod h1:fyalQWdtzDBECAQFBJuQe5bzQ02jGd5Qcbgb97Flm7U=
 github.com/redis/go-redis/extra/redisotel/v9 v9.0.5 h1:EfpWLLCyXw8PSM2/XNJLjI3Pb27yVE+gIAfeqp8LUCc=
