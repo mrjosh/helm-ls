@@ -6,7 +6,7 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.11
 	github.com/gobwas/glob v0.2.3
 	github.com/goccy/go-yaml v1.15.13
-	github.com/qvalentin/tree-sitter-go-template v0.0.0-20250610165820-39634a1eba46
+	github.com/qvalentin/tree-sitter-go-template v0.0.0-20251017151129-60d0bb51440d
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spf13/cobra v1.9.1
