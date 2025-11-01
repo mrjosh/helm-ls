@@ -5,7 +5,9 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
+	"github.com/goccy/go-yaml/token"
 	"go.lsp.dev/protocol"
+	lsp "go.lsp.dev/protocol"
 )
 
 func GetNodeForPosition(node ast.Node, position protocol.Position) ast.Node {
@@ -82,4 +84,15 @@ func ReadYamlToGoccyNode(data []byte) (node ast.Node, err error) {
 
 	err = yaml.Unmarshal(normalizedData, &node)
 	return node, err
+}
+
+func TokenToRange(token *token.Token) lsp.Range {
+	if token == nil {
+		return lsp.Range{}
+	}
+
+	return lsp.Range{
+		Start: lsp.Position{Line: uint32(token.Position.Line - 1), Character: uint32(token.Position.Column - 1)},
+		End:   lsp.Position{Line: uint32(token.Position.Line - 1), Character: uint32(token.Position.Column+len(token.Value)) + 1},
+	}
 }

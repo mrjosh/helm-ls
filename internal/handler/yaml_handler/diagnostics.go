@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 
+	helmlint "github.com/mrjosh/helm-ls/internal/helm_lint"
 	"go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
@@ -15,16 +16,22 @@ var lineNumberRegex = regexp.MustCompile("line ([0-9]+): (.*)")
 // GetDiagnostics implements handler.LangHandler.
 func (h *YamlHandler) GetDiagnostics(uri uri.URI) []protocol.PublishDiagnosticsParams {
 	doc, ok := h.documents.GetYamlDoc(uri)
+	chart, err := h.chartStore.GetChartForDoc(uri)
+	diagnostics := []protocol.Diagnostic{}
 
 	if !ok {
 		return nil
+	}
+
+	if err == nil {
+		diagnostics = append(diagnostics, helmlint.LintUnusedValues(chart, doc, h.documents.GetAllTemplateDocs())...)
 	}
 
 	if doc.ParseErr == nil {
 		logger.Debug("YamlHandler:  No parse error")
 		return []protocol.PublishDiagnosticsParams{{
 			URI:         uri,
-			Diagnostics: []protocol.Diagnostic{},
+			Diagnostics: diagnostics,
 		}}
 	}
 
@@ -55,25 +62,23 @@ func (h *YamlHandler) GetDiagnostics(uri uri.URI) []protocol.PublishDiagnosticsP
 	return []protocol.PublishDiagnosticsParams{
 		{
 			URI: uri,
-			Diagnostics: []protocol.Diagnostic{
-				{
-					Range: protocol.Range{
-						Start: protocol.Position{
-							Line:      lineUint,
-							Character: 0,
-						},
-						End: protocol.Position{
-							Line:      lineUint + 1,
-							Character: 0,
-						},
+			Diagnostics: append(diagnostics, protocol.Diagnostic{
+				Range: protocol.Range{
+					Start: protocol.Position{
+						Line:      lineUint,
+						Character: 0,
 					},
-					Source:             "Helm-ls YamlHandler",
-					Message:            matches[2],
-					Tags:               []protocol.DiagnosticTag{},
-					RelatedInformation: []protocol.DiagnosticRelatedInformation{},
-					Data:               nil,
+					End: protocol.Position{
+						Line:      lineUint + 1,
+						Character: 0,
+					},
 				},
-			},
+				Source:             "Helm-ls YamlHandler",
+				Message:            matches[2],
+				Tags:               []protocol.DiagnosticTag{},
+				RelatedInformation: []protocol.DiagnosticRelatedInformation{},
+				Data:               nil,
+			}),
 		},
 	}
 }
