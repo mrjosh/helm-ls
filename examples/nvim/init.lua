@@ -23,7 +23,7 @@ require("lazy").setup({
 	-- use tree-sitter for syntax highlighting
 	{
 		"nvim-treesitter/nvim-treesitter",
-		branch = "master",
+		branch = "main",
 		lazy = false,
 		build = ":TSUpdate",
 	},
@@ -65,7 +65,7 @@ vim.lsp.enable("yamlls")
 lspconfig("yamlls", {})
 
 -- setup treesitter for syntax highlighting
-require("nvim-treesitter.configs").setup({
+require("nvim-treesitter").setup({
 	-- A list of parser names, or "all" (the listed parsers MUST always be installed)
 	ensure_installed = { "yaml", "helm" },
 	-- Install parsers synchronously (only applied to `ensure_installed`)
