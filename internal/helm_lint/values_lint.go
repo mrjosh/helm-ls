@@ -43,10 +43,10 @@ func LintUnusedValues(chart *charts.Chart, doc *document.YamlDocument, templateD
 		fmt.Println(node.String())
 		result = append(result, lsp.Diagnostic{
 			Range:           util.TokenToRange(node.GetToken()),
-			Severity:        0,
+			Severity:        lsp.DiagnosticSeverityHint,
 			Code:            nil,
 			CodeDescription: &lsp.CodeDescription{},
-			Source:          "",
+			Source:          "helm-ls unused values",
 			Message:         fmt.Sprintf("Unused value: %s of type %s", node.GetPath(), node.Type()),
 			Tags: []lsp.DiagnosticTag{
 				lsp.DiagnosticTagUnnecessary,
