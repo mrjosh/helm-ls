@@ -26,7 +26,7 @@ func TestGenerateJSONSchemaTestdata(t *testing.T) {
 				return err
 			}
 
-			var input map[string]interface{}
+			var input map[string]any
 			if err = json.Unmarshal(data, &input); err != nil {
 				return err
 			}
@@ -40,6 +40,6 @@ func TestGenerateJSONSchemaTestdata(t *testing.T) {
 
 		return nil
 	})
-	assert.Equal(t, 23, count)
+	assert.True(t, count == 1 || count == 23) // one if the testdata does not include bitnami charts/ 23 if it does
 	assert.NoError(t, err)
 }
