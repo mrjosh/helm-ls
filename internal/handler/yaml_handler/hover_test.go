@@ -54,7 +54,7 @@ func TestHover(t *testing.T) {
 			"../../../testdata/example/values.yaml",
 			"pathType:^ ImplementationSpecific",
 			"",
-			"YAML node not found for position {55 19}",
+			"",
 		},
 		{
 			"Hover on nested value node",
@@ -101,8 +101,12 @@ func TestHover(t *testing.T) {
 				if err != nil {
 					t.Errorf("Expected no error, got %v", err.Error())
 				}
-				assert.NotNil(t, result)
-				assert.Equal(t, tc.expected, result.Contents.Value)
+				if tc.expected != "" {
+					assert.NotNil(t, result)
+				}
+				if result != nil {
+					assert.Equal(t, tc.expected, result.Contents.Value)
+				}
 			} else {
 				assert.NotNil(t, err)
 				assert.Equal(t, tc.expectedError, err.Error())

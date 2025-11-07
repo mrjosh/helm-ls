@@ -21,7 +21,9 @@ func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (*lsp.
 	templateContext := symboltable.TemplateContextFromYAMLPath(path)
 
 	if yamlPathErr != nil {
-		return yamlResult, errors.Join(yamllsErr, yamlPathErr)
+		// do not show the yamlPathErr since it will provide a lot of noise
+		//(e.g. when hovering over comment or other nodes that have no path)
+		return yamlResult, yamllsErr
 	}
 
 	valuesResult, valuesErr := h.otherValuesFilesHover(params, templateContext)
