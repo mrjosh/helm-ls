@@ -101,10 +101,9 @@ func TestHover(t *testing.T) {
 				if err != nil {
 					t.Errorf("Expected no error, got %v", err.Error())
 				}
-				if tc.expected != "" {
-					assert.NotNil(t, result)
-				}
-				if result != nil {
+				if tc.expected == "" {
+					assert.Nil(t, result)
+				} else {
 					assert.Equal(t, tc.expected, result.Contents.Value)
 				}
 			} else {

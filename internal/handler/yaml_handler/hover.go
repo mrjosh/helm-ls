@@ -36,7 +36,7 @@ func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (*lsp.
 
 	// IDEA: get the definitions from other values files and include comments (documentation) in the result
 
-	return yamlResult, errors.Join(yamllsErr, yamlPathErr, valuesErr)
+	return yamlResult, errors.Join(yamllsErr, valuesErr)
 }
 
 func (h *YamlHandler) otherValuesFilesHover(params *lsp.HoverParams, templateContext symboltable.TemplateContext) (string, error) {
