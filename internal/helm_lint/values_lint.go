@@ -40,7 +40,6 @@ func LintUnusedValues(chart *charts.Chart, doc *document.YamlDocument, templateD
 			continue
 		}
 
-		fmt.Println(node.String())
 		result = append(result, lsp.Diagnostic{
 			Range:           util.TokenToRange(node.GetToken()),
 			Severity:        lsp.DiagnosticSeverityHint,
