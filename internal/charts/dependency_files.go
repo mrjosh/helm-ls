@@ -1,6 +1,7 @@
 package charts
 
 import (
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,7 +27,32 @@ type PossibleDependencyFile interface {
 	GetPath() string
 }
 
+func (c *Chart) getDependencyPathFromMetadata(chartName string) string {
+	for _, dep := range c.ChartMetadata.Metadata.Dependencies {
+		if dep.Name == chartName {
+			return dep.Repository
+		}
+	}
+	return ""
+}
+
 func (c *Chart) getDependencyDir(chartName string) string {
+	dependencyURI := c.getDependencyPathFromMetadata(chartName)
+	fileURIPrefix := "file://"
+	if dependencyURI != "" && strings.HasPrefix(dependencyURI, fileURIPrefix) {
+		relativePath := dependencyURI[len(fileURIPrefix):]
+		relativePathClean, err := url.PathUnescape(relativePath)
+		if err != nil {
+			logger.Error("Could not unescape dependency file path", relativePath, err)
+		}
+		absolutePath := filepath.Join(c.RootURI.Filename(), relativePathClean)
+
+		_, err = os.Stat(absolutePath)
+		if err == nil {
+			return absolutePath
+		}
+	}
+
 	extractedPath := filepath.Join(c.RootURI.Filename(), "charts", chartName)
 	_, err := os.Stat(extractedPath)
 	if err == nil {

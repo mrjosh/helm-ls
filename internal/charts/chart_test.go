@@ -255,3 +255,20 @@ func TestGetValueLocation(t *testing.T) {
 
 	assert.Equal(t, expected, valueLocation)
 }
+
+func TestLoadsHelmChartWithDependeciesAsFileURI(t *testing.T) {
+	chart := charts.NewChart(uri.File("../../testdata/dependencyFileURIExample/"), util.ValuesFilesConfig{})
+
+	dependecyTemplates := chart.GetDependeciesTemplates()
+	assert.Len(t, dependecyTemplates, 2)
+
+	filePaths := []string{}
+	for _, dependency := range dependecyTemplates {
+		filePaths = append(filePaths, dependency.Path)
+	}
+	path, _ := filepath.Abs("../../testdata/dependenciesExample/charts/subchartexample/templates/subchart.yaml")
+	assert.Contains(t, filePaths, path)
+
+	path, _ = filepath.Abs("../../testdata/dependenciesExample/charts/subchartexample/templates/_helpers_subchart.tpl")
+	assert.Contains(t, filePaths, path)
+}
