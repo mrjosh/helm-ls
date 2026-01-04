@@ -39,6 +39,11 @@ func NewChart(rootURI uri.URI, valuesFilesConfig util.ValuesFilesConfig) *Chart 
 }
 
 func loadHelmChart(rootURI uri.URI) (helmChart *chart.Chart) {
+	if !isChartDirectory(string(rootURI)) {
+		logger.Error(fmt.Sprintf("Not loading chart %s: not a chart directory (not Chart.yaml found)", rootURI.Filename()))
+		return getFallbackHelmChart()
+	}
+
 	chartLoader, err := loader.Loader(rootURI.Filename())
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error loading chart %s: %s", rootURI.Filename(), err.Error()))
