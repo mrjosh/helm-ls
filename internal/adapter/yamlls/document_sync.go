@@ -47,6 +47,28 @@ func (yamllsConnector Connector) DocumentDidSave(params *lsp.DidSaveTextDocument
 	}
 }
 
+// fullSyncContentChangeEvent is a TextDocumentContentChangeEvent without a range,
+// which the LSP spec defines as replacing the whole document.
+type fullSyncContentChangeEvent struct {
+	Text string `json:"text"`
+}
+
+type didChangeFullSyncParams struct {
+	TextDocument   lsp.VersionedTextDocumentIdentifier `json:"textDocument"`
+	ContentChanges []fullSyncContentChangeEvent        `json:"contentChanges"`
+}
+
+func (yamllsConnector Connector) DocumentDidChangeFullSync(params *didChangeFullSyncParams) {
+	if yamllsConnector.server == nil || yamllsConnector.conn == nil {
+		return
+	}
+	logger.Debug("Sending DocumentDidChange full sync ", params.TextDocument.URI)
+	err := yamllsConnector.conn.Notify(context.Background(), lsp.MethodTextDocumentDidChange, params)
+	if err != nil {
+		logger.Error("Error calling yamlls for didChange", err)
+	}
+}
+
 func (yamllsConnector Connector) DocumentDidChange(params *lsp.DidChangeTextDocumentParams) {
 	if yamllsConnector.server == nil {
 		return

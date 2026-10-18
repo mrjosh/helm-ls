@@ -93,14 +93,20 @@ func (yamllsConnector Connector) DocumentDidChangeFullSyncTemplate(doc *document
 	logger.Debug("Sending DocumentDidChange with full sync, current content:", string(doc.Content))
 	trimmedText := lsplocal.TrimTemplate(doc.Ast.Copy(), doc.Content)
 
-	params.ContentChanges = []lsp.TextDocumentContentChangeEvent{
-		{
-			Text: trimmedText,
+	// lsp.TextDocumentContentChangeEvent always serializes its Range, so a full
+	// sync sent through it reaches yamlls as an insert at 0:0 and duplicates the
+	// document. Send the notification ourselves with a range-less change event.
+	fullSyncParams := didChangeFullSyncParams{
+		TextDocument: params.TextDocument,
+		ContentChanges: []fullSyncContentChangeEvent{
+			{
+				Text: trimmedText,
+			},
 		},
 	}
 
-	logger.Println("Sending DocumentDidChange with full sync", params)
-	yamllsConnector.DocumentDidChange(&params)
+	logger.Println("Sending DocumentDidChange with full sync", fullSyncParams)
+	yamllsConnector.DocumentDidChangeFullSync(&fullSyncParams)
 }
 
 func (yamllsConnector Connector) IsYamllsEnabled(uri lsp.URI) bool {
