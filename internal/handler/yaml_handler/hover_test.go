@@ -105,6 +105,7 @@ func TestHover(t *testing.T) {
 					assert.Nil(t, result)
 				} else {
 					assert.Equal(t, tc.expected, result.Contents.Value)
+					assert.Equal(t, lsp.Markdown, result.Contents.Kind)
 				}
 			} else {
 				assert.NotNil(t, err)

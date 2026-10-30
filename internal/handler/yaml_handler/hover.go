@@ -32,6 +32,8 @@ func (h *YamlHandler) Hover(ctx context.Context, params *lsp.HoverParams) (*lsp.
 		yamlResult = &lsp.Hover{}
 	}
 
+	// the appended content is markdown and an empty kind is invalid according to the LSP specification
+	yamlResult.Contents.Kind = lsp.Markdown
 	yamlResult.Contents.Value = yamlResult.Contents.Value + "\n\n" + templateContext.Format() + "\n\n" + valuesResult
 
 	// IDEA: get the definitions from other values files and include comments (documentation) in the result
